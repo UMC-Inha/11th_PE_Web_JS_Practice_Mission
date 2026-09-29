@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 
 import Header from "./components/layout/header";
+import Footer from "./components/layout/footer";
 import MovieGrid from "./components/movies/movie-grid";
 import Pagination from "./components/movies/pagination";
 import { movies as initialMovies } from "./data/movies";
@@ -30,19 +31,11 @@ export default function App() {
           movies={movies}
           onToggleBookmark={handleToggleBookmark}
         />
+
+        <Pagination/>
       </main>
 
-      <footer className="footer">
-        <Pagination />
-
-        <div className="tmdb-notice">
-          <img src="/images/logos/tmdb-logo.svg" alt="TMDB" />
-          <span>
-            This product uses the TMDB API but is not endorsed or certified by{" "}
-            <u>TMDB</u>.
-          </span>
-        </div>
-      </footer>
+      <Footer/>
     </div>
   );
 }
