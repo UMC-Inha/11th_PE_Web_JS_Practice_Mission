@@ -1,13 +1,34 @@
-export default function App() {
-  const movieTitle = "토이 스토리 5";
-  const genre = "애니메이션";
-  const releaseDate = "2026.06.17";
-
+function Header() {
   return (
-    <article className="movie-card">
-      <h1>{movieTitle}</h1>
-      <p>장르: {genre}</p>
-      <p>개봉일: {releaseDate}</p>
+    <header>
+      <h1>영화 목록</h1>
+    </header>
+  );
+}
+
+function MovieCard() {
+  return (
+    <article>
+      <h2>오디세이</h2>
+      <p>개봉일: 2026.08.05</p>
     </article>
+  );
+}
+
+function MovieList() {
+  return (
+    <section>
+      <MovieCard />
+      <MovieCard />
+    </section>
+  );
+}
+
+export default function App() {
+  return (
+    <main>
+      <Header />
+      <MovieList />
+    </main>
   );
 }
