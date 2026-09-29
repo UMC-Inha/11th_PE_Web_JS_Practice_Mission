@@ -1,0 +1,83 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logoButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.logoIcon {
+  width: 20px;
+  height: 20px;
+  padding: 6px;
+  box-sizing: content-box;
+  border: 1.5px solid var(--text-h);
+  border-radius: 8px;
+}
+
+.navButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.navButtonActive {
+  color: var(--text-h);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.primaryButton {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+}
