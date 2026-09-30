@@ -30,12 +30,20 @@
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-right: 48px;
   color: #161616;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.7px;
   text-decoration: none;
+}
+
+.brand img{
+  width: 20px;
+  height: 20px;
 }
 
 .navigation-list {
@@ -105,7 +113,7 @@
   place-items: center;
   border: 0;
   border-radius: 3px;
-  background: transparent;
+  background: rgb(0 0 0 / 75%);
   box-shadow: none;
 }
 
@@ -118,7 +126,7 @@
 .movie-info h2 { overflow: hidden; margin: 0 0 4px; color: #222; font-size: 11px; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .movie-info p { margin: 0; color: #8a8a8a; font-size: 10px; }
 
-.pagination { display: none; }
+.pagination {display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 48px; }
 .pagination button { display: grid; width: 34px; height: 34px; padding: 0; place-items: center; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #6d6977; font-size: 14px; }
 .pagination button:not(:disabled):hover { border-color: #ddd9e6; background: #fff; }
 .pagination button:disabled { cursor: not-allowed; opacity: .36; }

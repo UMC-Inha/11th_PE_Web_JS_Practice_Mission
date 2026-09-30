@@ -4,7 +4,10 @@ export function Header() {
   return (
     <header className="site-header">
       <div className="header-content">
-        <a className="brand" href="#top" aria-label="UMCine 홈">UMCine</a>
+        <a className="brand" href="#top" aria-label="UMCine 홈">
+          <img src="/icons/movie.svg" alt="" />
+          <span>UMCine</span>
+        </a>
         <nav aria-label="주요 메뉴">
           <ul className="navigation-list">
             {navItems.map((item) => (
