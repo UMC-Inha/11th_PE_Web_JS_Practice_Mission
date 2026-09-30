@@ -1,10 +1,22 @@
 import { useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { MovieGrid } from "../../components/movies/movie-grid";
+import { Pagination } from "../../components/movies/pagination";
 import { movies as initialMovies } from "../../data/movies";
-import "../../App.css"; // 임시: Tailwind로 다 옮긴 뒤 삭제
+
+const PAGE_SIZE = 10;
 
 export function MovieListPage() {
   const [movies, setMovies] = useState(initialMovies);
+  const { page = 1 } = useSearch({ from: "/" });
+  const navigate = useNavigate({ from: "/" });
+
+  const totalPages = Math.max(1, Math.ceil(movies.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedMovies = movies.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   function handleToggleBookmark(movieId: number) {
     setMovies((currentMovies) =>
@@ -16,12 +28,20 @@ export function MovieListPage() {
     );
   }
 
+  function handlePageChange(nextPage: number) {
+    navigate({ search: { page: nextPage > 1 ? nextPage : undefined } });
+    window.scrollTo({ top: 0 });
+  }
+
   return (
-    <div className="app">
-      <main className="page">
-        <h2 className="page__title">영화 목록</h2>
-        <MovieGrid movies={movies} onToggleBookmark={handleToggleBookmark} />
-      </main>
-    </div>
+    <main className="mx-auto w-[min(1080px,100%_-_48px)] pt-6 pb-[60px]">
+      <h2 className="mb-4 text-center text-[30px] font-extrabold">영화 목록</h2>
+      <MovieGrid movies={pagedMovies} onToggleBookmark={handleToggleBookmark} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
+    </main>
   );
 }
