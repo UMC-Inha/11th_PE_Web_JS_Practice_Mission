@@ -58,7 +58,7 @@ export function SearchPage() {
 
                 <button
                     type="submit"
-                    className="ml-[14px] h-[42px] rounded-lg bg-[#2563eb] px-[17px] text-sm font-bold text-white"
+                    className="ml-[14px] h-[42px] rounded-lg bg-[#17191e] px-[17px] text-sm font-bold text-white"
                 >
                     검색
                 </button>
@@ -109,7 +109,7 @@ export function SearchPage() {
 
                 <button
                 type="submit"
-                className="ml-[18px] h-[42px] rounded-lg bg-[#2563eb] px-[17px] text-sm font-bold text-white"
+                className="ml-[18px] h-[42px] rounded-lg bg-[#17191e] px-[17px] text-sm font-bold text-white"
                 >
                 다시 검색
                 </button>
