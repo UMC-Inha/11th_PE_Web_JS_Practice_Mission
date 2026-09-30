@@ -45,7 +45,6 @@
   text-decoration: none;
 }
 
-/* 추가: '내 정보'를 button으로 바꾸면서 생긴 기본 버튼 스타일 제거 */
 button.header__link {
   padding: 0;
   border: none;
@@ -107,91 +106,6 @@ button.header__link {
   margin: 0 0 16px;
   font-size: 30px;
   font-weight: 800;
-}
-
-/* ===== Movie Grid ===== */
-.movie-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  column-gap: 16px;
-  row-gap: 24px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.movie-grid__empty {
-  color: #888;
-}
-
-/* ===== Movie Card ===== */
-.movie-card__poster {
-  position: relative;
-  aspect-ratio: 204 / 231;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #ddd;
-}
-
-/* 추가: 포스터를 감싼 Link(a)가 포스터 영역을 꽉 채우도록 */
-.movie-card__poster > a {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* 수정: img가 a 안으로 들어가서 선택자 변경 (.movie-card__poster > img → > a > img) */
-.movie-card__poster > a > img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.movie-card__bookmark {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-}
-
-.movie-card__bookmark[aria-pressed="true"] {
-  background: #2563EB;
-  border-color: #2563EB;
-}
-
-.movie-card__bookmark img {
-  width: 14px;
-  height: 14px;
-  filter: brightness(0) invert(1);
-}
-
-.movie-card__title {
-  margin: 10px 0 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: left;
-}
-
-/* 추가: 제목 Link가 파란 밑줄 글씨로 보이지 않도록 */
-.movie-card__title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.movie-card__date {
-  margin: 0;
-  font-size: 12px;
-  color: #9ca3af;
-  text-align: left;
 }
 
 /* ===== Pagination ===== */
