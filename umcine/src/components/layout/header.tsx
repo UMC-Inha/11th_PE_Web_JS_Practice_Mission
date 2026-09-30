@@ -1,4 +1,6 @@
-export default function Header() {
+import { Link } from "@tanstack/react-router";
+
+export function Header() {
   return (
     <header className="header">
       <div className="header__inner">
@@ -8,8 +10,8 @@ export default function Header() {
             <span>UMCine</span>
           </div>
           <nav className="header__nav">
-            <a href="#" className="is-active">영화</a>
-            <a href="#">검색</a>
+            <Link to="/" className="is-active">영화</Link>
+            <Link to="/search">검색</Link>
             <a href="#">내 정보</a>
           </nav>
         </div>
