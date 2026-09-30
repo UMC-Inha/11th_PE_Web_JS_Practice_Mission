@@ -8,7 +8,7 @@ interface MovieGridProps {
 
 export default function MovieGrid({ movies, onToggleBookmark }: MovieGridProps) {
   return (
-    <section className="movie-grid">
+        <section className="grid grid-cols-5 gap-x-4 gap-y-8">
       {movies.map((movie) => (
         <MovieCard key={movie.id} movie={movie} onToggleBookmark={onToggleBookmark} />
       ))}
