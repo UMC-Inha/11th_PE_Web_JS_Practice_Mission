@@ -1,3 +1,5 @@
+/* tailwindcss를 통해 스타일을 적용할 수 있도록 index.css에서 tailwindcss를 import했으므로, movie-card.module.css에서는 tailwindcss를 import하지 않아도 됨*/
+
 .card {
   display: flex;
   flex-direction: column;
@@ -14,6 +16,10 @@
   width: 100%;
   height: 100%;
 }
+/*
+tailwindcss를 사용하면 
+
+*/
 
 .poster {
   display: block;
