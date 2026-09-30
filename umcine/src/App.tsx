@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 
-import Header from "./components/layout/header";
-import Footer from "./components/layout/footer";
+import { Header } from "./components/layout/header";
+import { Footer } from "./components/layout/footer";
 import MovieGrid from "./components/movies/movie-grid";
 import Pagination from "./components/movies/pagination";
 import { movies as initialMovies } from "./data/movies";
