@@ -1,32 +1,81 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 export function Header() {
-  return (
-    <header className="header">
-      <div className="header-inner">
-        <div className="header-left">
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
-          <Link className="logo" to="/">
-            <span className="logo-icon">
-              <img src="/icons/movie.svg" alt="" />
+  const isMoviePage =
+    pathname === "/" || pathname.startsWith("/movies/");
+
+  return (
+    <header className="h-[91px] w-full border-b border-[#e3e6eb] bg-white">
+      <div className="flex h-full w-full items-center justify-between px-20 py-6">
+        <div className="flex items-center gap-[42px]">
+
+          <Link
+            to="/"
+            className="flex items-center gap-[10px] font-[Pretendard,sans-serif] text-xl font-black tracking-[-0.7px] text-[#17191e]"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-[#17191e]">
+              <img
+                src="/icons/movie.svg"
+                alt=""
+                className="h-6 w-6"
+              />
             </span>
+
             <span>UMCine</span>
           </Link>
 
-          <nav className="nav">
-            <Link to="/">영화</Link>
-            <Link to="/search">검색</Link>
-            <a href="#">내 정보</a>
+          <nav className="flex items-center gap-[30px] font-[Pretendard,sans-serif] text-sm font-bold">
+            <Link
+              to="/"
+              className={
+                isMoviePage
+                  ? "text-[#17191e] underline underline-offset-4"
+                  : "text-[#606774]"
+              }
+            >
+              영화
+            </Link>
+
+            <Link
+              to="/search"
+              activeProps={{
+                className: "text-[#17191e] underline underline-offset-4",
+              }}
+              inactiveProps={{
+                className: "text-[#606774]",
+              }}
+            >
+              검색
+            </Link>
+
+            <a href="#" className="text-[#606774]">
+              내 정보
+            </a>
           </nav>
 
         </div>
 
-        <div className="header-right">
-          <button className="search-button" type="button">
-            <img src="/icons/search.svg" alt="검색" />
-          </button>
+        <div className="flex items-center gap-[10px]">
+          <Link
+            to="/search"
+            aria-label="영화 검색"
+            className="flex h-[42px] w-[42px] items-center justify-center rounded-lg border border-[#e3e6eb] bg-white"
+          >
+            <img
+              src="/icons/search.svg"
+              alt=""
+              className="h-6 w-6"
+            />
+          </Link>
 
-          <button className="login-button" type="button">
+          <button
+            type="button"
+            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 font-[Pretendard,sans-serif] text-sm font-extrabold text-white"
+          >
             로그인
           </button>
         </div>
