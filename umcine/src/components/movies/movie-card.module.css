@@ -1,3 +1,5 @@
+/* tailwindcss를 통해 스타일을 적용할 수 있도록 index.css에서 tailwindcss를 import했으므로, movie-card.module.css에서는 tailwindcss를 import하지 않아도 됨*/
+
 .card {
   display: flex;
   flex-direction: column;
@@ -7,6 +9,17 @@
 .posterWrapper {
   position: relative;
 }
+
+/* 포스터 링크가 wrapper 내부를 꽉 채우도록 설정 */
+.posterLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/*
+tailwindcss를 사용하면 
+
+*/
 
 .poster {
   display: block;
@@ -29,6 +42,7 @@
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.55);
   cursor: pointer;
+  z-index: 2; /* 링크보다 위에 위치하도록 설정하여 클릭 보장 */
 }
 
 .bookmarkButtonActive {
@@ -38,6 +52,16 @@
 .bookmarkIcon {
   width: 16px;
   height: 16px;
+}
+
+/* 제목 링크 기본 스타일 리셋 */
+.titleLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.titleLink:hover .title {
+  color: #3b82f6; /* 마우스 올렸을 때 제목에 포인트 컬러 (선택사항) */
 }
 
 .title {
