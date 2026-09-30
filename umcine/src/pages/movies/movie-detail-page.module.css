@@ -1,0 +1,189 @@
+.hero {
+  position: relative;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 32px;
+  background-size: cover;
+  background-position: center;
+  background-color: #111318;
+  color: #fff;
+  text-align: left;
+  padding: 20px 32px 24px;
+  box-sizing: border-box;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.backLink {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: #fff;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.backLink img {
+  width: 14px;
+  height: 14px;
+  filter: invert(1);
+}
+
+.heroInfo {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.originalTitle {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.meta {
+  margin: 0;
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 32px;
+}
+
+.posterColumn {
+  flex-shrink: 0;
+}
+
+.poster {
+  display: block;
+  width: 160px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.infoColumn {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.tagline {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.overview {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 160%;
+  color: var(--text);
+}
+
+.bookmarkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.bookmarkButton img {
+  width: 16px;
+  height: 16px;
+  filter: invert(1);
+}
+
+.ratingColumn {
+  flex-shrink: 0;
+  width: 260px;
+  padding-left: 32px;
+  border-left: 1px solid var(--border);
+  text-align: left;
+}
+
+.ratingTitle {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.ratingHint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.stars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.stars img {
+  width: 22px;
+  height: 22px;
+}
+
+.reviewInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 90px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  color: var(--text-h);
+  resize: vertical;
+}
+
+.saveButton {
+  width: 100%;
+  border: none;
+  background: var(--text-h);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.notFound {
+  padding: 64px 32px;
+  text-align: center;
+  color: var(--text);
+}

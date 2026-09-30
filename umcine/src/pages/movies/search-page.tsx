@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { movies } from "../../data/movies";
+import styles from "./search-page.module.css";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" }); //useSearch로 검증된 query값을 가져온다.
@@ -28,47 +29,99 @@ export function SearchPage() {
     });
   }
 
-  return (
-    <main>
-      <h1>영화 검색</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          aria-label="검색어"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-        />
-        <button type="submit">검색</button>
-      </form>
+  function handleClear() {
+    setSearchText("");
+    navigate({ search: {} });
+  }
 
-      {!normalizedQuery ? (
-        <p>검색어를 입력해 주세요.</p>
-      ) : (
-        <>
-          <h2>‘{query}’ 검색 결과</h2>
-          <p>영화 {searchResults.length}편</p>
-          {searchResults.length === 0 ? (
-            <p>검색 결과가 없어요.</p>
-          ) : (
-            <ul>
-              {searchResults.map((movie) => (
-                <li key={movie.id}>
-                  <img src={movie.posterPath} alt={`${movie.title} 포스터`} />
-                  <h3>{movie.title}</h3>
-                  <p>{movie.originalTitle}</p>
-                  <p>{movie.releaseDate}</p>
-                  <p>{movie.overview}</p>
+  const searchBar = (
+    <div className={styles.searchBar}>
+      <img src="/icons/search.svg" alt="" className={styles.searchIcon} />
+      <input
+        aria-label="검색어"
+        className={styles.searchInput}
+        placeholder="예: 스파이더맨"
+        value={searchText}
+        onChange={(event) => setSearchText(event.target.value)}
+      />
+      {searchText && (
+        <button
+          type="button"
+          className={styles.clearButton}
+          onClick={handleClear}
+        >
+          <img src="/icons/close.svg" alt="검색어 지우기" />
+        </button>
+      )}
+    </div>
+  );
+
+  if (!normalizedQuery) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.emptyState}>
+          <h2 className={styles.emptyHeading}>어떤 영화를 찾고 있나요?</h2>
+          <form className={styles.searchBarRow} onSubmit={handleSubmit}>
+            {searchBar}
+            <button type="submit" className={styles.submitButton}>
+              검색
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.page}>
+      <div className={styles.resultsState}>
+        <h2 className={styles.heading}>영화 검색</h2>
+
+        <form className={styles.searchBarRow} onSubmit={handleSubmit}>
+          {searchBar}
+          <button type="submit" className={styles.submitButton}>
+            다시 검색
+          </button>
+        </form>
+
+        <div className={styles.resultsHeader}>
+          <h3 className={styles.resultsTitle}>'{query}' 검색 결과</h3>
+          <p className={styles.resultsCount}>
+            영화 {searchResults.length}편 · 1페이지
+          </p>
+        </div>
+
+        {searchResults.length === 0 ? (
+          <p className={styles.emptyResults}>검색 결과가 없어요.</p>
+        ) : (
+          <ul className={styles.resultList}>
+            {searchResults.map((movie) => (
+              <li key={movie.id} className={styles.resultItem}>
+                <img
+                  src={movie.posterPath}
+                  alt={`${movie.title} 포스터`}
+                  className={styles.resultPoster}
+                />
+                <div className={styles.resultBody}>
+                  <h4 className={styles.resultTitle}>{movie.title}</h4>
+                  <p className={styles.resultOriginalTitle}>
+                    {movie.originalTitle}
+                  </p>
+                  <p className={styles.resultDate}>{movie.releaseDate}</p>
+                  <p className={styles.resultOverview}>{movie.overview}</p>
                   <Link
                     to="/movies/$movieId"
                     params={{ movieId: String(movie.id) }}
+                    className={styles.resultLink}
                   >
-                    상세 보기
+                    상세 보기 →
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-    </main>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }

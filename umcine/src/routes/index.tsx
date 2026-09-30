@@ -8,3 +8,4 @@ export const Route = createFileRoute("/")({
 });
 
 //autoCodeSplitting 옵션을 켜면 이 페이지를 chunk로 분리해놨다가, 주소가 /일 때만 이 chunk를 불러와서 렌더링한다. (즉, 초기 로딩 속도가 빨라진다.)
+

@@ -15,3 +15,4 @@ validateSearch: search param을 검증하는 함수. URL에서 들어오는 sear
 
 - 이후 상위 __root.tsx의 <Outlet /> 빈자리에 주소가 /search일 때 갈아끼워질 실제 본문으로 SearchPage를 지정한다.
 */
+
