@@ -31,6 +31,7 @@ export function SearchPage() {
 
     if (!normalizedQuery) {
         return (
+        <div className="min-h-[calc(100vh-91px)] bg-[#f6f7f9]">
             <main className="flex min-h-[582px] w-full items-center justify-center">
             <div className="flex w-[790px] flex-col items-center gap-9">
                 <h1 className="text-[38px] font-bold tracking-[-1.71px] text-[#17191e]">
@@ -64,11 +65,12 @@ export function SearchPage() {
                 </form>
             </div>
             </main>
+        </div>
         );
     }
 
     return (
-    <div className="flex min-h-[calc(100vh-91px)] flex-col">
+    <div className="flex min-h-[calc(100vh-91px)] flex-col bg-[#f6f7f9]">
         <main className="w-full flex-1 px-20 py-6">
             <div className="flex w-full flex-col gap-[17px]">
             <h1 className="text-[38px] font-bold leading-[44px] tracking-[-1.71px] text-[#17191e]">
