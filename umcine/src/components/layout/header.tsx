@@ -1,35 +1,84 @@
-import "./header.css";
+import { Link } from "@tanstack/react-router";
+import { cn } from "../../utils/cn";
+
+function NavLink({
+  to,
+  exact,
+  children,
+}: {
+  to: "/" | "/search";
+  exact?: boolean;
+  children: string;
+}) {
+  return (
+    <Link
+      to={to}
+      activeOptions={exact ? { exact: true } : undefined}
+      className="no-underline"
+    >
+      {({ isActive }) => (
+        <span
+          className={cn(
+            "text-[15px] font-medium",
+            isActive
+              ? "font-bold text-gray-900 underline underline-offset-8"
+              : "text-gray-400",
+          )}
+        >
+          {children}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 function Header() {
   return (
-    <header className="header">
-      <div className="header__inner">
-        <div className="header__left">
-          <a className="header__logo" href="/">
-            <img src="/icons/movie.svg" alt="" aria-hidden="true" />
+    <header className="border-b border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-[1126px] items-center justify-between gap-6 px-6 py-4">
+        <div className="flex items-center gap-10">
+          <Link
+            className="flex items-center gap-1.5 text-lg font-extrabold text-gray-900 no-underline"
+            to="/"
+          >
+            <img
+              className="h-[22px] w-[22px]"
+              src="/icons/movie.svg"
+              alt=""
+              aria-hidden="true"
+            />
             <span>UMCine</span>
-          </a>
-          <nav className="header__nav">
-            <a className="header__nav-link header__nav-link--active" href="/">
+          </Link>
+          <nav className="flex items-center gap-6">
+            <NavLink to="/" exact>
               영화
-            </a>
-            <a className="header__nav-link" href="/search">
-              검색
-            </a>
-            <a className="header__nav-link" href="/mypage">
+            </NavLink>
+            <NavLink to="/search">검색</NavLink>
+            <a
+              className="text-[15px] font-medium text-gray-400 no-underline"
+              href="/mypage"
+            >
               내 정보
             </a>
           </nav>
         </div>
-        <div className="header__right">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            className="header__search"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white"
             aria-label="검색"
           >
-            <img src="/icons/search.svg" alt="" aria-hidden="true" />
+            <img
+              className="h-[18px] w-[18px]"
+              src="/icons/search.svg"
+              alt=""
+              aria-hidden="true"
+            />
           </button>
-          <button type="button" className="header__login">
+          <button
+            type="button"
+            className="h-9 rounded-lg border-none bg-app-accent px-[18px] text-sm font-bold text-white"
+          >
             로그인
           </button>
         </div>
