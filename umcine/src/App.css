@@ -1,184 +1,338 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
-
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+.app {
+  min-height: 100vh;
+  background: #f4f5f7;
+  color: #111;
 }
 
-.hero {
+/* ===== Header ===== */
+.header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header__inner {
+  width: min(1080px, 100% - 48px);
+  height: 76px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+  text-decoration: none;
+}
+
+.header__logo img {
+  width: 28px;
+  height: 28px;
+}
+
+.header__nav {
+  display: flex;
+  gap: 24px;
+}
+
+.header__link {
+  font-size: 13px;
+  color: #555;
+  text-decoration: none;
+}
+
+/* 추가: '내 정보'를 button으로 바꾸면서 생긴 기본 버튼 스타일 제거 */
+button.header__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.header__link.is-active {
+  color: #111;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+.header__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header__search {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.header__search img {
+  width: 18px;
+  height: 18px;
+}
+
+.header__login {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: #2563EB;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ===== Page ===== */
+.page {
+  width: min(1080px, 100% - 48px);
+  margin: 0 auto;
+  padding: 24px 0 60px;
+}
+
+.page__title {
+  margin: 0 0 16px;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+/* ===== Movie Grid ===== */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  column-gap: 16px;
+  row-gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.movie-grid__empty {
+  color: #888;
+}
+
+/* ===== Movie Card ===== */
+.movie-card__poster {
   position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+  aspect-ratio: 204 / 231;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ddd;
 }
 
-#center {
+/* 추가: 포스터를 감싼 Link(a)가 포스터 영역을 꽉 채우도록 */
+.movie-card__poster > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 수정: img가 a 안으로 들어가서 선택자 변경 (.movie-card__poster > img → > a > img) */
+.movie-card__poster > a > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.movie-card__bookmark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.movie-card__bookmark[aria-pressed="true"] {
+  background: #2563EB;
+  border-color: #2563EB;
+}
+
+.movie-card__bookmark img {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(1);
+}
+
+.movie-card__title {
+  margin: 10px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* 추가: 제목 Link가 파란 밑줄 글씨로 보이지 않도록 */
+.movie-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.movie-card__date {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: left;
+}
+
+/* ===== Pagination ===== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 40px;
+}
+
+.pagination__button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.pagination__button.is-active {
+  background: #4b5ee4;
+  border-color: #4b5ee4;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ===== Movie Detail ===== */
+.movie-detail {
+  text-align: left;
+}
+
+.movie-detail__hero {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  background: #111;
+  color: #fff;
+}
+
+.movie-detail__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.movie-detail__hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0) 100%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 60%);
+}
+
+.movie-detail__hero-inner {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(1080px, 100% - 48px);
+  height: 100%;
+  margin: 0 auto;
+  padding: 20px 0 28px;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  justify-content: space-between;
 }
 
-#next-steps {
+.movie-detail__back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+}
+
+.movie-detail__back img {
+  width: 14px;
+  height: 14px;
+  filter: brightness(0) invert(1);
+}
+
+.movie-detail__title {
+  margin: 0 0 8px;
+  font-size: 36px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.movie-detail__original {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+
+.movie-detail__meta {
+  margin: 0;
   display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+  font-size: 12px;
+  font-weight: 700;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+.movie-detail__body {
+  width: min(1080px, 100% - 48px);
+  margin: 0 auto;
+  padding: 20px 0 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
 }
 
-.ticks {
-  position: relative;
-  width: 100%;
+.movie-detail__poster {
+  flex-shrink: 0;
+  width: 168px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.movie-detail__tagline {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 800;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.movie-detail__overview {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #555;
+  white-space: pre-line;
+}
+
+.movie-detail__empty {
+  color: #888;
 }
