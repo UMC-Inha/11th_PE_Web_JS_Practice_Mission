@@ -1,24 +1,33 @@
+import { Link } from "@tanstack/react-router";
+
 const navItems = ["홈", "영화", "TV 프로그램", "인물", "즐겨찾기"];
 
 export function Header() {
   return (
     <header className="site-header">
       <div className="header-content">
-        <a className="brand" href="#top" aria-label="UMCine 홈">
+        <Link className="brand" to="/" aria-label="UMCine 홈">
           <img src="/icons/movie.svg" alt="" />
           <span>UMCine</span>
-        </a>
+        </Link>
         <nav aria-label="주요 메뉴">
           <ul className="navigation-list">
             {navItems.map((item) => (
               <li key={item}>
-                <a className={item === "영화" ? "is-active" : undefined} href="#movie-list">{item}</a>
+                {item === "홈" || item === "영화" ? (
+                  <Link to="/" className={item === "영화" ? "is-active" : undefined}>{item}</Link>    
+                ) : (
+                  <a href="#movie-list">{item}</a>
+                )}
               </li>
             ))}
           </ul>
         </nav>
+
         <div className="header-actions">
-          <button className="search-button" type="button" aria-label="검색"><img src="/icons/search.svg" alt="" /></button>
+          <Link className="search-button" to="/search" aria-label="검색">
+            <img src="/icons/search.svg" alt="" />
+          </Link>
           <button className="login-button" type="button">로그인</button>
         </div>
       </div>
