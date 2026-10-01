@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { Movie } from '../../types/movie'
+import { cn } from '../../utils/cn'
 
 interface MovieCardProps {
   movie: Movie
@@ -22,14 +23,19 @@ export default function MovieCard({
         </Link>
 
         <button
-          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg border-0 bg-white p-0 shadow-[0_2px_8px_rgb(23_25_30_/_12%)]"
+          className={cn(
+            'absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg p-0 shadow-[0_2px_8px_rgb(23_25_30_/_12%)]',
+            movie.isBookmarked
+              ? 'border border-[#2563eb] bg-[#2563eb]'
+              : 'border border-white/90 bg-black/60',
+          )}
           type="button"
           onClick={() => onToggleBookmark(movie.id)}
           aria-pressed={movie.isBookmarked}
           aria-label={movie.isBookmarked ? '북마크 해제' : '북마크 추가'}
         >
           <img
-            className="h-5 w-5"
+            className="h-5 w-5 brightness-0 invert"
             src={movie.isBookmarked ? '/icons/bookmark.svg' : '/icons/bookmark-outline.svg'}
             alt=""
           />
