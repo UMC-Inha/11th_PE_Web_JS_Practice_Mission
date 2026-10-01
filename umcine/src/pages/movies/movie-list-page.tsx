@@ -1,12 +1,10 @@
 import { useState } from "react";
-import Header from "./components/header";
-import MovieGrid from "./components/movie-grid";
-import Pagination from "./components/pagination";
-import Footer from "./components/footer";
-import { movies as initialMovies } from "./data/movies";
-import "./App.css";
+import MovieGrid from "../../components/movies/movie-grid";
+import Pagination from "../../components/movies/pagination";
+import Footer from "../../components/footer";
+import { movies as initialMovies } from "../../data/movies";
 
-export default function App() {
+export function MovieListPage() {
   const [movies, setMovies] = useState(initialMovies);
 
   function handleToggleBookmark(movieId: number) {
@@ -21,7 +19,6 @@ export default function App() {
 
   return (
     <>
-      <Header />
       <main className="main">
         <h1 className="main__title">영화 목록</h1>
         <MovieGrid movies={movies} onToggleBookmark={handleToggleBookmark} />
