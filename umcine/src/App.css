@@ -1,20 +1,3 @@
-.app-shell {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f9f9f9;
-}
-
-.movie-list-page {
-  width: min(100% - 160px, 1280px);
-  margin: 0 auto;
-  padding: 38px 0 58px;
-  flex: 1;
-}
-
-.page-heading { margin-bottom: 18px; }
-.page-heading h1 { margin: 0; color: #171717; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
-
 .site-header {
   height: 56px;
   border-bottom: 1px solid #ededed;
@@ -82,34 +65,9 @@
 .search-button img { width: 16px; height: 16px; }
 .login-button { padding: 7px 13px; border-radius: 4px; background: #2768e7; color: #fff; font-size: 11px; font-weight: 600; }
 
-.pagination {display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 48px; }
-.pagination button { display: grid; width: 34px; height: 34px; padding: 0; place-items: center; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #6d6977; font-size: 14px; }
-.pagination button:not(:disabled):hover { border-color: #ddd9e6; background: #fff; }
-.pagination button:disabled { cursor: not-allowed; opacity: .36; }
-.pagination .is-current { background: #201e2d; color: #fff; }
-.pagination img { width: 18px; height: 18px; }
-
-.site-footer {
-  display: flex;
-  min-height: 32px;
-  padding: 8px max(80px, calc((100vw - 1280px) / 2));
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  border-top: 1px solid #e7e7e7;
-  color: #8c8c8c;
-  background: #fff;
-  font-size: 8px;
-}
-
-.site-footer img { width: 22px; height: auto; }
-
 @media (max-width: 720px) {
-  .movie-list-page { width: min(100% - 40px, 1280px); padding: 32px 0 64px; }
-  .page-heading { margin-bottom: 28px; }
   .header-content { width: min(100% - 40px, 1280px); }
   .brand { margin-right: 28px; }
   .navigation-list { gap: 18px; }
   .navigation-list li:nth-child(n + 4) { display: none; }
-  .site-footer { padding-inline: 20px; justify-content: center; text-align: center; }
 }

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import "../../App.css";
 
-const navItems = ["홈", "영화", "TV 프로그램", "인물", "즐겨찾기"];
+const navItems = ["영화", "검색", "내 정보"];
 
 export function Header() {
   return (
@@ -15,9 +16,13 @@ export function Header() {
             {navItems.map((item) => (
               <li key={item}>
                 {item === "홈" || item === "영화" ? (
-                  <Link to="/" className={item === "영화" ? "is-active" : undefined}>{item}</Link>    
+                  <Link to="/" className={item === "영화" ? "is-active" : undefined}>
+                    {item}
+                  </Link>
+                ) : item === "검색" ? (
+                  <Link to="/search">{item}</Link>
                 ) : (
-                  <a href="#movie-list">{item}</a>
+                <a href="#movie-list">{item}</a>
                 )}
               </li>
             ))}
