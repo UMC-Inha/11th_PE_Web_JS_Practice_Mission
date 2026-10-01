@@ -27,7 +27,7 @@ export default function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
         <button
           type="button"
           className={cn(
-            "absolute right-2 top-2 grid size-7 place-items-center rounded-md",
+            "absolute right-2 top-2 grid size-8 place-items-center rounded-md",
             isBookmarked ? "bg-blue-600" : "bg-gray-900/60",
           )}
           aria-pressed={isBookmarked}
@@ -38,8 +38,8 @@ export default function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
             className="brightness-0 invert"
             src={isBookmarked ? "/icons/bookmark.svg" : "/icons/bookmark-outline.svg"}
             alt=""
-            width={14}
-            height={14}
+            width={16}
+            height={16}
           />
         </button>
       </div>
