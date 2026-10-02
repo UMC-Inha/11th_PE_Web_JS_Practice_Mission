@@ -1,31 +1,10 @@
-import { useEffect, useState } from "react";
-
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 import { movies as initialMovies } from "../../data/movies";
 import { Footer } from "../../components/layout/footer";
-import {
-  readBookmarkIds,
-  saveBookmarkIds,
-} from "../../utils/bookmark-storage";
 
 export function MovieListPage() {
   const movies = initialMovies;
-
-  const [bookmarkedMovieIds, setBookmarkedMovieIds] =
-    useState<number[]>(() => readBookmarkIds());
-
-  useEffect(() => {
-    saveBookmarkIds(bookmarkedMovieIds);
-  }, [bookmarkedMovieIds]);
-
-  function handleToggleBookmark(movieId: number) {
-    setBookmarkedMovieIds((currentIds) =>
-      currentIds.includes(movieId)
-        ? currentIds.filter((id) => id !== movieId)
-        : [...currentIds, movieId],
-    );
-  }
 
   return (
   <div className="flex min-h-[calc(100vh-91px)] flex-col bg-[#f6f7f9]">
@@ -34,11 +13,7 @@ export function MovieListPage() {
         영화 목록
       </h1>
 
-      <MovieGrid
-        movies={movies}
-        bookmarkedMovieIds={bookmarkedMovieIds}
-        onToggleBookmark={handleToggleBookmark}
-      />
+      <MovieGrid movies={movies} />
 
       <Pagination />
     </main>

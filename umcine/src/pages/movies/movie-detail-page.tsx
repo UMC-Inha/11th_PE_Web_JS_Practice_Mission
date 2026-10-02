@@ -2,12 +2,20 @@ import { Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { movies } from "../../data/movies";
 import { Footer } from "../../components/layout/footer";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
   const [rating, setRating] = useState(0);
 
   const movie = movies.find((item) => item.id === Number(movieId));
+  const isBookmarked = useBookmarkStore((state) =>
+        state.bookmarkedMovieIds.includes(Number(movieId)),
+  );
+
+  const toggleBookmark = useBookmarkStore(
+        (state) => state.toggleBookmark,
+  );
 
   if (!movie) {
     return <main>영화를 찾을 수 없어요.</main>;
@@ -79,10 +87,16 @@ export function MovieDetailPage() {
 
                     <button
                         type="button"
+                        onClick={() => toggleBookmark(movie.id)}
+                        aria-pressed={isBookmarked}
                         className="flex h-[42px] w-fit items-center justify-center gap-2 rounded-lg bg-[#2563eb] px-4 text-sm font-extrabold text-white"
                     >
                         <img
-                            src="/icons/bookmark-outline.svg"
+                            src={
+                                isBookmarked
+                                    ? "/icons/bookmark.svg"
+                                    : "/icons/bookmark-outline.svg"
+                            }
                             alt=""
                             className="h-5 w-5 brightness-0 invert"
                         />

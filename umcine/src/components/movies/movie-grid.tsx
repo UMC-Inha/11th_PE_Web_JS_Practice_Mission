@@ -3,23 +3,15 @@ import MovieCard from "./movie-card";
 
 interface MovieGridProps {
   movies: Movie[];
-  bookmarkedMovieIds: number[];
-  onToggleBookmark: (movieId: number) => void;
 }
 
-export default function MovieGrid({
-  movies,
-  bookmarkedMovieIds,
-  onToggleBookmark,
-}: MovieGridProps) {
+export default function MovieGrid({ movies }: MovieGridProps) {
   return (
     <div className="grid w-full grid-cols-1 gap-x-[18px] gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {movies.map((movie) => (
         <MovieCard
           key={movie.id}
           movie={movie}
-          isBookmarked={bookmarkedMovieIds.includes(movie.id)}
-          onToggleBookmark={onToggleBookmark}
         />
       ))}
     </div>
