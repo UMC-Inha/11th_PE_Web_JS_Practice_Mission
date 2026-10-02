@@ -3,11 +3,13 @@ import MovieCard from "./movie-card";
 
 interface MovieGridProps {
   movies: Movie[];
+  bookmarkedMovieIds: number[];
   onToggleBookmark: (movieId: number) => void;
 }
 
 export default function MovieGrid({
   movies,
+  bookmarkedMovieIds,
   onToggleBookmark,
 }: MovieGridProps) {
   return (
@@ -16,6 +18,7 @@ export default function MovieGrid({
         <MovieCard
           key={movie.id}
           movie={movie}
+          isBookmarked={bookmarkedMovieIds.includes(movie.id)}
           onToggleBookmark={onToggleBookmark}
         />
       ))}
