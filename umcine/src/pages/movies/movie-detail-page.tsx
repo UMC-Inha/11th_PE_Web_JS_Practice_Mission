@@ -1,3 +1,4 @@
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
 
@@ -6,6 +7,10 @@ const STARS = [1, 2, 3, 4, 5];
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
   const movie = movies.find((item) => item.id === Number(movieId));
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(Number(movieId)),
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
 
   if (!movie) {
     return (
@@ -54,8 +59,16 @@ export function MovieDetailPage() {
           <div>
             <h2 className="text-lg font-bold">{movie.tagline}</h2>
             <p className="mt-3 text-sm leading-6 text-gray-600">{movie.overview}</p>
-            <button className="mt-5 flex items-center gap-2 rounded-lg bg-[#4f5de8] px-4 py-2 text-sm font-semibold text-white">
-              <img src="/icons/bookmark-outline.svg" alt="" className="h-4 w-4 brightness-0 invert" />
+            <button
+              type="button"
+              onClick={() => toggleBookmark(movie.id)}
+              className="mt-5 flex items-center gap-2 rounded-lg bg-[#4f5de8] px-4 py-2 text-sm font-semibold text-white"
+            >
+              <img
+                src={isBookmarked ? "/icons/bookmark.svg" : "/icons/bookmark-outline.svg"}
+                alt=""
+                className="h-4 w-4 brightness-0 invert"
+              />
               즐겨찾기
             </button>
           </div>

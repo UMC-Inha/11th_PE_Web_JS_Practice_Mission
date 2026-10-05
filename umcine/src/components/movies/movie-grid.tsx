@@ -3,14 +3,13 @@ import MovieCard from "./movie-card";
 
 interface MovieGridProps {
   movies: Movie[];
-  onToggleBookmark: (movieId: number) => void;
 }
 
-export default function MovieGrid({ movies, onToggleBookmark }: MovieGridProps) {
+export default function MovieGrid({ movies }: MovieGridProps) {
   return (
-        <section className="grid grid-cols-5 gap-x-4 gap-y-8">
+    <section className="grid grid-cols-5 gap-x-4 gap-y-8">
       {movies.map((movie) => (
-        <MovieCard key={movie.id} movie={movie} onToggleBookmark={onToggleBookmark} />
+        <MovieCard key={movie.id} movie={movie} />
       ))}
     </section>
   );
