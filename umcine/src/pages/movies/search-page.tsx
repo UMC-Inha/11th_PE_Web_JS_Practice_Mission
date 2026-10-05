@@ -36,7 +36,7 @@ export function SearchPage() {
         "flex items-center gap-3 rounded-xl bg-white px-4 py-2",
         normalizedQuery
           ? "mt-5 border border-gray-200"
-          : "mx-auto mt-6 max-w-[560px] border border-[#111111] shadow-md",
+          : "mx-auto mt-6 max-w-140 border border-[#111111] shadow-md",
       )}
     >
       <img src="/icons/search.svg" alt="" className="h-5 w-5" />
@@ -60,7 +60,7 @@ export function SearchPage() {
 
   if (!normalizedQuery) {
     return (
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-20 pt-24 pb-12">
+      <main className="mx-auto w-full max-w-360 flex-1 px-20 pt-24 pb-12">
         <h1 className="text-center text-[32px] font-bold">어떤 영화를 찾고 있나요?</h1>
         {searchForm}
         <p className="mt-6 text-center text-sm text-gray-500">검색어를 입력해 주세요.</p>
@@ -69,7 +69,7 @@ export function SearchPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] flex-1 px-20 py-12">
+    <main className="mx-auto w-full max-w-360 flex-1 px-20 py-12">
       <h1 className="text-[28px] font-bold">영화 검색</h1>
       {searchForm}
 
@@ -87,7 +87,7 @@ export function SearchPage() {
               <img
                 src={movie.posterPath}
                 alt={`${movie.title} 포스터`}
-                className="aspect-[2/3] w-[132px] shrink-0 rounded-lg object-cover"
+                className="aspect-2/3 w-33 shrink-0 rounded-lg object-cover"
               />
               <div className="flex flex-col">
                 <h3 className="text-base font-bold">{movie.title}</h3>

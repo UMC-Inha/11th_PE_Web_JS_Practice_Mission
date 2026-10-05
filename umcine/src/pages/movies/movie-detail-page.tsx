@@ -17,7 +17,7 @@ export function MovieDetailPage() {
 
   return (
     <main className="flex-1">
-      <section className="relative h-[360px] overflow-hidden">
+      <section className="relative h-90 overflow-hidden">
         <img
           src={movie.backdropPath}
           alt=""
@@ -26,7 +26,7 @@ export function MovieDetailPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-        <div className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-between px-20 py-8 text-white">
+        <div className="relative mx-auto flex h-full max-w-360 flex-col justify-between px-20 py-8 text-white">
           <Link to="/" className="flex items-center gap-1 self-start text-xs font-semibold">
             <img src="/icons/chevron-left.svg" alt="" className="h-4 w-4 brightness-0 invert" />
             영화 목록
@@ -44,12 +44,12 @@ export function MovieDetailPage() {
         </div>
       </section>
 
-      <section className="mx-auto flex max-w-[1440px] gap-10 px-20 py-10">
+      <section className="mx-auto flex max-w-360 gap-10 px-20 py-10">
         <div className="flex flex-1 gap-8">
           <img
             src={movie.posterPath}
             alt={`${movie.title} 포스터`}
-            className="aspect-[2/3] w-[200px] shrink-0 rounded-xl object-cover shadow-lg"
+            className="aspect-2/3 w-50 shrink-0 rounded-xl object-cover shadow-lg"
           />
           <div>
             <h2 className="text-lg font-bold">{movie.tagline}</h2>
@@ -61,7 +61,7 @@ export function MovieDetailPage() {
           </div>
         </div>
 
-        <aside className="w-[340px] shrink-0 border-l border-gray-200 pl-10">
+        <aside className="w-85 shrink-0 border-l border-gray-200 pl-10">
           <h2 className="text-base font-bold">내 평점</h2>
           <p className="mt-1 text-xs text-gray-400">별점은 필수, 후기는 선택이에요.</p>
           <div className="mt-3 flex gap-2">

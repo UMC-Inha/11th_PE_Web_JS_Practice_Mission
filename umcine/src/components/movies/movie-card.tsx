@@ -10,7 +10,7 @@ interface MovieCardProps {
 export default function MovieCard({ movie, onToggleBookmark }: MovieCardProps) {
   return (
     <article>
-      <div className="relative aspect-[243/275] overflow-hidden rounded-lg">
+      <div className="relative aspect-243/275 overflow-hidden rounded-lg">
         <Link
           to="/movies/$movieId"
           params={{ movieId: String(movie.id) }}
