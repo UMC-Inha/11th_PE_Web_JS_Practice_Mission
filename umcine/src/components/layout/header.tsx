@@ -15,15 +15,22 @@ export function Header() {
           <ul className="navigation-list">
             {navItems.map((item) => (
               <li key={item}>
-                {item === "홈" || item === "영화" ? (
-                  <Link to="/" className={item === "영화" ? "is-active" : undefined}>
-                    {item}
+                {item === "영화" ? (
+                  <Link
+                      to="/"
+                      activeOptions={{ exact: true }}
+                      activeProps={{ className: "is-active" }}
+                  >
+                    {item}  
                   </Link>
                 ) : item === "검색" ? (
-                  <Link to="/search">{item}</Link>
+                  <Link to="/search" activeProps={{ className: "is-active" }}>
+                    {item}
+                  </Link>
                 ) : (
-                <a href="#movie-list">{item}</a>
-                )}
+                  <a href="#movie-list">{item}</a>
+                )
+              }
               </li>
             ))}
           </ul>
