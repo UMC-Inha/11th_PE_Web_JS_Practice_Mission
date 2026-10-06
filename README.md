@@ -106,3 +106,131 @@ pnpm dev
 | rename   | 파일 혹은 폴더명 수정 |
 | remove   | 파일 혹은 폴더 삭제   |
 | chore    | 기타 변경사항         |
+
+```
+11th_PE_Web_JS_Practice_Mission
+├─ package.json
+├─ pnpm-lock.yaml
+├─ README.md
+└─ umcine
+   ├─ .tanstack
+   │  └─ tmp
+   ├─ dist
+   │  ├─ assets
+   │  │  ├─ index-BO1UsoDN.js
+   │  │  └─ index-HifG7Abt.css
+   │  ├─ favicon.svg
+   │  ├─ icons.svg
+   │  ├─ images
+   │  │  ├─ logos
+   │  │  │  └─ tmdb-logo.svg
+   │  │  └─ movies
+   │  │     ├─ colony-backdrop.jpg
+   │  │     ├─ colony.jpg
+   │  │     ├─ death-of-robin-hood-backdrop.jpg
+   │  │     ├─ death-of-robin-hood.jpg
+   │  │     ├─ evil-dead-burn-backdrop.jpg
+   │  │     ├─ evil-dead-burn.jpg
+   │  │     ├─ last-house-backdrop.jpg
+   │  │     ├─ last-house.jpg
+   │  │     ├─ minions-monsters-backdrop.jpg
+   │  │     ├─ minions-monsters.jpg
+   │  │     ├─ obsession-backdrop.jpg
+   │  │     ├─ obsession.jpg
+   │  │     ├─ odyssey-backdrop.jpg
+   │  │     ├─ odyssey.jpg
+   │  │     ├─ spider-man-brand-new-day-backdrop.jpg
+   │  │     ├─ spider-man-brand-new-day.jpg
+   │  │     ├─ spider-man-no-way-home-backdrop.jpg
+   │  │     ├─ spider-man-no-way-home.jpg
+   │  │     ├─ toy-story-5-backdrop.jpg
+   │  │     └─ toy-story-5.jpg
+   │  ├─ index.html
+   │  ├─ movie-icons
+   │  │  ├─ arrow-right.svg
+   │  │  ├─ bookmark-outline.svg
+   │  │  ├─ bookmark.svg
+   │  │  ├─ chevron-left.svg
+   │  │  ├─ chevron-right.svg
+   │  │  ├─ close.svg
+   │  │  ├─ edit.svg
+   │  │  ├─ lock.svg
+   │  │  ├─ mail.svg
+   │  │  ├─ movie.svg
+   │  │  ├─ person.svg
+   │  │  ├─ search.svg
+   │  │  ├─ star-outline.svg
+   │  │  └─ star.svg
+   │  └─ SOURCES.md
+   ├─ eslint.config.js
+   ├─ index.html
+   ├─ package.json
+   ├─ pnpm-lock.yaml
+   ├─ public
+   │  ├─ favicon.svg
+   │  ├─ icons.svg
+   │  ├─ images
+   │  │  ├─ logos
+   │  │  │  └─ tmdb-logo.svg
+   │  │  └─ movies
+   │  │     ├─ colony-backdrop.jpg
+   │  │     ├─ colony.jpg
+   │  │     ├─ death-of-robin-hood-backdrop.jpg
+   │  │     ├─ death-of-robin-hood.jpg
+   │  │     ├─ evil-dead-burn-backdrop.jpg
+   │  │     ├─ evil-dead-burn.jpg
+   │  │     ├─ last-house-backdrop.jpg
+   │  │     ├─ last-house.jpg
+   │  │     ├─ minions-monsters-backdrop.jpg
+   │  │     ├─ minions-monsters.jpg
+   │  │     ├─ obsession-backdrop.jpg
+   │  │     ├─ obsession.jpg
+   │  │     ├─ odyssey-backdrop.jpg
+   │  │     ├─ odyssey.jpg
+   │  │     ├─ spider-man-brand-new-day-backdrop.jpg
+   │  │     ├─ spider-man-brand-new-day.jpg
+   │  │     ├─ spider-man-no-way-home-backdrop.jpg
+   │  │     ├─ spider-man-no-way-home.jpg
+   │  │     ├─ toy-story-5-backdrop.jpg
+   │  │     └─ toy-story-5.jpg
+   │  ├─ movie-icons
+   │  │  ├─ arrow-right.svg
+   │  │  ├─ bookmark-outline.svg
+   │  │  ├─ bookmark.svg
+   │  │  ├─ chevron-left.svg
+   │  │  ├─ chevron-right.svg
+   │  │  ├─ close.svg
+   │  │  ├─ edit.svg
+   │  │  ├─ lock.svg
+   │  │  ├─ mail.svg
+   │  │  ├─ movie.svg
+   │  │  ├─ person.svg
+   │  │  ├─ search.svg
+   │  │  ├─ star-outline.svg
+   │  │  └─ star.svg
+   │  └─ SOURCES.md
+   ├─ README.md
+   ├─ src
+   │  ├─ App.css
+   │  ├─ App.tsx
+   │  ├─ assets
+   │  │  ├─ hero.png
+   │  │  ├─ react.svg
+   │  │  └─ vite.svg
+   │  ├─ components
+   │  │  ├─ header.tsx
+   │  │  ├─ movie-card.tsx
+   │  │  ├─ movie-grid.tsx
+   │  │  └─ pagination.tsx
+   │  ├─ data
+   │  │  └─ movies.ts
+   │  ├─ index.css
+   │  ├─ main.tsx
+   │  └─ types
+   │     └─ movie.ts
+   ├─ tsconfig.app.json
+   ├─ tsconfig.json
+   ├─ tsconfig.node.json
+   └─ vite.config.ts
+
+```
