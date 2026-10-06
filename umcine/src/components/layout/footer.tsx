@@ -1,18 +1,16 @@
-import styles from "./footer.module.css";
-
+// CSS Module(footer.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function Footer() {
   return (
-    <footer className={styles.footer}>
-        <img
+    <footer className="mt-auto flex items-center justify-end gap-2 border-t border-gray-200 bg-gray-50 px-8 py-5">
+      <img
         src="/images/logos/tmdb-logo.svg"
         alt="TMDB"
-        className={styles.image}
+        className="size-6 object-contain"
       />
-      <p className={styles.text}>
+      <p className="m-0 text-sm text-gray-500">
         This product uses the TMDB API but is not endorsed or certified by
         TMDB.
       </p>
-      
     </footer>
   );
 }
