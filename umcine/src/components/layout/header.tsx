@@ -1,9 +1,18 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 
-const navLink =
-  "text-sm text-gray-400 [&.active]:font-bold [&.active]:text-gray-900";
+const navLink = "text-sm text-gray-400";
+const navLinkActive =
+  "text-sm font-bold text-black underline decoration-2 underline-offset-4";
 
 export function Header() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
+  // 목록(/)과 상세(/movies/...)에서는 "영화", 검색(/search)에서는 "검색"
+  const isMoviesActive = pathname === "/" || pathname.startsWith("/movies");
+  const isSearchActive = pathname.startsWith("/search");
+
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-[max(80px,calc((100%_-_1280px)/2))] py-6">
       <div className="flex items-center gap-8">
@@ -14,10 +23,13 @@ export function Header() {
           <span>UMCine</span>
         </Link>
         <nav className="flex gap-6">
-          <Link className={navLink} to="/" activeOptions={{ exact: true }}>
+          <Link className={isMoviesActive ? navLinkActive : navLink} to="/">
             영화
           </Link>
-          <Link className={navLink} to="/search">
+          <Link
+            className={isSearchActive ? navLinkActive : navLink}
+            to="/search"
+          >
             검색
           </Link>
           <a className="text-sm text-gray-400" href="/">
