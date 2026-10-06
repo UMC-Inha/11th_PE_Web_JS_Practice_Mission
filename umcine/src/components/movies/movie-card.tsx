@@ -28,12 +28,12 @@ export default function MovieCard({ movie }: MovieCardProps) {
         to="/movies/$movieId"
         params={{ movieId: String(movie.id) }}
       >
-        <h2 className="w-full pt-[5px] font-[Pretendard,sans-serif] text-sm font-extrabold text-[#17191e]">
+        <h2 className="w-full pt-[5px]  text-sm font-extrabold text-[#17191e]">
           {movie.title}
         </h2>
       </Link>
 
-      <p className="w-full font-[Pretendard,sans-serif] text-xs font-normal text-[#969da8]">
+      <p className="w-full  text-xs font-normal text-[#969da8]">
         {movie.releaseDate}
       </p>
     </article>
