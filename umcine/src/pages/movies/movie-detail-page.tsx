@@ -10,8 +10,8 @@ if (!movie) {
 }
 
     return (
-        <main className="flex min-h-[calc(100vh-56px)] flex-col">
-   <section className="relative h-[360px] overflow-hidden">
+        <main className="flex flex-1 flex-col">
+   <section className="relative h-90 overflow-hidden">
   <img
     src={movie.backdropPath}
     alt=""
@@ -20,7 +20,7 @@ if (!movie) {
   />
   <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent" />
 
-  <div className="relative z-10 mx-auto flex h-full w-full max-w-[1280px] flex-col px-5 py-7 text-white">
+  <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-col px-5 py-7 text-white">
     <Link to="/" className="text-sm">
       〈 영화 목록
     </Link>
@@ -33,11 +33,11 @@ if (!movie) {
     </div>
   </div>
 </section>
-            <section className="mx-auto grid w-full max-w-[1280px] flex-1 grid-cols-[240px_minmax(0,1fr)_320px] gap-8 px-5 py-12">
+            <section className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-[240px_minmax(0,1fr)_320px] gap-8 px-5 py-12">
   <img
     src={movie.posterPath}
     alt={`${movie.title} 포스터`}
-    className="h-[360px] w-[240px] shrink-0 rounded-xl object-cover"
+    className="h-90 w-60 shrink-0 rounded-xl object-cover"
   />
 
   <div className="min-w-0">
@@ -60,7 +60,7 @@ if (!movie) {
         </span>
       ))}
     </div>
-    <div className="mt-3 h-[100px] rounded-md border border-[#e6e6e8] bg-white p-3 text-xs text-[#aaa]">
+    <div className="mt-3 h-25 rounded-md border border-[#e6e6e8] bg-white p-3 text-xs text-[#aaa]">
       영화를 보고 느낀 점을 남겨보세요.
     </div>
     <div className="mt-2 grid h-10 place-items-center rounded-md bg-[#1b1b22] text-sm font-semibold text-white">
@@ -68,12 +68,6 @@ if (!movie) {
     </div>
   </aside>
 </section>
-            <footer className="border-t border-[#e7e7e7] bg-white">
-              <div className="mx-auto flex min-h-[56px] w-full max-w-[1280px] items-center justify-end gap-2 px-5 text-[11px] text-[#90949b]">
-                <img src="/images/logos/tmdb-logo.svg" alt="TMDB" className="w-[28px]" />
-                <span>This product uses the TMDB API but is not endorsed or certified by TMDB.</span>
-              </div>
-            </footer>
         </main>
     );
 }

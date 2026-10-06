@@ -1,8 +1,7 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
 
 :root {
-  font-family: "DM Sans", "Noto Sans KR", Arial, sans-serif;
+  font-family: "Pretendard Variable", Arial, sans-serif;
   color: #181624;
   background: #f7f7fb;
   font-synthesis: none;

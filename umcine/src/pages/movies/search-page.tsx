@@ -32,9 +32,9 @@ export function SearchPage() {
     return (
         <main
             className={cn(
-                "min-h-[calc(100vh-56px)]",
+                "flex-1",
                 normalizedQuery
-                    ? "mx-auto w-full max-w-[1280px] px-5 py-10"
+                    ? "mx-auto w-full max-w-7xl px-5 py-10"
                     : "flex flex-col items-center justify-center gap-8 px-5",
             )}
         >
@@ -50,7 +50,7 @@ export function SearchPage() {
                 onSubmit={handleSubmit}
                 className={cn(
                     "flex items-center gap-3 rounded-lg border border-[#222] bg-white px-4 py-3 shadow-sm",
-                    normalizedQuery ? "w-full" : "w-full max-w-[790px]",
+                    normalizedQuery ? "w-full" : "w-full max-w-197.5",
                 )}
             >
                 <img src="/icons/search.svg" alt="" className="size-5" />
@@ -100,7 +100,7 @@ export function SearchPage() {
                                     className="flex min-w-0 gap-4 border-b border-[#e7e7e7] py-5"
                                 >
                                     <img
-                                        className="aspect-[2/3] w-28 shrink-0 rounded object-cover"
+                                        className="aspect-2/3 w-28 shrink-0 rounded object-cover"
                                         src={movie.posterPath}
                                         alt={`${movie.title} 포스터`}
                                     />
