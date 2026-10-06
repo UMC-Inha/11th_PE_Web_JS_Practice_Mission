@@ -1,8 +1,12 @@
 const BOOKMARK_STORAGE_KEY = "umcine-bookmarks";
 
-export function readBookmarkIds(): number[] {
+export function readBookmarkIds(defaultIds: number[] = []): number[] {
   const storedValue = localStorage.getItem(BOOKMARK_STORAGE_KEY);
-  if (!storedValue) return []; //값이 없거나 빈 문자열일 경우 JSON.parse 호출하지 않고 빈 배열 반환
+
+  // 저장된 적이 한 번도 없는 경우(키 자체가 없어 null)에만 기본값을 쓴다.
+  // 사용자가 전부 해제해서 "[]"가 저장된 경우는 "저장된 적 없음"과 달리 그 상태를 그대로 존중해야 함.
+  if (storedValue === null) return defaultIds;
+  if (!storedValue) return []; //빈 문자열처럼 비정상적으로 저장된 경우 JSON.parse 호출하지 않고 빈 배열 반환
 
   try { //try-catch로 잘못된 형식 방지
     const parsedValue: unknown = JSON.parse(storedValue);

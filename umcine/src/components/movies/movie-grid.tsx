@@ -3,11 +3,17 @@ import { movies as initialMovies } from "../../data/movies";
 import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage";
 import { MovieCard } from "./movie-card";
 import { Pagination } from "./pagination";
-import styles from "./movie-grid.module.css";
 
+// CSS Module(movie-grid.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function MovieGrid() {
   const [bookmarkedIds, setBookmarkedIds] = useState<number[]>(() =>
-    readBookmarkIds()
+    readBookmarkIds(
+      // localStorage에 한 번도 저장된 적이 없을 때(최초 방문)만 mock 데이터(initialMovies)의
+      // isBookmarked: true 항목을 기본 북마크로 사용한다. (코드리뷰 지적 반영)
+      initialMovies
+        .filter((movie) => movie.isBookmarked)
+        .map((movie) => movie.id)
+    )
   );
   //처음에 한 번만 localStorage에서 북마크된 영화 ID를 읽어와서 상태 초기값으로 설정
 
@@ -52,10 +58,10 @@ export function MovieGrid() {
   */
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.heading}>영화 목록</h2>
+    <section className="p-8 text-left">
+      <h2 className="mb-6 text-2xl font-bold text-gray-900">영화 목록</h2>
 
-      <div className={styles.grid}>
+      <div className="grid grid-cols-5 gap-6">
         {movies.map((movie) => (
           <MovieCard
             key={movie.id}

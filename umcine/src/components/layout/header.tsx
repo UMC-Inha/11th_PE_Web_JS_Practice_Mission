@@ -1,16 +1,19 @@
-import styles from "./header.module.css";
 import { Link } from "@tanstack/react-router";
 
+// CSS Module(header.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function Header() {
   return (
-    <header className={styles.header}>
-      <div className={styles.left}>
+    <header className="flex items-center justify-between border-b border-gray-200 px-8 py-4">
+      <div className="flex items-center gap-8">
         {/* 홈으로 이동하는 로고 링크 */}
-        <Link to="/" className={styles.logoButton}> {/*SPA방식으로 주소와 본문(<Outlet />)을 교체*/}
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xl font-bold text-gray-900 no-underline"
+        >
           <img
             src="/icons/movie.svg"
             alt="UMCINE 로고"
-            className={styles.logoIcon}
+            className="box-content size-5 rounded-lg border-[1.5px] border-gray-900 p-1.5"
           />
           UMCine
         </Link>
@@ -18,9 +21,9 @@ export function Header() {
         {/* 영화 탭 */}
         <Link
           to="/"
-          className={styles.navButton}
+          className="text-[15px] text-gray-500 no-underline"
           activeProps={{
-            className: `${styles.navButton} ${styles.navButtonActive}`,
+            className: "text-[15px] font-semibold text-gray-900 no-underline",
           }}
           // 현재 주소가 '/'일 때만 이 클래스들이 추가로 적용됨
         >
@@ -30,30 +33,29 @@ export function Header() {
         {/* 검색 탭 */}
         <Link
           to="/search"
-          className={styles.navButton}
+          className="text-[15px] text-gray-500 no-underline"
           activeProps={{
-            className: `${styles.navButton} ${styles.navButtonActive}`,
+            className: "text-[15px] font-semibold text-gray-900 no-underline",
           }}
         >
           검색
         </Link>
 
         {/* 내 정보 탭 (필요시 라우트 생성 후 Link로 변경 가능) */}
-        <button type="button" className={styles.navButton}>
+        <button type="button" className="text-[15px] text-gray-500">
           내 정보
         </button>
       </div>
 
-      <div className={styles.right}>
+      <div className="flex items-center gap-5">
         {/* 돋보기 아이콘도 검색 페이지 링크로 전환 */}
-        <Link to="/search" className={styles.searchButton}>
-          <img
-            src="/icons/search.svg"
-            alt="검색"
-            className={styles.searchIcon}
-          />
+        <Link to="/search" className="flex items-center justify-center">
+          <img src="/icons/search.svg" alt="검색" className="size-5" />
         </Link>
-        <button type="button" className={styles.primaryButton}>
+        <button
+          type="button"
+          className="cursor-pointer rounded-full bg-blue-600 px-5 py-2 text-[15px] font-semibold text-white"
+        >
           마이페이지
         </button>
       </div>

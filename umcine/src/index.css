@@ -1,1 +1,26 @@
 @import "tailwindcss";
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css");
+
+@theme {
+  /* 전역 폰트 지정: Tailwind preflight가 이 값을 기본 폰트로 사용함 */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    sans-serif;
+}
+
+@layer base {
+  /* #root가 뷰포트 높이를 꽉 채우는 flex column이어야
+     Footer의 margin-top:auto, 각 페이지의 flex-1이 정상 동작함
+     (코드리뷰 지적: 전역 레이아웃 문제라 특정 페이지 CSS가 아니라 여기서 한 번만 수정) */
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  #root {
+    display: flex;
+    min-height: 100svh;
+    flex-direction: column;
+  }
+}
