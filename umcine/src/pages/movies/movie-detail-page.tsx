@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
 import { cn } from "../../utils/cn";
+import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage";
 
 const pageX = "px-[max(80px,calc((100%_-_1280px)/2))]";
 
@@ -8,9 +10,28 @@ export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
   const movie = movies.find((item) => item.id === Number(movieId));
 
+  // 훅은 early return보다 위에 있어야 해요.
+  const [bookmarkedMovieIds, setBookmarkedMovieIds] = useState<number[]>(() =>
+    readBookmarkIds(),
+  );
+
+  useEffect(() => {
+    saveBookmarkIds(bookmarkedMovieIds);
+  }, [bookmarkedMovieIds]);
+
   if (!movie) {
     return <main className={cn("py-6", pageX)}>영화를 찾을 수 없어요.</main>;
   }
+
+  const isBookmarked = bookmarkedMovieIds.includes(movie.id);
+
+  const toggleBookmark = () => {
+    setBookmarkedMovieIds((prev) =>
+      prev.includes(movie.id)
+        ? prev.filter((id) => id !== movie.id)
+        : [...prev, movie.id],
+    );
+  };
 
   return (
     <main className="min-h-[calc(100vh-148px)] bg-[#f5f6f8]">
@@ -57,16 +78,21 @@ export function MovieDetailPage() {
           </p>
           <button
             type="button"
-            className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-semibold text-white"
+            onClick={toggleBookmark}
+            aria-pressed={isBookmarked}
+            className={cn(
+              "mt-4 inline-flex h-8 items-center gap-1.5 rounded-md border border-blue-600 px-3 text-xs font-semibold",
+              isBookmarked ? "bg-white text-blue-600" : "bg-blue-600 text-white",
+            )}
           >
             <img
-              className="brightness-0 invert"
+              className={cn(!isBookmarked && "brightness-0 invert")}
               src="/icons/bookmark-outline.svg"
               alt=""
               width={12}
               height={12}
             />
-            북마크
+            {isBookmarked ? "북마크 해제" : "북마크"}
           </button>
         </div>
 
