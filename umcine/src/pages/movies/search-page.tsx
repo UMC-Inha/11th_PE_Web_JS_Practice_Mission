@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
+import { BookmarkButton } from "../../components/bookmark-button";
 import { movies } from "../../data/movies";
 
 export function SearchPage() {
@@ -66,7 +67,6 @@ export function SearchPage() {
         </div>
       </section>
 
-      {/* 검색 결과 화면 CSS는 아직 없어서 기존 마크업을 그대로 둔다. */}
       {normalizedQuery && (
         <section className="px-20 pb-20">
           <h2>‘{query}’ 검색 결과</h2>
@@ -88,6 +88,7 @@ export function SearchPage() {
                   >
                     상세 보기
                   </Link>
+                  <BookmarkButton movieId={movie.id} />
                 </li>
               ))}
             </ul>
