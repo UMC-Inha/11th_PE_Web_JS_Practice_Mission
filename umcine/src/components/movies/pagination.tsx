@@ -20,11 +20,11 @@ export default function Pagination() {
           alt=""
         />
       </button>
-
       {pages.map((page) => (
         <button
           key={page}
           type="button"
+          disabled
           className={cn(
             "h-9 w-9 rounded-lg text-sm",
             page === 1
