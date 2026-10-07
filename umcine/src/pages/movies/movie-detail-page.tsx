@@ -1,37 +1,10 @@
-import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { BookmarkButton } from "../../components/bookmark-button";
 import { MovieRatingForm } from "../../components/movies/movie-rating-form";
 import { movies } from "../../data/movies";
 import { cn } from "../../utils/cn";
 
 const containerClass = "mx-auto w-[min(1080px,100%_-_48px)]";
-
-interface BookmarkButtonProps {
-  initialBookmarked: boolean;
-}
-
-function BookmarkButton({ initialBookmarked }: BookmarkButtonProps) {
-  const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
-
-  return (
-    <button
-      type="button"
-      aria-pressed={isBookmarked}
-      onClick={() => setIsBookmarked((current) => !current)}
-      className={cn(
-        "mt-5 inline-flex h-9 cursor-pointer items-center gap-2 rounded-md px-3.5 text-xs font-bold text-white",
-        isBookmarked ? "bg-[#1d4ed8]" : "bg-[#2563EB]",
-      )}
-    >
-      <img
-        src={isBookmarked ? "/icons/bookmark.svg" : "/icons/bookmark-outline.svg"}
-        alt=""
-        className="size-3.5 brightness-0 invert"
-      />
-      즐겨찾기
-    </button>
-  );
-}
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -113,10 +86,7 @@ export function MovieDetailPage() {
             <p className="text-xs leading-[1.8] whitespace-pre-line text-[#555]">
               {movie.overview}
             </p>
-            <BookmarkButton
-              key={movie.id}
-              initialBookmarked={movie.isBookmarked}
-            />
+            <BookmarkButton movieId={movie.id} variant="label" />
           </div>
         </section>
 

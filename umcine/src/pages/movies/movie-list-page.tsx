@@ -1,28 +1,11 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
-import { movies as initialMovies } from "../../data/movies";
-import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage";
+import { movies } from "../../data/movies";
 
 const PAGE_SIZE = 10;
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState(() => {
-    const savedIds = readBookmarkIds();
-    return initialMovies.map((movie) => ({
-      ...movie,
-      isBookmarked: savedIds.includes(movie.id),
-    }));
-  });
-
-  useEffect(() => {
-    const bookmarkedIds = movies
-      .filter((movie) => movie.isBookmarked)
-      .map((movie) => movie.id);
-    saveBookmarkIds(bookmarkedIds);
-  }, [movies]);
-
   const { page = 1 } = useSearch({ from: "/" });
   const navigate = useNavigate({ from: "/" });
 
@@ -33,16 +16,6 @@ export function MovieListPage() {
     currentPage * PAGE_SIZE,
   );
 
-  function handleToggleBookmark(movieId: number) {
-    setMovies((currentMovies) =>
-      currentMovies.map((movie) =>
-        movie.id === movieId
-          ? { ...movie, isBookmarked: !movie.isBookmarked }
-          : movie,
-      ),
-    );
-  }
-
   function handlePageChange(nextPage: number) {
     navigate({ search: { page: nextPage > 1 ? nextPage : undefined } });
     window.scrollTo({ top: 0 });
@@ -51,7 +24,7 @@ export function MovieListPage() {
   return (
     <main className="mx-auto w-[min(1080px,100%_-_48px)] pt-6 pb-[60px]">
       <h2 className="mb-4 text-center text-[30px] font-extrabold">영화 목록</h2>
-      <MovieGrid movies={pagedMovies} onToggleBookmark={handleToggleBookmark} />
+      <MovieGrid movies={pagedMovies} />
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
