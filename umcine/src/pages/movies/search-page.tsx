@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { BookmarkButton } from "../../components/bookmark-button";
 import { movies } from "../../data/movies";
 import { cn } from "../../utils/cn";
 
@@ -96,7 +97,7 @@ export function SearchPage() {
       {hasQuery && (
         <section className="mt-5">
           <div className="flex items-end justify-between border-b border-[#e5e7eb] pb-3">
-            <h2 className="text-[15px] font-bold">‘{query}’ 검색 결과</h2>
+            <h2 className="text-[15px] font-bold">'{query}' 검색 결과</h2>
             <p className="text-[11px] text-[#9ca3af]">
               영화 {searchResults.length}편
             </p>
@@ -113,11 +114,16 @@ export function SearchPage() {
                   key={movie.id}
                   className="flex gap-4 border-b border-[#e5e7eb] py-4"
                 >
-                  <img
-                    src={movie.posterPath}
-                    alt={`${movie.title} 포스터`}
-                    className="aspect-[2/3] w-24 shrink-0 rounded-md object-cover"
-                  />
+                  {/* 포스터 위에 북마크 버튼을 올리기 위한 relative 래퍼 */}
+                  <div className="relative aspect-[2/3] w-24 shrink-0">
+                    <img
+                      src={movie.posterPath}
+                      alt={`${movie.title} 포스터`}
+                      className="size-full rounded-md object-cover"
+                    />
+                    <BookmarkButton movieId={movie.id} />
+                  </div>
+
                   <div className="flex min-w-0 flex-col">
                     <h3 className="text-[15px] font-bold">{movie.title}</h3>
                     <p className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-[#9ca3af]">
