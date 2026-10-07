@@ -1,17 +1,12 @@
 import { Link } from "@tanstack/react-router";
-
 import type { Movie } from "../../types/movie";
-import { cn } from "../../utils/cn";
+import { BookmarkButton } from "../bookmark-button";
 
 interface MovieCardProps {
   movie: Movie;
-  onToggleBookmark: (movieId: number) => void;
 }
 
-export default function MovieCard({
-  movie,
-  onToggleBookmark,
-}: MovieCardProps) {
+export default function MovieCard({ movie }: MovieCardProps) {
   return (
     <article className="flex min-w-0 flex-col gap-1 xl:h-[318px]">
       <div className="relative overflow-hidden rounded-lg">
@@ -21,38 +16,17 @@ export default function MovieCard({
           className="aspect-[241.6/274] w-full object-cover xl:h-[274px] xl:aspect-auto"
         />
 
-        <button
-          type="button"
-          aria-label={`${movie.title} 북마크`}
-          aria-pressed={movie.isBookmarked}
-          onClick={() =>
-            onToggleBookmark(movie.id)
-          }
-          className={cn(
-            "absolute top-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-lg border",
-            movie.isBookmarked
-              ? "border-blue-600 bg-blue-600"
-              : "border-white bg-[#191B20]/85",
-          )}
-        >
-          <img
-            src={
-              movie.isBookmarked
-                ? "/icons/bookmark.svg"
-                : "/icons/bookmark-outline.svg"
-            }
-            alt=""
-            className="h-6 w-6 brightness-0 invert"
-          />
-        </button>
+        <BookmarkButton
+          movieId={movie.id}
+          movieTitle={movie.title}
+          iconOnly
+        />
       </div>
 
       <div className="h-[22px] pt-[5px]">
         <Link
           to="/movies/$movieId"
-          params={{
-            movieId: String(movie.id),
-          }}
+          params={{ movieId: String(movie.id) }}
           className="block"
         >
           <h2
