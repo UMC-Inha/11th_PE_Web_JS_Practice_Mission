@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
 import { movies as initialMovies } from "../../data/movies";
+import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage";
 
 const PAGE_SIZE = 10;
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState(initialMovies);
+  const [movies, setMovies] = useState(() => {
+    const savedIds = readBookmarkIds();
+    return initialMovies.map((movie) => ({
+      ...movie,
+      isBookmarked: savedIds.includes(movie.id),
+    }));
+  });
+
+  useEffect(() => {
+    const bookmarkedIds = movies
+      .filter((movie) => movie.isBookmarked)
+      .map((movie) => movie.id);
+    saveBookmarkIds(bookmarkedIds);
+  }, [movies]);
+
   const { page = 1 } = useSearch({ from: "/" });
   const navigate = useNavigate({ from: "/" });
 
