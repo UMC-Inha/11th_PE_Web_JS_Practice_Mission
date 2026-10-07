@@ -59,15 +59,18 @@ export function SearchPage() {
   if (!normalizedQuery) {
     return (
       <div className="flex flex-1 flex-col bg-gray-100">
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 py-10">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-10 sm:px-8">
+          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
             어떤 영화를 찾고 있나요?
           </h2>
-          <form className="flex items-center gap-3" onSubmit={handleSubmit}>
+          <form
+            className="flex w-full max-w-[560px] items-center gap-2 sm:gap-3"
+            onSubmit={handleSubmit}
+          >
             {searchBar}
             <button
               type="submit"
-              className="shrink-0 cursor-pointer rounded-full bg-gray-900 px-6 py-[11px] text-[15px] font-semibold whitespace-nowrap text-white"
+              className="shrink-0 cursor-pointer rounded-full bg-gray-900 px-4 py-[11px] text-[15px] font-semibold whitespace-nowrap text-white sm:px-6"
             >
               검색
             </button>
@@ -79,20 +82,23 @@ export function SearchPage() {
 
   return (
     <div className="flex flex-1 flex-col bg-gray-100">
-      <div className="p-8 text-left">
-        <h2 className="mb-5 text-2xl font-bold text-gray-900">영화 검색</h2>
+      <div className="p-4 text-left sm:p-8">
+        <h2 className="mb-5 text-xl font-bold text-gray-900 sm:text-2xl">
+          영화 검색
+        </h2>
 
-        <form className="flex items-center gap-3" onSubmit={handleSubmit}>
+        <form className="flex items-center gap-2 sm:gap-3" onSubmit={handleSubmit}>
           {searchBar}
           <button
             type="submit"
-            className="shrink-0 cursor-pointer rounded-full bg-gray-900 px-6 py-[11px] text-[15px] font-semibold whitespace-nowrap text-white"
+            className="shrink-0 cursor-pointer rounded-full bg-gray-900 px-4 py-[11px] text-[15px] font-semibold whitespace-nowrap text-white sm:px-6"
           >
             다시 검색
           </button>
         </form>
 
-        <div className="mt-7 mb-4 flex items-baseline justify-between">
+        {/* 좁은 화면에서는 제목과 결과 수를 세로로 쌓음 */}
+        <div className="mt-7 mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <h3 className="text-lg font-bold text-gray-900">
             '{query}' 검색 결과
           </h3>
@@ -106,16 +112,17 @@ export function SearchPage() {
             검색 결과가 없어요.
           </p>
         ) : (
-          <ul className="m-0 grid grid-cols-2 list-none gap-x-8 p-0">
+          // 결과는 요청대로 모든 화면 크기에서 2열 유지. 대신 좁은 화면에서는 간격/포스터 크기만 줄임
+          <ul className="m-0 grid grid-cols-2 list-none gap-x-4 p-0 sm:gap-x-8">
             {searchResults.map((movie) => (
               <li
                 key={movie.id}
-                className="flex gap-5 border-b border-gray-200 py-5"
+                className="flex gap-3 border-b border-gray-200 py-5 sm:gap-5"
               >
                 <img
                   src={movie.posterPath}
                   alt={`${movie.title} 포스터`}
-                  className="aspect-[2/3] w-24 shrink-0 rounded-lg object-cover"
+                  className="aspect-[2/3] w-16 shrink-0 rounded-lg object-cover sm:w-24"
                 />
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <h4 className="text-base font-bold text-gray-900">
