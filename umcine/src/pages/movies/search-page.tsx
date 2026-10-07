@@ -10,7 +10,7 @@ import {
   type SubmitEvent,
 } from "react";
 
-import { movies } from "../../data/movies";
+import { useMovies } from "../../contexts/movie-context";
 
 export function SearchPage() {
   const { query } = useSearch({
@@ -20,6 +20,8 @@ export function SearchPage() {
   const navigate = useNavigate({
     from: "/search",
   });
+
+  const { movies } = useMovies();
 
   const [searchText, setSearchText] =
     useState(query ?? "");
@@ -58,89 +60,112 @@ export function SearchPage() {
     });
   }
 
+  function handleClear() {
+    setSearchText("");
+  }
+
   return (
-    <main className="mx-auto w-full max-w-[1440px] flex-1 px-5 py-12 lg:px-20">
-      <section className="mx-auto max-w-3xl">
-        <h1 className="mb-8 text-center text-3xl font-bold sm:text-[40px]">
-          어떤 영화를 찾고 있나요?
-        </h1>
+    <main className="mx-auto w-full max-w-[1440px] flex-1 px-10 pt-8 pb-12">
+      <h1 className="text-4xl font-bold tracking-tight">
+        영화 검색
+      </h1>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center gap-3 rounded-xl border-2 border-gray-300 bg-white p-4"
-        >
-          <img
-            className="h-6 w-6 opacity-60"
-            src="/icons/search.svg"
-            alt=""
-          />
+      <form
+        onSubmit={handleSubmit}
+        className="mt-6 flex h-14 items-center rounded-lg border border-gray-300 bg-white px-4 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100"
+      >
+        <img
+          src="/icons/search.svg"
+          alt=""
+          className="h-5 w-5 shrink-0 opacity-60"
+        />
 
-          <input
-            type="text"
-            aria-label="검색어"
-            placeholder="예: 스파이더맨"
-            value={searchText}
-            onChange={(event) =>
-              setSearchText(
-                event.target.value,
-              )
-            }
-            className="min-w-0 flex-1 outline-none"
-          />
+        <input
+          type="text"
+          aria-label="검색어"
+          value={searchText}
+          onChange={(event) =>
+            setSearchText(
+              event.target.value,
+            )
+          }
+          className="ml-3 min-w-0 flex-1 bg-transparent text-sm outline-none"
+        />
 
+        {searchText && (
           <button
-            type="submit"
-            className="rounded-lg bg-[#191b20] px-5 py-3 text-sm font-bold text-white"
+            type="button"
+            onClick={handleClear}
+            aria-label="검색어 지우기"
+            className="mr-4 flex h-8 w-8 items-center justify-center text-2xl text-gray-400"
           >
-            검색
+            ×
           </button>
-        </form>
-      </section>
+        )}
+
+        <button
+          type="submit"
+          className="h-10 rounded-md bg-[#191B20] px-6 text-sm font-bold text-white"
+        >
+          {normalizedQuery
+            ? "다시 검색"
+            : "검색"}
+        </button>
+      </form>
 
       {!normalizedQuery ? (
-        <p className="mt-10 text-center text-gray-500">
+        <p className="mt-10 text-sm text-gray-500">
           검색어를 입력해 주세요.
         </p>
       ) : (
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold">
-            ‘{query}’ 검색 결과
-          </h2>
+        <section className="mt-5">
+          <div className="flex items-end justify-between border-b border-gray-200 pb-4">
+            <h2 className="text-lg font-bold">
+              ‘{query}’ 검색 결과
+            </h2>
 
-          <p className="mt-2 text-gray-500">
-            영화 {searchResults.length}편
-          </p>
+            <p className="text-xs text-gray-400">
+              영화 {searchResults.length}편 · 페이지 1
+            </p>
+          </div>
 
           {searchResults.length === 0 ? (
-            <p className="mt-8">
+            <p className="py-12 text-sm text-gray-500">
               검색 결과가 없어요.
             </p>
           ) : (
-            <ul className="mt-6 space-y-5">
+            <ul className="grid grid-cols-1 gap-x-12 lg:grid-cols-2">
               {searchResults.map(
                 (movie) => (
                   <li
                     key={movie.id}
-                    className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-5 sm:flex-row"
+                    className="flex gap-5 border-b border-gray-200 py-5"
                   >
-                    <Link
-                      to="/movies/$movieId"
-                      params={{
-                        movieId:
-                          String(movie.id),
-                      }}
-                      className="shrink-0"
-                    >
-                      <img
-                        className="h-[180px] w-[125px] rounded-lg object-cover"
-                        src={
-                          movie.posterPath
-                        }
-                        alt={`${movie.title} 포스터`}
-                      />
-                    </Link>
+                    <img
+                      src={
+                        movie.posterPath
+                      }
+                      alt={`${movie.title} 포스터`}
+                      className="h-44 w-28 shrink-0 rounded-md object-cover"
+                    />
 
-                    <div>
+                    <div className="min-w-0 pt-1">
+                      <h3 className="truncate text-base font-bold">
+                        {movie.title}
+                      </h3>
+
+                      <p className="mt-1 text-xs text-gray-400">
+                        {
+                          movie.originalTitle
+                        }
+                        {"  "}
+                        {movie.releaseDate}
+                      </p>
+
+                      <p className="mt-4 line-clamp-2 text-sm leading-6 text-gray-500">
+                        {movie.overview}
+                      </p>
+
                       <Link
                         to="/movies/$movieId"
                         params={{
@@ -149,25 +174,10 @@ export function SearchPage() {
                               movie.id,
                             ),
                         }}
+                        className="mt-5 inline-block text-sm font-semibold text-blue-600"
                       >
-                        <h3 className="text-xl font-bold">
-                          {movie.title}
-                        </h3>
+                        상세 보기 →
                       </Link>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        {
-                          movie.originalTitle
-                        }
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-400">
-                        {movie.releaseDate}
-                      </p>
-
-                      <p className="mt-4 leading-7">
-                        {movie.overview}
-                      </p>
                     </div>
                   </li>
                 ),

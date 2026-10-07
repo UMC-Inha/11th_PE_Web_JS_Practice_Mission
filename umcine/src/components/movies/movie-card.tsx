@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+
 import type { Movie } from "../../types/movie";
 import { cn } from "../../utils/cn";
 
@@ -13,35 +14,35 @@ export default function MovieCard({
 }: MovieCardProps) {
   return (
     <article className="min-w-0">
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-lg">
         <img
-          className="h-[274px] w-full rounded-[10px] object-cover"
           src={movie.posterPath}
           alt={`${movie.title} 포스터`}
+          className="aspect-[4/5] w-full object-cover"
         />
 
         <button
           type="button"
-          className={cn(
-            "absolute top-2.5 right-2.5 flex h-[34px] w-[34px] items-center justify-center rounded-lg border",
-            movie.isBookmarked
-              ? "border-blue-600 bg-blue-600"
-              : "border-white bg-black/80",
-          )}
           aria-label={`${movie.title} 북마크`}
           aria-pressed={movie.isBookmarked}
           onClick={() =>
             onToggleBookmark(movie.id)
           }
+          className={cn(
+            "absolute top-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-lg border",
+            movie.isBookmarked
+              ? "border-blue-600 bg-blue-600"
+              : "border-white bg-[#191B20]/85",
+          )}
         >
           <img
-            className="h-6 w-6 brightness-0 invert"
             src={
               movie.isBookmarked
                 ? "/icons/bookmark.svg"
                 : "/icons/bookmark-outline.svg"
             }
             alt=""
+            className="h-6 w-6 brightness-0 invert"
           />
         </button>
       </div>
@@ -51,16 +52,17 @@ export default function MovieCard({
         params={{
           movieId: String(movie.id),
         }}
+        className="mt-2 block"
       >
         <h2
-          className="mt-2 truncate text-sm leading-5 font-bold"
           title={movie.title}
+          className="truncate text-sm font-bold text-[#191B20]"
         >
           {movie.title}
         </h2>
       </Link>
 
-      <p className="mt-0.5 text-xs leading-[18px] text-gray-400">
+      <p className="mt-1 text-xs text-gray-400">
         {movie.releaseDate}
       </p>
     </article>

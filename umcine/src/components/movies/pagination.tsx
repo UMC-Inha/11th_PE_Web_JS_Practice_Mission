@@ -5,37 +5,34 @@ export default function Pagination() {
 
   return (
     <nav
-      className="mt-9 flex items-center justify-center gap-2"
+      className="mt-10 flex items-center justify-center gap-3"
       aria-label="페이지 번호"
     >
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center"
-        aria-label="이전 페이지"
         disabled
+        className="flex h-9 w-9 cursor-default items-center justify-center text-lg text-blue-200"
+        aria-label="이전 페이지"
       >
-        <img
-          className="h-6 w-6 opacity-25"
-          src="/icons/chevron-left.svg"
-          alt=""
-        />
+        ‹
       </button>
+
       {pages.map((page) => (
         <button
           key={page}
           type="button"
           disabled
-          className={cn(
-            "h-9 w-9 rounded-lg text-sm",
-            page === 1
-              ? "bg-[#191b20] text-white"
-              : "text-gray-500",
-          )}
           aria-current={
             page === 1
               ? "page"
               : undefined
           }
+          className={cn(
+            "h-9 w-9 cursor-default rounded-md text-sm font-semibold",
+            page === 1
+              ? "bg-[#191B20] text-white"
+              : "text-gray-500",
+          )}
         >
           {page}
         </button>
@@ -43,15 +40,11 @@ export default function Pagination() {
 
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center"
-        aria-label="다음 페이지"
         disabled
+        className="flex h-9 w-9 cursor-default items-center justify-center text-lg text-gray-500"
+        aria-label="다음 페이지"
       >
-        <img
-          className="h-6 w-6 opacity-25"
-          src="/icons/chevron-right.svg"
-          alt=""
-        />
+        ›
       </button>
     </nav>
   );

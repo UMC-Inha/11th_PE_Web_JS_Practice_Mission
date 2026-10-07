@@ -1,23 +1,24 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-white py-5">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-end gap-2.5 px-5 lg:px-20">
+    <footer className="shrink-0 border-t border-gray-200 bg-white">
+      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-end gap-2 px-10">
         <img
-          className="w-[72px]"
           src="/images/logos/tmdb-logo.svg"
           alt="TMDB"
+          className="w-14"
         />
 
-        <p className="text-xs text-gray-500">
+        <p className="text-[11px] text-gray-500">
           This product uses the TMDB API but is not endorsed or certified by{" "}
           <a
-            className="underline"
             href="https://www.themoviedb.org/"
             target="_blank"
             rel="noreferrer"
+            className="underline"
           >
             TMDB
-          </a>.
+          </a>
+          .
         </p>
       </div>
     </footer>
