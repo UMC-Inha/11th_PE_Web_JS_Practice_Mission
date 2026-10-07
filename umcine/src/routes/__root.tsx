@@ -6,14 +6,17 @@ import {
 
 import Header from "../components/layout/header";
 import Footer from "../components/layout/footer";
+import { MovieProvider } from "../contexts/movie-context";
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="flex min-h-screen flex-col bg-[#f6f7f9] text-[#191b20]">
-      <Header />
-      <Outlet />
-      <Footer />
-    </div>
+    <MovieProvider>
+      <div className="flex min-h-screen flex-col bg-[#f6f7f9] text-[#191b20]">
+        <Header />
+        <Outlet />
+        <Footer />
+      </div>
+    </MovieProvider>
   ),
 
   notFoundComponent: () => (
