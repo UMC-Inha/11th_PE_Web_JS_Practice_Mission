@@ -9,8 +9,8 @@ export function MovieListPage() {
   } = useMovies();
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] flex-1 px-10 pt-8 pb-14">
-      <h1 className="mb-6 text-4xl font-bold tracking-tight">
+    <main className="flex w-full flex-1 flex-col gap-5 px-5 py-6 xl:h-[846px] xl:flex-none xl:px-20">
+      <h1 className="h-11 text-4xl leading-[44px] font-bold tracking-tight">
         영화 목록
       </h1>
 

@@ -12,7 +12,7 @@ export default function MovieGrid({
 }: MovieGridProps) {
   return (
     <section
-      className="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+      className="grid w-full grid-cols-1 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:h-[678px] xl:grid-cols-5 xl:grid-rows-2 xl:gap-x-[18px]"
       aria-label="영화 목록"
     >
       {movies.map((movie) => (

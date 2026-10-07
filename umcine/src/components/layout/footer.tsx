@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
-    <footer className="shrink-0 border-t border-gray-200 bg-white">
-      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-end gap-2 px-10">
+    <footer className="h-[87px] w-full shrink-0 border-t border-gray-200 bg-white">
+      <div className="flex h-full w-full items-center justify-end gap-2 px-5 xl:px-20">
         <img
           src="/images/logos/tmdb-logo.svg"
           alt="TMDB"

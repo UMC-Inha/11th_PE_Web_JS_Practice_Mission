@@ -23,14 +23,14 @@ export function MovieDetailPage() {
 
   if (!movie) {
     return (
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-10 py-12">
+      <main className="w-full flex-1 px-5 py-12 xl:px-20">
         <h1 className="text-2xl font-bold">
           영화를 찾을 수 없어요.
         </h1>
 
         <Link
           to="/"
-          className="mt-6 inline-block text-blue-600 underline"
+          className="mt-5 inline-block text-blue-600 underline"
         >
           영화 목록으로
         </Link>
@@ -39,8 +39,8 @@ export function MovieDetailPage() {
   }
 
   return (
-    <main className="flex-1 bg-[#F6F7F9]">
-      <section className="relative h-[360px] overflow-hidden text-white">
+    <main className="flex w-full flex-1 flex-col bg-[#F6F7F9]">
+      <section className="relative h-90 w-full shrink-0 overflow-hidden text-white">
         <img
           src={movie.backdropPath}
           alt=""
@@ -48,9 +48,9 @@ export function MovieDetailPage() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
 
-        <div className="relative mx-auto flex h-full w-full max-w-[1440px] flex-col justify-between px-16 py-8">
+        <div className="relative flex h-full w-full flex-col justify-between px-5 py-6 xl:px-20">
           <Link
             to="/"
             className="flex w-fit items-center gap-2 text-sm font-semibold"
@@ -59,8 +59,8 @@ export function MovieDetailPage() {
             영화 목록
           </Link>
 
-          <div className="pb-2">
-            <h1 className="text-[42px] font-bold tracking-tight">
+          <div>
+            <h1 className="text-4xl leading-[44px] font-bold tracking-tight">
               {movie.title}
             </h1>
 
@@ -68,7 +68,7 @@ export function MovieDetailPage() {
               {movie.originalTitle}
             </p>
 
-            <p className="mt-3 text-sm font-semibold">
+            <p className="mt-2 text-sm font-semibold">
               {movie.releaseDate}
               {"  "}
               {movie.genres.join(" · ")}
@@ -79,16 +79,16 @@ export function MovieDetailPage() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-[1440px] gap-8 px-16 py-8 xl:grid-cols-[220px_1fr_320px]">
-        <div>
+      <section className="flex w-full flex-col gap-6 px-5 py-6 xl:h-[342px] xl:flex-row xl:px-20">
+        <div className="w-50 shrink-0">
           <img
             src={movie.posterPath}
             alt={`${movie.title} 포스터`}
-            className="w-full rounded-lg object-cover"
+            className="h-70 w-50 rounded-lg object-cover"
           />
         </div>
 
-        <div className="pt-1">
+        <div className="min-w-0 flex-1">
           <h2 className="text-xl font-bold">
             {movie.tagline}
           </h2>
@@ -100,7 +100,9 @@ export function MovieDetailPage() {
           <button
             type="button"
             onClick={() =>
-              handleToggleBookmark(movie.id)
+              handleToggleBookmark(
+                movie.id,
+              )
             }
             className="mt-6 flex h-11 items-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-bold text-white"
           >
@@ -120,7 +122,7 @@ export function MovieDetailPage() {
           </button>
         </div>
 
-        <div className="xl:border-l xl:border-gray-200 xl:pl-8">
+        <div className="w-full shrink-0 xl:w-80 xl:border-l xl:border-gray-200 xl:pl-6">
           <RatingPanel />
         </div>
       </section>

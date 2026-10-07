@@ -11,7 +11,7 @@ import { MovieProvider } from "../contexts/movie-context";
 export const Route = createRootRoute({
   component: () => (
     <MovieProvider>
-      <div className="flex min-h-screen flex-col bg-[#F6F7F9] text-[#191B20]">
+      <div className="mx-auto flex min-h-screen w-full max-w-360 flex-col bg-[#F6F7F9] text-[#191B20]">
         <Header />
         <Outlet />
         <Footer />
@@ -20,14 +20,14 @@ export const Route = createRootRoute({
   ),
 
   notFoundComponent: () => (
-    <main className="mx-auto w-full max-w-[1440px] flex-1 px-10 py-12">
+    <main className="w-full flex-1 px-5 py-12 xl:px-20">
       <h1 className="text-2xl font-bold">
         페이지를 찾을 수 없어요.
       </h1>
 
       <Link
         to="/"
-        className="mt-6 inline-block text-blue-600 underline"
+        className="mt-5 inline-block text-blue-600 underline"
       >
         영화 목록으로
       </Link>
