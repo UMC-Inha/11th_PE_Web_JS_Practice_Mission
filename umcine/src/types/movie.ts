@@ -8,7 +8,5 @@ export type Movie = {
   backdropPath: string
   releaseDate: string
   genres: string[]
-  runtime: number
-  voteAverage: number
-  isBookmarked?: boolean
+  runtime: string
 }

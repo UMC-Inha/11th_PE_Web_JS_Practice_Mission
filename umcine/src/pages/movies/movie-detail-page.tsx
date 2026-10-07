@@ -1,17 +1,9 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
 import { movies } from "../../data/movies";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
 
 const RATING_SCORES = [1, 2, 3, 4, 5];
-
-function formatRuntime(runtime: number) {
-  const hours = Math.floor(runtime / 60);
-  const minutes = runtime % 60;
-  return [hours && `${hours}시간`, minutes && `${minutes}분`]
-    .filter(Boolean)
-    .join(" ");
-}
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -25,16 +17,18 @@ export function MovieDetailPage() {
     );
   }
 
-  // 영화가 바뀌면 즐겨찾기 상태도 새로 시작하도록 key를 준다.
-  return <MovieDetail key={movie.id} movie={movie} />;
+  return <MovieDetail movie={movie} />;
 }
 
 function MovieDetail({ movie }: { movie: Movie }) {
-  const [isBookmarked, setIsBookmarked] = useState(movie.isBookmarked ?? false);
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(movie.id),
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
   const metaItems = [
     movie.releaseDate,
     movie.genres.join(" · "),
-    movie.runtime > 0 ? formatRuntime(movie.runtime) : "",
+    movie.runtime,
   ].filter(Boolean);
 
   return (
@@ -43,7 +37,6 @@ function MovieDetail({ movie }: { movie: Movie }) {
       <div
         className="relative h-[360px] bg-[#17191E] bg-cover bg-center"
         style={{
-          // 배경 이미지를 못 불러오면 포스터를 대신 보여 준다.
           backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 60%), url("${movie.backdropPath}"), url("${movie.posterPath}")`,
         }}
       >
@@ -106,7 +99,7 @@ function MovieDetail({ movie }: { movie: Movie }) {
             <button
               type="button"
               aria-pressed={isBookmarked}
-              onClick={() => setIsBookmarked((prev) => !prev)}
+              onClick={() => toggleBookmark(movie.id)}
               className="flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-white bg-[#2563EB] px-4 text-sm leading-[17px] font-extrabold text-white"
             >
               <svg

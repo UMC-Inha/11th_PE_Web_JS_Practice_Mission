@@ -1,14 +1,18 @@
 import { Link } from "@tanstack/react-router";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
 import { cn } from "../../utils/cn";
 
 type MovieCardProps = {
   movie: Movie;
-  isBookmarked: boolean;
-  onToggleBookmark: (movieId: number) => void;
 };
 
-export function MovieCard({ movie, isBookmarked, onToggleBookmark }: MovieCardProps) {
+export function MovieCard({ movie }: MovieCardProps) {
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(movie.id),
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+
   return (
     <article className="relative flex flex-col gap-1">
       <Link
@@ -37,7 +41,7 @@ export function MovieCard({ movie, isBookmarked, onToggleBookmark }: MovieCardPr
         type="button"
         aria-label={isBookmarked ? "북마크 해제" : "북마크"}
         aria-pressed={isBookmarked}
-        onClick={() => onToggleBookmark(movie.id)}
+        onClick={() => toggleBookmark(movie.id)}
         className={cn(
           "absolute top-[10px] right-[10px] flex size-[34px] cursor-pointer items-center justify-center rounded-lg border text-white",
           isBookmarked ? "border-[#2563EB] bg-[#2563EB]" : "border-white bg-[#17191E]",
