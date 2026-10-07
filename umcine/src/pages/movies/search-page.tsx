@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
+import BookmarkButton from "../../components/movies/bookmark-button";
 import { movies } from "../../data/movies";
 
 export function SearchPage() {
@@ -70,7 +71,7 @@ export function SearchPage() {
           <p className="text-sm text-app-text">영화 {searchResults.length}편</p>
           <ul className="mt-4 flex flex-col gap-4">
             {searchResults.map((movie) => (
-              <li key={movie.id}>
+              <li key={movie.id} className="relative">
                 <Link
                   to="/movies/$movieId"
                   params={{ movieId: String(movie.id) }}
@@ -96,6 +97,7 @@ export function SearchPage() {
                     </p>
                   </div>
                 </Link>
+                <BookmarkButton movieId={movie.id} />
               </li>
             ))}
           </ul>

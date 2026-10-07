@@ -1,6 +1,7 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { movies } from "../../data/movies";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
 
 const RATING_VALUES = [1, 2, 3, 4, 5];
@@ -21,7 +22,10 @@ function StarIcon({ filled }: { filled: boolean }) {
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
   const movie = movies.find((item) => item.id === Number(movieId));
-  const [isBookmarked, setIsBookmarked] = useState(movie?.isBookmarked ?? false);
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(Number(movieId)),
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [isSaved, setIsSaved] = useState(false);
@@ -90,7 +94,7 @@ export function MovieDetailPage() {
           <button
             type="button"
             aria-pressed={isBookmarked}
-            onClick={() => setIsBookmarked((prev) => !prev)}
+            onClick={() => toggleBookmark(movie.id)}
             className="mt-6 flex items-center gap-2 rounded-lg border-none bg-app-accent px-5 py-3 text-sm font-bold text-white"
           >
             <img
