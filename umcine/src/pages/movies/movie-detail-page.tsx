@@ -89,7 +89,7 @@ export function MovieDetailPage() {
 
   return (
     <>
-      <main className="min-h-[calc(100vh-160px)] bg-[#f6f7f9]">
+      <main className="bg-[#f6f7f9]">
         <section className="relative h-[360px] overflow-hidden">
           <img src={movie.backdropPath} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
@@ -121,10 +121,6 @@ export function MovieDetailPage() {
           <MovieReview key={movie.id} movieId={movie.id} />
         </section>
       </main>
-      <footer className="flex min-h-14 flex-wrap items-center justify-end gap-2 border-t border-[#e2e5eb] bg-white px-[5.5%] py-4 text-xs text-[#6b7280]">
-        <span className="font-extrabold tracking-wide text-[#21b8c7]">TMDB</span>
-        <p>This product uses the TMDB API but is not endorsed or certified by <a href="https://www.themoviedb.org/" className="underline underline-offset-2">TMDB</a>.</p>
-      </footer>
     </>
   );
 }
