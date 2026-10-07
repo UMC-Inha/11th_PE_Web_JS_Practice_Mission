@@ -14,18 +14,11 @@ export default function MovieCard({
   return (
     <article className="min-w-0">
       <div className="relative">
-        <Link
-          to="/movies/$movieId"
-          params={{
-            movieId: String(movie.id),
-          }}
-        >
-          <img
-            className="h-[274px] w-full rounded-[10px] object-cover"
-            src={movie.posterPath}
-            alt={`${movie.title} 포스터`}
-          />
-        </Link>
+        <img
+          className="h-[274px] w-full rounded-[10px] object-cover"
+          src={movie.posterPath}
+          alt={`${movie.title} 포스터`}
+        />
 
         <button
           type="button"
@@ -37,7 +30,9 @@ export default function MovieCard({
           )}
           aria-label={`${movie.title} 북마크`}
           aria-pressed={movie.isBookmarked}
-          onClick={() => onToggleBookmark(movie.id)}
+          onClick={() =>
+            onToggleBookmark(movie.id)
+          }
         >
           <img
             className="h-6 w-6 brightness-0 invert"
