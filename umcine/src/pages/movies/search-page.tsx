@@ -7,11 +7,11 @@ import {
 import {
   useEffect,
   useState,
-  type SubmitEvent,
+  type FormEvent,
 } from "react";
 
-import { movies } from "../../data/movies";
 import { BookmarkButton } from "../../components/bookmark-button";
+import { movies } from "../../data/movies";
 
 export function SearchPage() {
   const { query } = useSearch({
@@ -21,7 +21,6 @@ export function SearchPage() {
   const navigate = useNavigate({
     from: "/search",
   });
-
 
   const [searchText, setSearchText] =
     useState(query ?? "");
@@ -46,12 +45,11 @@ export function SearchPage() {
     : [];
 
   function handleSubmit(
-    event: SubmitEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    const nextQuery =
-      searchText.trim();
+    const nextQuery = searchText.trim();
 
     navigate({
       search: nextQuery
@@ -171,20 +169,51 @@ export function SearchPage() {
           <ul className="grid grid-cols-1 gap-x-12 lg:grid-cols-2">
             {searchResults.map(
               (movie) => (
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-  <Link
-    to="/movies/$movieId"
-    params={{ movieId: String(movie.id) }}
-    className="inline-block text-sm font-semibold text-blue-600"
-  >
-    상세 보기 →
-  </Link>
+                <li
+                  key={movie.id}
+                  className="flex gap-5 border-b border-gray-200 py-5"
+                >
+                  <div className="relative h-44 w-28 shrink-0">
+                    <img
+                      src={movie.posterPath}
+                      alt={`${movie.title} 포스터`}
+                      className="h-full w-full rounded-md object-cover"
+                    />
 
-  <BookmarkButton
-    movieId={movie.id}
-    movieTitle={movie.title}
-  />
-</div>
+                    <BookmarkButton
+                      movieId={movie.id}
+                      movieTitle={movie.title}
+                      iconOnly
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1 pt-1">
+                    <h3 className="truncate text-base font-bold">
+                      {movie.title}
+                    </h3>
+
+                    <p className="mt-1 text-xs text-gray-400">
+                      {movie.originalTitle}
+                      {"  "}
+                      {movie.releaseDate}
+                    </p>
+
+                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-gray-500">
+                      {movie.overview}
+                    </p>
+
+                    <Link
+                      to="/movies/$movieId"
+                      params={{
+                        movieId:
+                          String(movie.id),
+                      }}
+                      className="mt-5 inline-block text-sm font-semibold text-blue-600"
+                    >
+                      상세 보기 →
+                    </Link>
+                  </div>
+                </li>
               ),
             )}
           </ul>
