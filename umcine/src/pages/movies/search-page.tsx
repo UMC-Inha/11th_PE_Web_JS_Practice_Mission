@@ -7,10 +7,11 @@ import {
 import {
   useEffect,
   useState,
-  type SubmitEvent,
+  type FormEvent,
 } from "react";
 
-import { useMovies } from "../../contexts/movie-context";
+import { BookmarkButton } from "../../components/bookmark-button";
+import { movies } from "../../data/movies";
 
 export function SearchPage() {
   const { query } = useSearch({
@@ -20,8 +21,6 @@ export function SearchPage() {
   const navigate = useNavigate({
     from: "/search",
   });
-
-  const { movies } = useMovies();
 
   const [searchText, setSearchText] =
     useState(query ?? "");
@@ -46,12 +45,11 @@ export function SearchPage() {
     : [];
 
   function handleSubmit(
-    event: SubmitEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    const nextQuery =
-      searchText.trim();
+    const nextQuery = searchText.trim();
 
     navigate({
       search: nextQuery
@@ -175,23 +173,27 @@ export function SearchPage() {
                   key={movie.id}
                   className="flex gap-5 border-b border-gray-200 py-5"
                 >
-                  <img
-                    src={
-                      movie.posterPath
-                    }
-                    alt={`${movie.title} 포스터`}
-                    className="h-44 w-28 shrink-0 rounded-md object-cover"
-                  />
+                  <div className="relative h-44 w-28 shrink-0">
+                    <img
+                      src={movie.posterPath}
+                      alt={`${movie.title} 포스터`}
+                      className="h-full w-full rounded-md object-cover"
+                    />
 
-                  <div className="min-w-0 pt-1">
+                    <BookmarkButton
+                      movieId={movie.id}
+                      movieTitle={movie.title}
+                      iconOnly
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1 pt-1">
                     <h3 className="truncate text-base font-bold">
                       {movie.title}
                     </h3>
 
                     <p className="mt-1 text-xs text-gray-400">
-                      {
-                        movie.originalTitle
-                      }
+                      {movie.originalTitle}
                       {"  "}
                       {movie.releaseDate}
                     </p>
@@ -204,9 +206,7 @@ export function SearchPage() {
                       to="/movies/$movieId"
                       params={{
                         movieId:
-                          String(
-                            movie.id,
-                          ),
+                          String(movie.id),
                       }}
                       className="mt-5 inline-block text-sm font-semibold text-blue-600"
                     >
