@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useState, type SubmitEvent } from 'react'
 import { movies } from '../../data/movies'
+import { BookmarkButton } from '../../components/bookmark-button'
 
 export function SearchPage() {
   const { query } = useSearch({ from: '/search' })
@@ -93,6 +94,7 @@ export function SearchPage() {
                   >
                     상세 보기 →
                   </Link>
+                  
                 </div>
               </li>
             ))}

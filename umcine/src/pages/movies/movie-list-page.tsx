@@ -1,18 +1,18 @@
-import { useState } from 'react'
 import MovieGrid from '../../components/movies/movie-grid'
 import Pagination from '../../components/movies/pagination'
 import { movies as initialMovies } from '../../data/movies'
+import { useBookmarkStore } from '../../stores/bookmark-store'
 
 export default function MovieListPage() {
-  const [movies, setMovies] = useState(initialMovies)
+  const bookmarkedMovieIds = useBookmarkStore(
+    (state) => state.bookmarkedMovieIds,
+  )
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark)
 
-  const toggleBookmark = (movieId: number) => {
-    setMovies((currentMovies) =>
-      currentMovies.map((movie) =>
-        movie.id === movieId ? { ...movie, isBookmarked: !movie.isBookmarked } : movie,
-      ),
-    )
-  }
+  const movies = initialMovies.map((movie) => ({
+    ...movie,
+    isBookmarked: bookmarkedMovieIds.includes(movie.id),
+  }))
 
   return (
     <main className="mx-auto w-full max-w-[1100px] px-5 pb-20 pt-8 sm:px-10">
