@@ -1,5 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { movies } from '../../data/movies'
+import { BookmarkButton } from '../../components/bookmark-button'
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: '/movies/$movieId' })
@@ -33,7 +34,7 @@ export function MovieDetailPage() {
           </Link>
           <p className="text-xs text-white/80">{movie.originalTitle}</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-4xl">{movie.title}</h1>
-          <p className="mt-1 text-xs text-white/80">{movie.releaseDate} · {movie.runtime}</p>
+          <p className="mt-1 text-xs text-white/80">{movie.releaseDate} · {movie.runtime}</p>       
         </div>
       </section>
 
@@ -54,6 +55,7 @@ export function MovieDetailPage() {
               </span>
             ))}
           </div>
+          <BookmarkButton movieId={movie.id} /> 
         </div>
 
         <aside className="border-l border-[#e3e6eb] pl-5">
