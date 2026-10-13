@@ -15,7 +15,7 @@ export function Header() {
 
           <Link
             to="/"
-            className="flex items-center gap-[10px] font-[Pretendard,sans-serif] text-xl font-black tracking-[-0.7px] text-[#17191e]"
+            className="flex items-center gap-[10px]  text-xl font-black tracking-[-0.7px] text-[#17191e]"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg border-2 border-[#17191e]">
               <img
@@ -28,7 +28,7 @@ export function Header() {
             <span>UMCine</span>
           </Link>
 
-          <nav className="flex items-center gap-[30px] font-[Pretendard,sans-serif] text-sm font-bold">
+          <nav className="flex items-center gap-[30px]  text-sm font-bold">
             <Link
               to="/"
               className={
@@ -74,7 +74,7 @@ export function Header() {
 
           <button
             type="button"
-            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 font-[Pretendard,sans-serif] text-sm font-extrabold text-white"
+            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4  text-sm font-extrabold text-white"
           >
             로그인
           </button>

@@ -1,7 +1,7 @@
 export function Footer() {
   return (
     <footer className="relative flex h-[57px] w-full shrink-0 items-center justify-center bg-white">
-      <div className="absolute right-20 flex items-center gap-2 font-[Pretendard,sans-serif] text-xs text-[#606774]">
+      <div className="absolute right-20 flex items-center gap-2  text-xs text-[#606774]">
         <img
           src="/images/logos/tmdb-logo.svg"
           alt="TMDB"

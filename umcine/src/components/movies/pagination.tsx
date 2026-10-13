@@ -2,7 +2,7 @@ import { cn } from "../../utils/cn";
 
 export default function Pagination() {
   const buttonClass =
-    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-transparent p-0 font-[Pretendard,sans-serif] text-sm";
+    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-transparent p-0  text-sm";
 
   return (
     <div className="flex h-9 items-center justify-center gap-1">
