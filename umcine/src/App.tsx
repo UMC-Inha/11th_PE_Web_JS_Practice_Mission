@@ -2,11 +2,10 @@ import { useState } from "react";
 import Header from "./components/layout/header";
 import MovieGrid from "./components/movies/movie-grid";
 import Pagination from "./components/movies/pagination";
-import { movies as initialMovies } from "./data/movies";
+import { movies } from "./data/movies";
 import "./App.css";
 
 export default function App() {
-  const [movies, setMovies] = useState(initialMovies);
   const [currentPage, setCurrentPage] = useState(1);
 
   const moviesPerPage = 10;
@@ -17,16 +16,6 @@ export default function App() {
     startIndex + moviesPerPage,
   );
 
-  function handleToggleBookmark(movieId: number) {
-    setMovies((currentMovies) =>
-      currentMovies.map((movie) =>
-        movie.id === movieId
-          ? { ...movie, isBookmarked: !movie.isBookmarked }
-          : movie,
-      ),
-    );
-  }
-
   return (
     <>
       <Header />
@@ -36,7 +25,6 @@ export default function App() {
 
         <MovieGrid
           movies={currentMovies}
-          onToggleBookmark={handleToggleBookmark}
         />
 
         {totalPages > 1 && (
