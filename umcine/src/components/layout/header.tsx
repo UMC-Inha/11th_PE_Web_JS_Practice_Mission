@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 
 // CSS Module(header.module.css)에서 Tailwind 유틸리티 클래스로 전환
+// 반응형: 모바일 우선. 기본값이 모바일, sm:(640px~)부터 데스크톱 값으로 덮어씀
 export function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-gray-200 px-8 py-4">
-      <div className="flex items-center gap-8">
+    <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-8 sm:py-4">
+      <div className="flex items-center gap-4 sm:gap-8">
         {/* 홈으로 이동하는 로고 링크 */}
         <Link
           to="/"
@@ -15,7 +16,8 @@ export function Header() {
             alt="UMCINE 로고"
             className="box-content size-5 rounded-lg border-[1.5px] border-gray-900 p-1.5"
           />
-          UMCine
+          {/* 좁은 화면에서는 로고 글자를 숨겨 공간 확보 */}
+          <span className="hidden sm:inline">UMCine</span>
         </Link>
 
         {/* 영화 탭 */}
@@ -47,14 +49,14 @@ export function Header() {
         </button>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-3 sm:gap-5">
         {/* 돋보기 아이콘도 검색 페이지 링크로 전환 */}
         <Link to="/search" className="flex items-center justify-center">
           <img src="/icons/search.svg" alt="검색" className="size-5" />
         </Link>
         <button
           type="button"
-          className="cursor-pointer rounded-full bg-blue-600 px-5 py-2 text-[15px] font-semibold text-white"
+          className="cursor-pointer rounded-full bg-blue-600 px-3 py-2 text-sm font-semibold whitespace-nowrap text-white sm:px-5 sm:text-[15px]"
         >
           마이페이지
         </button>

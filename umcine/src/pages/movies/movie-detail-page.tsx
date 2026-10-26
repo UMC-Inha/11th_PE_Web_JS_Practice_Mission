@@ -1,10 +1,19 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
+import { useBookmarkStore } from "../../stores/bookmark-store";
+import { cn } from "../../utils/cn";
 
 // CSS Module(movie-detail-page.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" }); //path param을 가져와 영화를 찾고 아래서 상세 정보 표시
   const movie = movies.find((item) => item.id === Number(movieId));
+
+  // 목록의 BookmarkButton과 같은 zustand store를 구독 -> 한 화면에서 바꾸면 다른 화면에도 반영됨.
+  // Hook이라 아래 early return(!movie)보다 먼저 호출해야 함.
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(Number(movieId)),
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
 
   if (!movie) {
     return (
@@ -16,9 +25,9 @@ export function MovieDetailPage() {
 
   return (
     <main>
-      {/* 배경 이미지 위에 before:로 그라데이션을 깔아 하단 텍스트 대비를 확보 (기존 .hero::before 대체) */}
+      {/* 배경 이미지 위에 before:로 그라데이션을 깔아 하단 텍스트 대비를 확보  */}
       <div
-        className="relative flex min-h-80 flex-col justify-end gap-8 bg-cover bg-center bg-[#111318] px-8 pt-5 pb-6 text-white before:absolute before:inset-0 before:bg-gradient-to-b before:from-black/15 before:to-black/80 before:content-['']"
+        className="relative flex min-h-60 flex-col justify-end gap-8 bg-cover bg-center bg-[#111318] px-4 pt-5 pb-6 text-white sm:min-h-80 sm:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-black/15 before:to-black/80 before:content-['']"
         style={{ backgroundImage: `url(${movie.backdropPath})` }}
       >
         <Link
@@ -34,7 +43,7 @@ export function MovieDetailPage() {
         </Link>
 
         <div className="relative z-10 mt-auto">
-          <h1 className="mb-1 text-[32px] font-bold text-white">
+          <h1 className="mb-1 text-2xl font-bold text-white sm:text-[32px]">
             {movie.title}
           </h1>
           <p className="mb-2 text-[15px] text-white/80">
@@ -48,12 +57,13 @@ export function MovieDetailPage() {
         </div>
       </div>
 
-      <div className="flex items-start gap-8 p-8">
+      {/* 반응형: 모바일은 세로로 쌓고(포스터 → 설명 → 평점), lg(1024px~)부터 가로 3단 */}
+      <div className="flex flex-col gap-6 p-4 sm:p-8 lg:flex-row lg:items-start lg:gap-8">
         <div className="shrink-0">
           <img
             src={movie.posterPath}
             alt={`${movie.title} 포스터`}
-            className="block aspect-[2/3] w-40 rounded-xl object-cover"
+            className="block aspect-[2/3] w-32 rounded-xl object-cover sm:w-40"
           />
         </div>
 
@@ -64,12 +74,22 @@ export function MovieDetailPage() {
           <p className="mb-5 text-[15px] leading-[1.6] text-gray-500">
             {movie.overview}
           </p>
+          {/* 목록 북마크 배지와 색 통일: 북마크됨 = 파랑, 아님 = 반투명 검정. 글자/아이콘은 항상 흰색 */}
           <button
             type="button"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-[18px] py-2.5 text-sm font-semibold text-white"
+            aria-pressed={isBookmarked}
+            onClick={() => toggleBookmark(movie.id)}
+            className={cn(
+              "inline-flex cursor-pointer items-center gap-2 rounded-lg px-[18px] py-2.5 text-sm font-semibold text-white transition-colors",
+              isBookmarked ? "bg-blue-600" : "bg-black/55",
+            )}
           >
             <img
-              src="/icons/bookmark-outline.svg"
+              src={
+                isBookmarked
+                  ? "/icons/bookmark.svg"
+                  : "/icons/bookmark-outline.svg"
+              }
               alt=""
               className="size-4 invert"
             />
@@ -77,7 +97,7 @@ export function MovieDetailPage() {
           </button>
         </div>
 
-        <div className="w-[260px] shrink-0 border-l border-gray-200 pl-8 text-left">
+        <div className="w-full shrink-0 border-t border-gray-200 pt-6 text-left lg:w-[260px] lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
           <h2 className="mb-1 text-lg font-bold text-gray-900">내 평점</h2>
           <p className="mb-3 text-[13px] text-gray-500">
             별점은 필수, 후기는 선택이에요.
