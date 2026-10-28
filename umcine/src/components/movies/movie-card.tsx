@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { BookmarkButton } from "../bookmark-button";
 
 interface MovieCardProps {
@@ -7,6 +8,8 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie }: MovieCardProps) {
+  const posterUrl = getTmdbPosterUrl(movie.poster_path);
+
   return (
     <li>
       <div className="relative aspect-[204/231] overflow-hidden rounded-lg bg-[#ddd]">
@@ -17,11 +20,17 @@ export function MovieCard({ movie }: MovieCardProps) {
           aria-hidden="true"
           className="block size-full"
         >
-          <img
-            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-            alt={`${movie.title} 포스터`}
-            className="block size-full object-cover"
-          />
+          {posterUrl ? (
+            <img
+              src={posterUrl}
+              alt={`${movie.title} 포스터`}
+              className="block size-full object-cover"
+            />
+          ) : (
+            <div className="grid size-full place-items-center bg-[#e5e7eb] text-xs text-[#9ca3af]">
+              이미지 없음
+            </div>
+          )}
         </Link>
 
         <BookmarkButton movieId={movie.id} />

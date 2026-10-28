@@ -1,7 +1,9 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { searchMovies } from "../../api/movies/search-movies";
 import { BookmarkButton } from "../../components/bookmark-button";
-import { movies } from "../../data/movies";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { cn } from "../../utils/cn";
 
 export function SearchPage() {
@@ -9,19 +11,45 @@ export function SearchPage() {
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
 
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     setSearchText(query ?? "");
   }, [query]);
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
+  const normalizedQuery = query?.trim() ?? "";
   const hasQuery = normalizedQuery !== "";
-  const searchResults = hasQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+
+  useEffect(() => {
+    let ignore = false;
+
+    setMovies([]);
+    setErrorMessage(null);
+
+    if (!normalizedQuery) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) setMovies(response.results);
+      })
+      .catch(() => {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [normalizedQuery]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,51 +126,70 @@ export function SearchPage() {
         <section className="mt-5">
           <div className="flex items-end justify-between border-b border-[#e5e7eb] pb-3">
             <h2 className="text-[15px] font-bold">'{query}' 검색 결과</h2>
-            <p className="text-[11px] text-[#9ca3af]">
-              영화 {searchResults.length}편
-            </p>
+            {!isLoading && !errorMessage && (
+              <p className="text-[11px] text-[#9ca3af]">
+                영화 {movies.length}편
+              </p>
+            )}
           </div>
 
-          {searchResults.length === 0 ? (
+          {isLoading ? (
+            <p className="py-20 text-center text-sm text-[#888]">
+              검색 결과를 불러오는 중이에요.
+            </p>
+          ) : errorMessage ? (
+            <p className="py-20 text-center text-sm text-[#888]">
+              {errorMessage}
+            </p>
+          ) : movies.length === 0 ? (
             <p className="py-20 text-center text-sm text-[#888]">
               검색 결과가 없어요.
             </p>
           ) : (
             <ul className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
-              {searchResults.map((movie) => (
-                <li
-                  key={movie.id}
-                  className="flex gap-4 border-b border-[#e5e7eb] py-4"
-                >
-                  {/* 포스터 위에 북마크 버튼을 올리기 위한 relative 래퍼 */}
-                  <div className="relative aspect-[2/3] w-24 shrink-0">
-                    <img
-                      src={movie.posterPath}
-                      alt={`${movie.title} 포스터`}
-                      className="size-full rounded-md object-cover"
-                    />
-                    <BookmarkButton movieId={movie.id} />
-                  </div>
+              {movies.map((movie) => {
+                const posterUrl = getTmdbPosterUrl(movie.poster_path);
 
-                  <div className="flex min-w-0 flex-col">
-                    <h3 className="text-[15px] font-bold">{movie.title}</h3>
-                    <p className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-[#9ca3af]">
-                      <span>{movie.originalTitle}</span>
-                      <span>{movie.releaseDate}</span>
-                    </p>
-                    <p className="mt-2 line-clamp-3 text-xs leading-[1.7] text-[#555]">
-                      {movie.overview}
-                    </p>
-                    <Link
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
-                      className="mt-auto pt-3 text-[11px] font-bold text-[#2563EB]"
-                    >
-                      상세 보기 →
-                    </Link>
-                  </div>
-                </li>
-              ))}
+                return (
+                  <li
+                    key={movie.id}
+                    className="flex gap-4 border-b border-[#e5e7eb] py-4"
+                  >
+                    <div className="relative aspect-[2/3] w-24 shrink-0">
+                      {posterUrl ? (
+                        <img
+                          src={posterUrl}
+                          alt={`${movie.title} 포스터`}
+                          className="size-full rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="grid size-full place-items-center rounded-md bg-[#e5e7eb] text-[11px] text-[#9ca3af]">
+                          이미지 없음
+                        </div>
+                      )}
+                      <BookmarkButton movieId={movie.id} />
+                    </div>
+
+                    <div className="flex min-w-0 flex-col">
+                      <h3 className="text-[15px] font-bold">{movie.title}</h3>
+                      <p className="mt-1.5 flex flex-wrap gap-x-2 text-[11px] text-[#9ca3af]">
+                        <span>{movie.original_title}</span>
+                        <span>{movie.release_date}</span>
+                      </p>
+                      <p className="mt-2 line-clamp-3 text-xs leading-[1.7] text-[#555]">
+                        {movie.overview}
+                      </p>
+                      <Link
+                        to="/movies/$movieId"
+                        params={{ movieId: String(movie.id) }}
+                        className="mt-auto pt-3 text-[11px] font-bold text-[#2563EB]"
+                      >
+                        상세 보기 →
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
