@@ -3,6 +3,7 @@ import { useState, type SubmitEvent } from "react";
 import { movies } from "../../data/movies";
 import type { Movie } from "../../types/movie";
 import { cn } from "../../utils/cn";
+import { BookmarkButton } from "../../components/bookmark-button";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -12,7 +13,7 @@ export function MovieDetailPage() {
 }
 
 function MovieDetailContent({ movie }: { movie: Movie }) {
-  const [bookmarked, setBookmarked] = useState(movie.isBookmarked);
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [message, setMessage] = useState("");
@@ -41,10 +42,7 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
           <div className="min-w-0">
             <h2 className="text-xl font-bold">{movie.tagline}</h2>
             <p className="mt-4 text-sm leading-7 text-[#788191]">{movie.overview}</p>
-            <button type="button" aria-pressed={bookmarked} onClick={() => setBookmarked(!bookmarked)} className="mt-4 flex items-center gap-2 rounded-md bg-[#2864fa] px-4 py-3 text-sm font-bold text-white">
-              <img src={bookmarked ? "/movie-icons/bookmark.svg" : "/movie-icons/bookmark-outline.svg"} alt="" className="h-4 w-4 brightness-0 invert" />
-              {bookmarked ? "즐겨찾기 해제" : "즐겨찾기"}
-            </button>
+            <BookmarkButton movieId={movie.id} className="mt-4" />
           </div>
         </div>
         <form onSubmit={saveReview} className="border-t border-[#e2e5eb] pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
@@ -61,3 +59,4 @@ function MovieDetailContent({ movie }: { movie: Movie }) {
     </main>
   );
 }
+
