@@ -1,24 +1,53 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies";
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { MovieSearchForm } from "../../components/movies/movie-search-form";
+import { MovieSearchCard } from "../../components/movies/movie-search-card";
 
 export function SearchPage() {
-  const { query } = useSearch({ from: "/search" });
+  const { query = "" } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
-  const [searchText, setSearchText] = useState(query ?? "");
+  const [searchText, setSearchText] = useState(query);
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setSearchText(query ?? "");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- URL 검색어를 입력창에 동기화해요.
+    setSearchText(query);
   }, [query]);
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+  useEffect(() => {
+    let ignore = false;
+    const normalizedQuery = query.trim();
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 요청한 예제처럼 새 검색 전에 이전 결과를 초기화해요.
+    setMovies([]);
+    setErrorMessage(null);
+
+    if (!normalizedQuery) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) setMovies(response.results);
+      })
+      .catch(() => {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [query]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,40 +61,24 @@ export function SearchPage() {
     setSearchText("");
   }
 
+  const normalizedQuery = query.trim();
+
   return (
     <main>
-        {!normalizedQuery ? (
+      {!normalizedQuery ? (
         <section className="flex min-h-[430px] items-center justify-center px-5">
           <div className="w-full max-w-[790px]">
             <h1 className="mb-6 text-center text-[46px] font-bold leading-[44px] tracking-[-2.3px]">
               어떤 영화를 찾고 있나요?
             </h1>
 
-            <form
+            <MovieSearchForm
+              variant="initial"
+              searchText={searchText}
+              onSearchTextChange={setSearchText}
               onSubmit={handleSubmit}
-              className="flex h-[74px] w-full items-center rounded-[10px] border-2 border-[#17191E] bg-white px-[17px]"
-            >
-              <img
-                src="/icons/search.svg"
-                alt=""
-                className="h-[18px] w-[18px]"
-              />
-
-              <input
-                aria-label="검색어"
-                placeholder="예: 스파이더맨"
-                value={searchText}
-                onChange={(event) => setSearchText(event.target.value)}
-                className="ml-[14px] min-w-0 flex-1 border-none bg-transparent text-[14px] outline-none placeholder:text-[#969DA8]"
-              />
-
-              <button
-                type="submit"
-                className="flex h-[42px] w-[59px] items-center justify-center rounded-[8px] bg-[#17191E] text-[14px] font-bold text-white"
-              >
-                검색
-              </button>
-            </form>
+              onClear={handleClear}
+            />
           </div>
         </section>
       ) : (
@@ -73,40 +86,13 @@ export function SearchPage() {
           <h1 className="mb-5 text-[38px] font-bold leading-[44px] tracking-[-1.7px]">
             영화 검색
           </h1>
-          {}
-          <form
+          <MovieSearchForm
+            variant="results"
+            searchText={searchText}
+            onSearchTextChange={setSearchText}
             onSubmit={handleSubmit}
-            className="flex h-[56px] w-full items-center rounded-[10px] border border-[#DCE0E6] bg-white px-4"
-          >
-            <img
-              src="/icons/search.svg"
-              alt=""
-              className="h-5 w-5"
-            />
-
-            <input
-              aria-label="검색어"
-              value={searchText}
-              onChange={(event) => setSearchText(event.target.value)}
-              className="ml-4 min-w-0 flex-1 border-none bg-transparent text-[14px] font-semibold outline-none"
-            />
-
-            <button
-              type="button"
-              onClick={handleClear}
-              aria-label="검색어 지우기"
-              className="mr-4 flex h-8 w-8 items-center justify-center text-[28px] font-light text-[#697281]"
-            >
-              ×
-            </button>
-
-            <button
-              type="submit"
-              className="flex h-[42px] items-center justify-center rounded-[8px] bg-[#17191E] px-4 text-[14px] font-bold text-white"
-            >
-              다시 검색
-            </button>
-          </form>
+            onClear={handleClear}
+          />
 
           {/* 검색 결과 제목 */}
           <div className="flex items-center justify-between border-b border-[#DCE0E6] py-5">
@@ -115,61 +101,28 @@ export function SearchPage() {
             </h2>
 
             <p className="text-[12px] text-[#969DA8]">
-              영화 {searchResults.length}편 · 1페이지
+              {!isLoading && !errorMessage && (
+                <>영화 {movies.length}편 · 1페이지</>
+              )}
             </p>
           </div>
 
-          {searchResults.length === 0 ? (
+          {isLoading ? (
+            <div role="status" className="py-20 text-center text-[#969DA8]">
+              검색 결과를 불러오는 중이에요.
+            </div>
+          ) : errorMessage ? (
+            <div role="alert" className="py-20 text-center text-red-500">
+              {errorMessage}
+            </div>
+          ) : movies.length === 0 ? (
             <div className="py-20 text-center text-[#969DA8]">
               검색 결과가 없어요.
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
-              {searchResults.map((movie) => (
-                <li
-                  key={movie.id}
-                  className="flex gap-5 border-b border-[#DCE0E6] py-5"
-                >
-                  <Link
-                    to="/movies/$movieId"
-                    params={{ movieId: String(movie.id) }}
-                    className="shrink-0"
-                  >
-                    <img
-                      src={movie.posterPath}
-                      alt={`${movie.title} 포스터`}
-                      className="h-[194px] w-[130px] rounded-[8px] object-cover"
-                    />
-                  </Link>
-
-                  <div className="min-w-0 flex-1 py-1">
-                    <Link
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
-                    >
-                      <h3 className="mb-2 text-[18px] font-bold">
-                        {movie.title}
-                      </h3>
-                    </Link>
-
-                    <div className="mb-3 flex flex-wrap gap-x-3 text-[13px] text-[#969DA8]">
-                      <span>{movie.originalTitle}</span>
-                      <span>{movie.releaseDate}</span>
-                    </div>
-
-                    <p className="mb-5 line-clamp-2 text-[14px] leading-[22px] text-[#697281]">
-                      {movie.overview}
-                    </p>
-
-                    <Link
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
-                      className="text-[14px] font-bold text-blue-600"
-                    >
-                      상세 보기 →
-                    </Link>
-                  </div>
-                </li>
+              {movies.map((movie) => (
+                <MovieSearchCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
