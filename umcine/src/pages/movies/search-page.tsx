@@ -1,10 +1,12 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 import { BookmarkButton } from "../../components/bookmark-button";
-import { movies } from "../../data/movies";
+import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
 
 export function SearchPage() {
-  const { query } = useSearch({ from: "/search" });
+  const { query = "" } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
 
@@ -14,14 +16,39 @@ export function SearchPage() {
     setSearchText(query ?? "");
   }
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const normalizedQuery = query.trim();
+
+    setMovies([]);
+    setErrorMessage(null);
+
+    if (!normalizedQuery) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) setMovies(response.results);
+      })
+      .catch(() => {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [query]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +60,7 @@ export function SearchPage() {
 
   return (
     <main className="mx-auto max-w-[1440px]">
-      {normalizedQuery ? (
+      {query.trim() ? (
         <section className="flex flex-col gap-4 px-20 pt-6 pb-6">
           <h1 className="text-[38px] leading-[44px] font-bold tracking-[-1.71px] text-[#17191E]">
             영화 검색
@@ -58,7 +85,11 @@ export function SearchPage() {
                 onClick={() => setSearchText("")}
                 className="flex size-8 shrink-0 cursor-pointer items-center justify-center text-[#606774]"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6 fill-current">
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  className="size-6 fill-current"
+                >
                   <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z" />
                 </svg>
               </button>
@@ -101,23 +132,31 @@ export function SearchPage() {
         </section>
       )}
 
-      {normalizedQuery && (
+      {query.trim() && (
         <section className="flex flex-col gap-5 px-20 pb-20">
           <div className="flex items-end justify-between border-b border-[#E3E6EB] pb-4">
             <h2 className="text-[17px] leading-5 font-bold text-[#17191E]">
               ‘{query}’ 검색 결과
             </h2>
             <p className="text-[11px] leading-[13px] text-[#969DA8]">
-              영화 {searchResults.length}편
+              영화 {movies.length}편
             </p>
           </div>
-          {searchResults.length === 0 ? (
+          {isLoading ? (
+            <p className="py-20 text-center text-sm text-[#606774]">
+              검색 중이에요.
+            </p>
+          ) : errorMessage ? (
+            <p className="py-20 text-center text-sm text-[#606774]">
+              {errorMessage}
+            </p>
+          ) : movies.length === 0 ? (
             <p className="py-20 text-center text-sm text-[#606774]">
               검색 결과가 없어요.
             </p>
           ) : (
             <ul className="grid grid-cols-2 gap-x-[34px]">
-              {searchResults.map((movie) => (
+              {movies.map((movie) => (
                 <li
                   key={movie.id}
                   className="border-b border-[#E3E6EB] last:border-b-0 [&:nth-last-child(2):nth-child(odd)]:border-b-0"
@@ -125,7 +164,7 @@ export function SearchPage() {
                   <article className="flex items-start gap-[18px] py-5">
                     <div className="relative h-[190px] w-[126px] shrink-0 overflow-hidden rounded-[10px] bg-[#F6F7F9]">
                       <img
-                        src={movie.posterPath}
+                        src={getTmdbImageUrl(movie.poster_path) || undefined}
                         alt={`${movie.title} 포스터`}
                         className="size-full object-cover"
                       />
@@ -139,25 +178,25 @@ export function SearchPage() {
                         {movie.title}
                       </h3>
                       <div className="flex items-center gap-2 text-xs leading-[14px] text-[#969DA8]">
-                        <span>{movie.originalTitle}</span>
-                        <span>{movie.releaseDate}</span>
+                        <span>{movie.original_title}</span>
+                        <span>{movie.release_date}</span>
                       </div>
                       <p className="line-clamp-3 text-[12.5px] leading-5 text-[#606774]">
                         {movie.overview}
                       </p>
                       <Link
-                          to="/movies/$movieId"
-                          params={{ movieId: String(movie.id) }}
-                          className="flex items-center gap-1 text-xs leading-[14px] font-extrabold text-[#2563EB]"
+                        to="/movies/$movieId"
+                        params={{ movieId: String(movie.id) }}
+                        className="flex items-center gap-1 text-xs leading-[14px] font-extrabold text-[#2563EB]"
+                      >
+                        상세 보기
+                        <svg
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          className="size-4 fill-current"
                         >
-                          상세 보기
-                          <svg
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                            className="size-4 fill-current"
-                          >
-                            <path d="M13.3 17.275a.95.95 0 0 1-.288-.725c.009-.283.113-.525.313-.725L16.15 13H5a.97.97 0 0 1-.713-.288A.97.97 0 0 1 4 12c0-.283.096-.521.287-.713A.97.97 0 0 1 5 11h11.15L13.3 8.15a.95.95 0 0 1-.3-.713c0-.275.1-.512.3-.712.2-.2.438-.3.713-.3.275 0 .512.1.712.3L19.3 11.3c.1.1.171.208.213.325.041.117.062.242.062.375s-.021.258-.062.375a.88.88 0 0 1-.213.325l-4.6 4.6a.97.97 0 0 1-.687.275.97.97 0 0 1-.713-.3Z" />
-                          </svg>
+                          <path d="M13.3 17.275a.95.95 0 0 1-.288-.725c.009-.283.113-.525.313-.725L16.15 13H5a.97.97 0 0 1-.713-.288A.97.97 0 0 1 4 12c0-.283.096-.521.287-.713A.97.97 0 0 1 5 11h11.15L13.3 8.15a.95.95 0 0 1-.3-.713c0-.275.1-.512.3-.712.2-.2.438-.3.713-.3.275 0 .512.1.712.3L19.3 11.3c.1.1.171.208.213.325.041.117.062.242.062.375s-.021.258-.062.375a.88.88 0 0 1-.213.325l-4.6 4.6a.97.97 0 0 1-.687.275.97.97 0 0 1-.713-.3Z" />
+                        </svg>
                       </Link>
                     </div>
                   </article>
