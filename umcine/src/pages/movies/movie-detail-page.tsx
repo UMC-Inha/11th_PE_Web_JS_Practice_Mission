@@ -4,17 +4,15 @@ import {
 } from "@tanstack/react-router";
 
 import RatingPanel from "../../components/movies/rating-panel";
-import { useMovies } from "../../contexts/movie-context";
+import { movies } from "../../data/movies";
+import { BookmarkButton } from "../../components/bookmark-button";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({
     from: "/movies/$movieId",
   });
 
-  const {
-    movies,
-    handleToggleBookmark,
-  } = useMovies();
+  
 
   const movie = movies.find(
     (item) =>
@@ -97,29 +95,12 @@ export function MovieDetailPage() {
             {movie.overview}
           </p>
 
-          <button
-            type="button"
-            onClick={() =>
-              handleToggleBookmark(
-                movie.id,
-              )
-            }
-            className="mt-6 flex h-11 items-center gap-2 rounded-md bg-blue-600 px-5 text-sm font-bold text-white"
-          >
-            <img
-              src={
-                movie.isBookmarked
-                  ? "/icons/bookmark.svg"
-                  : "/icons/bookmark-outline.svg"
-              }
-              alt=""
-              className="h-5 w-5 brightness-0 invert"
-            />
-
-            {movie.isBookmarked
-              ? "즐겨찾기 해제"
-              : "즐겨찾기"}
-          </button>
+          <div className="mt-6">
+  <BookmarkButton
+    movieId={movie.id}
+    movieTitle={movie.title}
+  />
+</div>
         </div>
 
         <div className="w-full shrink-0 xl:w-80 xl:border-l xl:border-gray-200 xl:pl-6">

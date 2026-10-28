@@ -6,17 +6,14 @@ import {
 
 import Header from "../components/layout/header";
 import Footer from "../components/layout/footer";
-import { MovieProvider } from "../contexts/movie-context";
 
 export const Route = createRootRoute({
   component: () => (
-    <MovieProvider>
-      <div className="mx-auto flex min-h-screen w-full max-w-360 flex-col bg-[#F6F7F9] text-[#191B20]">
-        <Header />
-        <Outlet />
-        <Footer />
-      </div>
-    </MovieProvider>
+    <div className="mx-auto flex min-h-screen w-full max-w-360 flex-col bg-[#F6F7F9] text-[#191B20]">
+      <Header />
+      <Outlet />
+      <Footer />
+    </div>
   ),
 
   notFoundComponent: () => (
