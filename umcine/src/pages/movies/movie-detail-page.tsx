@@ -1,99 +1,75 @@
-import { Link, useParams } from "@tanstack/react-router";
-import { BookmarkButton } from "../../components/bookmark-button";
-import { MovieRatingForm } from "../../components/movies/movie-rating-form";
-import { movies } from "../../data/movies";
-import { cn } from "../../utils/cn";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { getMovies } from "../../api/movies/get-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { MovieGrid } from "../../components/movies/movie-grid";
+import { Pagination } from "../../components/movies/pagination";
 
-const containerClass = "mx-auto w-[min(1080px,100%_-_48px)]";
+export function MovieListPage() {
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
-  const movie = movies.find((item) => item.id === Number(movieId));
+  const { page = 1 } = useSearch({ from: "/" });
+  const navigate = useNavigate({ from: "/" });
+  const [totalPages, setTotalPages] = useState(1);
 
-  if (!movie) {
-    return (
-      <main className={cn(containerClass, "py-6")}>
-        <p className="text-[#888]">영화를 찾을 수 없어요.</p>
-      </main>
-    );
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMovies() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await getMovies({ page });
+        if (!ignore) {
+          setMovies(response.results);
+          setTotalPages(Math.min(response.total_pages, 500));
+        }
+      } catch {
+        if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadMovies();
+
+    return () => {
+      ignore = true;
+    };
+  }, [page]);
+
+  function handlePageChange(nextPage: number) {
+    navigate({ search: { page: nextPage > 1 ? nextPage : undefined } });
+    window.scrollTo({ top: 0 });
   }
 
   return (
-    <main>
-      <section className="relative h-[300px] overflow-hidden bg-[#111] text-white">
-        <img
-          src={movie.backdropPath}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 size-full object-cover"
-        />
-        {/* 글자가 잘 보이도록 왼쪽·아래쪽을 어둡게 */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-r from-black/70 via-black/30 to-transparent"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent to-60%"
-        />
+    <main className="mx-auto w-[min(1080px,100%_-_48px)] pt-6 pb-[60px]">
+      <h2 className="mb-4 text-center text-[30px] font-extrabold">영화 목록</h2>
 
-        <div
-          className={cn(
-            containerClass,
-            "relative flex h-full flex-col justify-between pt-5 pb-7",
-          )}
-        >
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 self-start text-xs font-bold text-white"
-          >
-            <img
-              src="/icons/chevron-left.svg"
-              alt=""
-              className="size-3.5 brightness-0 invert"
-            />
-            영화 목록
-          </Link>
-
-          <div>
-            <h1 className="mb-2 text-4xl font-extrabold text-white">
-              {movie.title}
-            </h1>
-            <p className="mb-2 text-xs">{movie.originalTitle}</p>
-            <p className="flex flex-wrap gap-2 text-xs font-bold">
-              <span>{movie.releaseDate}</span>
-              <span>{movie.genres.join(" · ")}</span>
-              <span>{movie.runtime}</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <div
-        className={cn(
-          containerClass,
-          "flex flex-col gap-8 pt-5 pb-[60px] lg:flex-row",
-        )}
-      >
-        <section className="flex flex-1 flex-col items-start gap-7 sm:flex-row">
-          <img
-            src={movie.posterPath}
-            alt={`${movie.title} 포스터`}
-            className="aspect-[2/3] w-[168px] shrink-0 rounded-lg object-cover shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+      {isLoading ? (
+        <p className="py-20 text-center text-sm text-[#888]">
+          영화 목록을 불러오는 중이에요.
+        </p>
+      ) : errorMessage ? (
+        <p className="py-20 text-center text-sm text-[#888]">{errorMessage}</p>
+      ) : movies.length === 0 ? (
+        <p className="py-20 text-center text-sm text-[#888]">
+          조건에 맞는 영화가 없어요.
+        </p>
+      ) : (
+        <>
+          <MovieGrid movies={movies} />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
-          <div>
-            <h2 className="mb-3 text-[17px] font-extrabold">{movie.tagline}</h2>
-            <p className="text-xs leading-[1.8] whitespace-pre-line text-[#555]">
-              {movie.overview}
-            </p>
-            <BookmarkButton movieId={movie.id} variant="label" />
-          </div>
-        </section>
-
-        <aside className="shrink-0 lg:w-[276px] lg:border-l lg:border-[#e5e7eb] lg:pl-6">
-          <MovieRatingForm key={movie.id} />
-        </aside>
-      </div>
+        </>
+      )}
     </main>
   );
 }
