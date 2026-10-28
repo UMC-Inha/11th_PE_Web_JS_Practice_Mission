@@ -22,7 +22,7 @@ export function MovieCard({ movie }: MovieCardProps) {
       >
         <div className="h-[274px] overflow-hidden rounded-[10px] bg-[#F6F7F9]">
           <img
-            src={movie.posterPath}
+            src={movie.posterPath || undefined}
             alt={`${movie.title} 포스터`}
             className="size-full object-cover"
           />
