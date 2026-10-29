@@ -43,10 +43,9 @@ export function Header() {
           검색
         </Link>
 
-        {/* 내 정보 탭 (필요시 라우트 생성 후 Link로 변경 가능) */}
-        <button type="button" className="text-[15px] text-gray-500">
+        <Link to="/me" className="text-[15px] text-gray-500 no-underline">
           내 정보
-        </button>
+        </Link>
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">
@@ -54,12 +53,13 @@ export function Header() {
         <Link to="/search" className="flex items-center justify-center">
           <img src="/icons/search.svg" alt="검색" className="size-5" />
         </Link>
-        <button
-          type="button"
-          className="cursor-pointer rounded-full bg-blue-600 px-3 py-2 text-sm font-semibold whitespace-nowrap text-white sm:px-5 sm:text-[15px]"
+        {/* 로그인 화면(/login)으로 이동. 기존 버튼 스타일 유지 */}
+        <Link
+          to="/login"
+          className="cursor-pointer rounded-full bg-blue-600 px-3 py-2 text-sm font-semibold whitespace-nowrap text-white no-underline sm:px-5 sm:text-[15px]"
         >
-          마이페이지
-        </button>
+          로그인
+        </Link>
       </div>
     </header>
   );
