@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { movies } from "../../data/movies";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
 
 const pageX = "px-[max(80px,calc((100%_-_1280px)/2))]";
@@ -9,6 +10,11 @@ export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
+
+  const bookmarkedMovieIds = useBookmarkStore(
+    (state) => state.bookmarkedMovieIds,
+  );
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -71,16 +77,16 @@ export function SearchPage() {
   );
 
   if (!hasQuery) {
-  return (
-    <main className="min-h-[calc(100vh-148px)] bg-[#f5f6f8]">
-      <section className="flex h-145.5 flex-col items-center justify-center gap-10 px-6 py-18">
-        <h1 className="text-[40px] font-bold">어떤 영화를 찾고 있나요?</h1>
-        <div className="w-full max-w-200 [&>form]:h-16">{searchForm}</div>
-        <p className="text-sm text-gray-400">검색어를 입력해 주세요.</p>
-      </section>
-    </main>
-  );
-}
+    return (
+      <main className="min-h-[calc(100vh-148px)] bg-[#f5f6f8]">
+        <section className="flex h-145.5 flex-col items-center justify-center gap-10 px-6 py-18">
+          <h1 className="text-[40px] font-bold">어떤 영화를 찾고 있나요?</h1>
+          <div className="w-full max-w-200 [&>form]:h-16">{searchForm}</div>
+          <p className="text-sm text-gray-400">검색어를 입력해 주세요.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main
@@ -100,32 +106,61 @@ export function SearchPage() {
         </p>
       ) : (
         <ul className="mt-4 grid grid-cols-1 gap-x-10 md:grid-cols-2">
-          {searchResults.map((movie) => (
-            <li key={movie.id} className="flex gap-4 border-b border-gray-200 py-5">
-              <img
-                className="aspect-2/3 w-32 shrink-0 rounded-md object-cover"
-                src={movie.posterPath}
-                alt={`${movie.title} 포스터`}
-              />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <h3 className="text-sm font-bold">{movie.title}</h3>
-                <p className="mt-1 flex gap-2 text-xs text-gray-400">
-                  <span>{movie.originalTitle}</span>
-                  <span>{movie.releaseDate}</span>
-                </p>
-                <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-gray-500">
-                  {movie.overview}
-                </p>
-                <Link
-                  className="mt-auto pt-2 text-xs font-semibold text-blue-600"
-                  to="/movies/$movieId"
-                  params={{ movieId: String(movie.id) }}
-                >
-                  상세 보기 →
-                </Link>
-              </div>
-            </li>
-          ))}
+          {searchResults.map((movie) => {
+            const isBookmarked = bookmarkedMovieIds.includes(movie.id);
+
+            return (
+              <li
+                key={movie.id}
+                className="flex gap-4 border-b border-gray-200 py-5"
+              >
+                <img
+                  className="aspect-2/3 w-32 shrink-0 rounded-md object-cover"
+                  src={movie.posterPath}
+                  alt={`${movie.title} 포스터`}
+                />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <h3 className="text-sm font-bold">{movie.title}</h3>
+                  <p className="mt-1 flex gap-2 text-xs text-gray-400">
+                    <span>{movie.originalTitle}</span>
+                    <span>{movie.releaseDate}</span>
+                  </p>
+                  <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-gray-500">
+                    {movie.overview}
+                  </p>
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+                    <Link
+                      className="text-xs font-semibold text-blue-600"
+                      to="/movies/$movieId"
+                      params={{ movieId: String(movie.id) }}
+                    >
+                      상세 보기 →
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => toggleBookmark(movie.id)}
+                      aria-pressed={isBookmarked}
+                      className={cn(
+                        "inline-flex h-8 items-center gap-1.5 rounded-md border border-blue-600 px-3 text-xs font-semibold",
+                        isBookmarked
+                          ? "bg-blue-600 text-white"
+                          : "bg-white text-blue-600",
+                      )}
+                    >
+                      <img
+                        className={cn(isBookmarked && "brightness-0 invert")}
+                        src="/icons/bookmark-outline.svg"
+                        alt=""
+                        width={12}
+                        height={12}
+                      />
+                      {isBookmarked ? "북마크 해제" : "북마크"}
+                    </button>
+                  </div>
+                </div>S
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
