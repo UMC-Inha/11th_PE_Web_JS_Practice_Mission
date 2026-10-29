@@ -1,9 +1,18 @@
 import { Link, useParams } from "@tanstack/react-router"
 import { movies } from "../../data/movies";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieDetailPage() {
     const { movieId } = useParams({ from: "/movies/$movieId" });
     const movie = movies.find((item) => item.id === Number(movieId));
+
+    const isBookmarked = useBookmarkStore((state) => 
+        state.bookmarkedMovieIds.includes(Number(movieId)),
+    );
+
+    const toggleBookmark = useBookmarkStore(
+        (state) => state.toggleBookmark,
+    );
 
 if (!movie) {
   return <main>영화를 찾을 수 없어요.</main>;
@@ -43,10 +52,23 @@ if (!movie) {
   <div className="min-w-0">
     <h2 className="text-2xl font-bold">{movie.tagline}</h2>
     <p className="mt-6 leading-7">{movie.overview}</p>
-    <div className="mt-8 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-white">
-      <img src="/icons/bookmark-outline.svg" alt="" className="size-5 invert" />
-      즐겨찾기
-    </div>
+    <button
+  type="button"
+  className="mt-8 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-white"
+  aria-pressed={isBookmarked}
+  onClick={() => toggleBookmark(movie.id)}
+>
+  <img
+    src={
+      isBookmarked
+        ? "/icons/bookmark.svg"
+        : "/icons/bookmark-outline.svg"
+    }
+    alt=""
+    className="size-5 invert"
+  />
+  {isBookmarked ? "즐겨찾기 해제" : "즐겨찾기"}
+</button>
   </div>
   <aside>
     <h2 className="m-0 text-lg font-bold">내 평점</h2>
