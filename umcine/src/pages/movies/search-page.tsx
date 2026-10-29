@@ -1,7 +1,10 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { searchMovies } from "../../api/movies/search-movies";
 import BookmarkButton from "../../components/movies/bookmark-button";
-import { movies } from "../../data/movies";
+import PosterImage from "../../components/movies/poster-image";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
@@ -14,14 +17,41 @@ export function SearchPage() {
     setSearchText(query ?? "");
   }
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+  const normalizedQuery = query?.trim() ?? "";
+  const [searchResults, setSearchResults] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadSearchResults() {
+      setSearchResults([]);
+      setErrorMessage(null);
+
+      if (!normalizedQuery) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const response = await searchMovies({ query: normalizedQuery });
+        if (!ignore) setSearchResults(response.results);
+      } catch {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadSearchResults();
+
+    return () => {
+      ignore = true;
+    };
+  }, [normalizedQuery]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,9 +66,7 @@ export function SearchPage() {
       <h1 className="text-center text-[32px] font-extrabold text-app-text-h">
         {!normalizedQuery
           ? "어떤 영화를 찾고 있나요?"
-          : searchResults.length === 0
-            ? `'${query}'에 대한 검색 결과가 없어요.`
-            : `'${query}' 검색 결과`}
+          : `'${normalizedQuery}' 검색 결과`}
       </h1>
 
       <form
@@ -66,7 +94,28 @@ export function SearchPage() {
         </button>
       </form>
 
-      {normalizedQuery && searchResults.length > 0 && (
+      {normalizedQuery && isLoading && (
+        <p role="status" className="mt-10 text-sm text-app-text">
+          검색 결과를 불러오는 중이에요.
+        </p>
+      )}
+
+      {normalizedQuery && !isLoading && errorMessage && (
+        <p role="alert" className="mt-10 text-sm text-app-text">
+          {errorMessage}
+        </p>
+      )}
+
+      {normalizedQuery &&
+        !isLoading &&
+        !errorMessage &&
+        searchResults.length === 0 && (
+          <p className="mt-10 text-sm text-app-text">
+            조건에 맞는 영화가 없어요.
+          </p>
+        )}
+
+      {normalizedQuery && !isLoading && !errorMessage && searchResults.length > 0 && (
         <div className="mt-10 w-full">
           <p className="text-sm text-app-text">영화 {searchResults.length}편</p>
           <ul className="mt-4 flex flex-col gap-4">
@@ -77,9 +126,9 @@ export function SearchPage() {
                   params={{ movieId: String(movie.id) }}
                   className="flex gap-4 rounded-xl border border-app-border bg-white p-4 no-underline"
                 >
-                  <img
+                  <PosterImage
                     className="h-36 w-24 flex-shrink-0 rounded-lg object-cover"
-                    src={movie.posterPath}
+                    src={getTmdbPosterUrl(movie.poster_path)}
                     alt={`${movie.title} 포스터`}
                   />
                   <div className="flex min-w-0 flex-col gap-1 py-1">
@@ -87,10 +136,10 @@ export function SearchPage() {
                       {movie.title}
                     </p>
                     <p className="text-[13px] text-app-text">
-                      {movie.originalTitle}
+                      {movie.original_title}
                     </p>
                     <p className="text-[13px] text-app-text">
-                      {movie.releaseDate}
+                      {movie.release_date || "개봉일 미정"}
                     </p>
                     <p className="mt-1 line-clamp-2 text-sm text-app-text">
                       {movie.overview}

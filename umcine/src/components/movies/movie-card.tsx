@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import type { Movie } from "../../types/movie";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import BookmarkButton from "./bookmark-button";
+import PosterImage from "./poster-image";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: TmdbMovieListItem;
 }
 
 function MovieCard({ movie }: MovieCardProps) {
@@ -11,9 +13,9 @@ function MovieCard({ movie }: MovieCardProps) {
     <li className="list-none text-left">
       <div className="relative aspect-2/3 overflow-hidden rounded-lg bg-app-surface">
         <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }}>
-          <img
+          <PosterImage
             className="block h-full w-full object-cover"
-            src={movie.posterPath}
+            src={getTmdbPosterUrl(movie.poster_path)}
             alt={movie.title}
           />
         </Link>
@@ -25,7 +27,9 @@ function MovieCard({ movie }: MovieCardProps) {
             {movie.title}
           </p>
         </Link>
-        <p className="mt-1 text-[13px] text-app-text">{movie.releaseDate}</p>
+        <p className="mt-1 text-[13px] text-app-text">
+          {movie.release_date || "개봉일 미정"}
+        </p>
       </div>
     </li>
   );

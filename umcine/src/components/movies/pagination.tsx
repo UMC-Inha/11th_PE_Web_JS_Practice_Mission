@@ -1,5 +1,7 @@
 import { cn } from "../../utils/cn";
 
+const VISIBLE_PAGE_COUNT = 5;
+
 const arrowButtonClass =
   "flex h-8 min-w-8 items-center justify-center rounded-md border-none bg-transparent px-1 disabled:cursor-not-allowed disabled:opacity-35";
 
@@ -10,7 +12,15 @@ interface PaginationProps {
 }
 
 function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+  const visibleCount = Math.min(VISIBLE_PAGE_COUNT, totalPages);
+  const startPage = Math.min(
+    Math.max(currentPage - Math.floor(visibleCount / 2), 1),
+    totalPages - visibleCount + 1,
+  );
+  const pages = Array.from(
+    { length: visibleCount },
+    (_, index) => startPage + index,
+  );
 
   return (
     <nav
