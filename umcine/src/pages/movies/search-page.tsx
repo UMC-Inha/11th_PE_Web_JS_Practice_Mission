@@ -1,55 +1,21 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useEffect, useState, type SubmitEvent } from 'react'
-import type { TmdbMovieListItem } from '../../api/movies/models'
-import { searchMovies } from '../../api/movies/search-movies'
+import { useState, type SubmitEvent } from 'react'
+import { movies } from '../../data/movies'
 import { BookmarkButton } from '../../components/bookmark-button'
-import { getTmdbPosterUrl } from '../../utils/movies/tmdb-image'
 
 export function SearchPage() {
   const { query } = useSearch({ from: '/search' })
   const navigate = useNavigate({ from: '/search' })
-
   const [searchText, setSearchText] = useState(query ?? '')
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const normalizedQuery = query?.trim() ?? ''
-
-  useEffect(() => {
-    let ignore = false
-
-    setMovies([])
-    setErrorMessage(null)
-
-    if (!normalizedQuery) {
-      setIsLoading(false)
-      return
-    }
-
-    setIsLoading(true)
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setMovies(response.results)
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setErrorMessage('검색 결과를 불러오지 못했어요.')
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [normalizedQuery])
+  const normalizedQuery = query?.trim().toLowerCase() ?? ''
+  const searchResults = normalizedQuery
+    ? movies.filter(
+        (movie) =>
+          movie.title.toLowerCase().includes(normalizedQuery) ||
+          movie.originalTitle.toLowerCase().includes(normalizedQuery),
+      )
+    : []
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -101,73 +67,37 @@ export function SearchPage() {
 
       <section className="mt-7">
         <div className="mb-4">
-          <h2 className="text-sm font-bold text-[#17191e]">
-            ‘{query}’ 검색 결과
-          </h2>
-          <p className="mt-1 text-xs text-[#969da8]">
-            영화 {movies.length}편
-          </p>
+          <h2 className="text-sm font-bold text-[#17191e]">‘{query}’ 검색 결과</h2>
+          <p className="mt-1 text-xs text-[#969da8]">영화 {searchResults.length}편</p>
         </div>
 
-        {isLoading ? (
-          <p className="py-16 text-center text-sm text-[#606774]">
-            검색 결과를 불러오는 중이에요.
-          </p>
-        ) : errorMessage ? (
-          <p className="py-16 text-center text-sm text-[#dc2626]">
-            {errorMessage}
-          </p>
-        ) : movies.length === 0 ? (
-          <p className="py-16 text-center text-sm text-[#606774]">
-            조건에 맞는 영화가 없어요.
-          </p>
+        {searchResults.length === 0 ? (
+          <p className="py-16 text-center text-sm text-[#606774]">검색 결과가 없어요.</p>
         ) : (
           <ul className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
-            {movies.map((movie) => {
-              const posterUrl = getTmdbPosterUrl(movie.poster_path)
-
-              return (
-                <li
-                  className="flex gap-4 border-t border-[#e3e6eb] py-4"
-                  key={movie.id}
-                >
-                  {posterUrl ? (
-                    <img
-                      className="h-28 w-[76px] shrink-0 rounded-md object-cover"
-                      src={posterUrl}
-                      alt={`${movie.title} 포스터`}
-                    />
-                  ) : (
-                    <div className="flex h-28 w-[76px] shrink-0 items-center justify-center rounded-md bg-[#e3e6eb] px-2 text-center text-xs text-[#606774]">
-                      이미지 없음
-                    </div>
-                  )}
-
-                  <div className="min-w-0 pt-1">
-                    <h3 className="text-sm font-bold text-[#17191e]">
-                      {movie.title}
-                    </h3>
-                    <p className="mt-1 text-xs text-[#606774]">
-                      {movie.original_title}
-                    </p>
-                    <p className="mt-1 text-xs text-[#969da8]">
-                      {movie.release_date}
-                    </p>
-                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#606774]">
-                      {movie.overview}
-                    </p>
-                    <Link
-                      className="mt-2 inline-block text-xs font-semibold text-[#2563eb] hover:underline"
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
-                    >
-                      상세 보기 →
-                    </Link>
-                    <BookmarkButton movieId={movie.id} />
-                  </div>
-                </li>
-              )
-            })}
+            {searchResults.map((movie) => (
+              <li className="flex gap-4 border-t border-[#e3e6eb] py-4" key={movie.id}>
+                <img
+                  className="h-28 w-[76px] shrink-0 rounded-md object-cover"
+                  src={movie.posterPath}
+                  alt={`${movie.title} 포스터`}
+                />
+                <div className="min-w-0 pt-1">
+                  <h3 className="text-sm font-bold text-[#17191e]">{movie.title}</h3>
+                  <p className="mt-1 text-xs text-[#606774]">{movie.originalTitle}</p>
+                  <p className="mt-1 text-xs text-[#969da8]">{movie.releaseDate}</p>
+                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#606774]">{movie.overview}</p>
+                  <Link
+                    className="mt-2 inline-block text-xs font-semibold text-[#2563eb] hover:underline"
+                    to="/movies/$movieId"
+                    params={{ movieId: String(movie.id) }}
+                  >
+                    상세 보기 →
+                  </Link>
+                  
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </section>
