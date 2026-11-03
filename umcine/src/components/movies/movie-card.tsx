@@ -8,18 +8,24 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({
-                                    movie,
-                                    onToggleBookmark,
-                                  }: MovieCardProps) {
+  movie,
+  onToggleBookmark,
+}: MovieCardProps) {
   return (
     <article className="min-w-0">
       <div className="relative">
         <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }}>
-          <img
-            className="block aspect-[2/3] w-full rounded-lg object-cover"
-            src={movie.posterPath}
-            alt={`${movie.title} 포스터`}
-          />
+          {movie.posterPath ? (
+            <img
+              className="block aspect-[2/3] w-full rounded-lg object-cover"
+              src={movie.posterPath}
+              alt={`${movie.title} 포스터`}
+            />
+          ) : (
+            <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg bg-[#e3e6eb] text-xs text-[#606774]">
+              이미지 없음
+            </div>
+          )}
         </Link>
 
         <button
@@ -36,7 +42,11 @@ export default function MovieCard({
         >
           <img
             className="h-5 w-5 brightness-0 invert"
-            src={movie.isBookmarked ? '/icons/bookmark.svg' : '/icons/bookmark-outline.svg'}
+            src={
+              movie.isBookmarked
+                ? '/icons/bookmark.svg'
+                : '/icons/bookmark-outline.svg'
+            }
             alt=""
           />
         </button>
@@ -48,9 +58,7 @@ export default function MovieCard({
         </Link>
       </h2>
 
-      <p className="mt-1 text-xs text-[#969da8]">
-        {movie.releaseDate}
-      </p>
+      <p className="mt-1 text-xs text-[#969da8]">{movie.releaseDate}</p>
     </article>
   )
 }
