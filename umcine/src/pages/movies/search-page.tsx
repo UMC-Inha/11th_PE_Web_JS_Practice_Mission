@@ -1,7 +1,7 @@
 import { BookmarkButton } from "../../components/bookmark-button";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, type SubmitEvent } from "react";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import { searchMovies } from "../../api/movies/search-movies";
 import { cn } from "../../utils/cn";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
@@ -10,9 +10,6 @@ export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const normalizedQuery = query?.trim() ?? "";
 
@@ -20,34 +17,13 @@ export function SearchPage() {
     setSearchText(query ?? "");
   }, [query]);
 
-  useEffect(() => {
-    let ignore = false;
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  });
 
-    setMovies([]);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) setMovies(response.results);
-      })
-      .catch(() => {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
+  const movies = searchQuery.data?.results ?? [];
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,15 +79,15 @@ export function SearchPage() {
 
       <div className="mt-6 flex items-end justify-between border-b border-gray-200 pb-3">
         <h2 className="text-sm font-bold">‘{query}’ 검색 결과</h2>
-        {!isLoading && !errorMessage && (
+        {searchQuery.isSuccess && (
           <p className="text-xs text-gray-400">영화 {movies.length}편</p>
         )}
       </div>
 
-      {isLoading ? (
+      {searchQuery.isLoading ? (
         <p className="mt-12 text-center text-sm text-gray-500">검색 결과를 불러오는 중이에요.</p>
-      ) : errorMessage ? (
-        <p className="mt-12 text-center text-sm text-red-500">{errorMessage}</p>
+      ) : searchQuery.isError ? (
+        <p className="mt-12 text-center text-sm text-red-500">검색 결과를 불러오지 못했어요.</p>
       ) : movies.length === 0 ? (
         <p className="mt-12 text-center text-sm text-gray-500">검색 결과가 없어요.</p>
       ) : (

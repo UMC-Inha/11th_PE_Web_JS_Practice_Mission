@@ -2,18 +2,28 @@ import { cn } from "../../utils/cn";
 
 const PAGES = [1, 2, 3, 4, 5];
 
-export default function Pagination() {
+interface PaginationProps {
+  page: number;
+  totalPages: number;
+  onPageChange: (nextPage: number) => void;
+}
+
+export default function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
+  const pageNumbers = PAGES.filter((pageNumber) => pageNumber <= totalPages);
+
   return (
     <nav className="mt-12 flex justify-center gap-2">
-      {PAGES.map((page) => (
+      {pageNumbers.map((pageNumber) => (
         <button
-          key={page}
+          key={pageNumber}
+          type="button"
+          onClick={() => onPageChange(pageNumber)}
           className={cn(
-            "h-9 w-9 rounded-lg",
-            page === 1 ? "bg-[#4f5de8] text-white" : "text-gray-500",
+            "h-9 w-9 cursor-pointer rounded-lg",
+            pageNumber === page ? "bg-[#4f5de8] text-white" : "text-gray-500",
           )}
         >
-          {page}
+          {pageNumber}
         </button>
       ))}
     </nav>
