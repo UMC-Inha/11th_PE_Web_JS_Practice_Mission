@@ -1,9 +1,9 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
-import type { TmdbMovieListItem } from "../../api/movies/models";
-import { searchMovies } from "../../api/movies/search-movies";
+import { useQuery } from "@tanstack/react-query";
+import { useState, type FormEvent } from "react";
 import BookmarkButton from "../../components/movies/bookmark-button";
 import PosterImage from "../../components/movies/poster-image";
+import { movieSearchQueryOptions } from "../../queries/movie-queries";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
@@ -18,40 +18,13 @@ export function SearchPage() {
   }
 
   const normalizedQuery = query?.trim() ?? "";
-  const [searchResults, setSearchResults] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadSearchResults() {
-      setSearchResults([]);
-      setErrorMessage(null);
-
-      if (!normalizedQuery) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-
-      try {
-        const response = await searchMovies({ query: normalizedQuery });
-        if (!ignore) setSearchResults(response.results);
-      } catch {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadSearchResults();
-
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
+  const { data, isPending, isError } = useQuery(
+    movieSearchQueryOptions(normalizedQuery),
+  );
+  const searchResults = data?.results ?? [];
+  // 검색어가 없으면 쿼리가 비활성화(enabled: false)되어 isPending이 true로 남음.
+  const isLoading = Boolean(normalizedQuery) && isPending;
+  const errorMessage = isError ? "검색 결과를 불러오지 못했어요." : null;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
