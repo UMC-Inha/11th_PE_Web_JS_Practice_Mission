@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies";
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 import { Footer } from "../../components/layout/footer";
 import { BookmarkButton } from "../../components/movies/bookmark-button";
 
@@ -9,22 +10,61 @@ export function SearchPage() {
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
 
+  // TMDB 검색 결과와 요청 상태 관리
+  const [searchResults, setSearchResults] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(0);
+
   useEffect(() => {
     setSearchText(query ?? "");
   }, [query]);
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const searchResults = normalizedQuery
-    ? movies.filter(
-      (movie) =>
-        movie.title.toLowerCase().includes(normalizedQuery) ||
-        movie.originalTitle.toLowerCase().includes(normalizedQuery),
-    )
-    : [];
+  const normalizedQuery = query?.trim() ?? "";
+
+  // 검색어가 바뀔 때 TMDB 영화 검색 API 호출
+  useEffect(() => {
+    let ignore = false;
+
+    setSearchResults([]);
+    setTotalResults(0);
+    setErrorMessage(null);
+
+    if (!normalizedQuery) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) {
+          setSearchResults(response.results);
+          setTotalResults(response.total_results);
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setErrorMessage("검색 결과를 불러오지 못했어요.");
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+
+    // 이전 검색 요청 결과가 반영되지 않도록 방지
+    return () => {
+      ignore = true;
+    };
+  }, [normalizedQuery]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextQuery = searchText.trim();
+
     navigate({
       search: nextQuery ? { query: nextQuery } : {},
     });
@@ -123,61 +163,83 @@ export function SearchPage() {
           </h2>
 
           <p className="text-xs text-[#606774]">
-            영화 {searchResults.length}편 · 1페이지
+            영화 {totalResults}편 · 1페이지
           </p>
         </div>
 
-        {searchResults.length === 0 ? (
+        {/* API 요청 상태에 따라 검색 결과 표시 */}
+        {isLoading ? (
+          <p className="py-10 text-center text-sm text-[#606774]">
+            검색 결과를 불러오는 중...
+          </p>
+        ) : errorMessage ? (
+          <p role="alert" className="py-10 text-center text-sm text-[#606774]">
+            {errorMessage}
+          </p>
+        ) : searchResults.length === 0 ? (
           <p className="py-10 text-center text-sm text-[#606774]">
             검색 결과가 없어요.
           </p>
         ) : (
           <ul className="grid grid-cols-2 gap-x-10">
-            {searchResults.map((movie) => (
-              <li
-                key={movie.id}
-                className="flex h-[240px] gap-[18px] py-5"
-              >
-                <div className="relative h-[190px] w-[126px] shrink-0">
-                  <img
-                    src={movie.posterPath}
-                    alt={`${movie.title} 포스터`}
-                    className="h-full w-full rounded-lg object-cover"
-                  />
-                  
-                  {/* 검색 결과 북마크 */}
-                  <BookmarkButton movieId={movie.id} />
-                </div>
+            {searchResults.map((movie) => {
+              // TMDB 포스터 경로를 이미지 URL로 변환
+              const posterUrl = movie.poster_path
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : null;
 
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <h3 className="text-[18px] font-bold text-[#17191e]">
-                    {movie.title}
-                  </h3>
+              return (
+                <li
+                  key={movie.id}
+                  className="flex h-[240px] gap-[18px] py-5"
+                >
+                  <div className="relative h-[190px] w-[126px] shrink-0">
+                    {posterUrl ? (
+                      <img
+                        src={posterUrl}
+                        alt={`${movie.title} 포스터`}
+                        className="h-full w-full rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-500">
+                        포스터 없음
+                      </div>
+                    )}
 
-                  <div className="flex items-center gap-2 text-xs text-[#969da8]">
-                    <span>{movie.originalTitle}</span>
-                    <span>{movie.releaseDate}</span>
+                    {/* 검색 결과 북마크 */}
+                    <BookmarkButton movieId={movie.id} />
                   </div>
 
-                  <p className="h-[66px] overflow-hidden pt-[3px] text-[12.5px] leading-[20.25px] text-[#606774]">
-                    {movie.overview}
-                  </p>
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <h3 className="text-[18px] font-bold text-[#17191e]">
+                      {movie.title}
+                    </h3>
 
-                  <Link
-                    to="/movies/$movieId"
-                    params={{ movieId: String(movie.id) }}
-                    className="flex w-fit items-center gap-1 text-xs font-extrabold text-[#2563eb]"
-                  >
-                    <span>상세 보기</span>
-                    <img
-                      src="/icons/arrow-right.svg"
-                      alt=""
-                      className="h-4 w-4 [filter:invert(35%)_sepia(95%)_saturate(3000%)_hue-rotate(215deg)_brightness(95%)_contrast(95%)]"
-                    />
-                  </Link>
-                </div>
-              </li>
-            ))}
+                    <div className="flex items-center gap-2 text-xs text-[#969da8]">
+                      <span>{movie.original_title}</span>
+                      <span>{movie.release_date}</span>
+                    </div>
+
+                    <p className="h-[66px] overflow-hidden pt-[3px] text-[12.5px] leading-[20.25px] text-[#606774]">
+                      {movie.overview}
+                    </p>
+
+                    <Link
+                      to="/movies/$movieId"
+                      params={{ movieId: String(movie.id) }}
+                      className="flex w-fit items-center gap-1 text-xs font-extrabold text-[#2563eb]"
+                    >
+                      <span>상세 보기</span>
+                      <img
+                        src="/icons/arrow-right.svg"
+                        alt=""
+                        className="h-4 w-4 [filter:invert(35%)_sepia(95%)_saturate(3000%)_hue-rotate(215deg)_brightness(95%)_contrast(95%)]"
+                      />
+                    </Link>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>
