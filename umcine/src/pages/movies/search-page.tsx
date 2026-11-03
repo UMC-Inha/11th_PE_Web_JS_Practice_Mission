@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
-import type { TmdbMovieListItem } from "../../api/movies/models";
+import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
@@ -18,10 +18,6 @@ export function SearchPage() {
   );
   const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
 
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchText(query ?? "");
@@ -30,36 +26,13 @@ export function SearchPage() {
   const normalizedQuery = query?.trim() ?? "";
   const hasQuery = normalizedQuery !== "";
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    let ignore = false;
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: hasQuery,
+  });
 
-    setMovies([]);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) setMovies(response.results);
-      })
-      .catch(() => {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  const movies = searchQuery.data?.results ?? [];
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -118,8 +91,6 @@ export function SearchPage() {
     );
   }
 
-  const isSuccess = !isLoading && !errorMessage;
-
   return (
     <main
       className={cn("min-h-[calc(100vh-148px)] bg-[#f5f6f8] py-6", pageX)}
@@ -129,30 +100,30 @@ export function SearchPage() {
 
       <div className="mt-6 flex items-baseline justify-between">
         <h2 className="text-sm font-bold">‘{query}’ 검색 결과</h2>
-        {isSuccess && (
+        {searchQuery.isSuccess && (
           <p className="text-xs text-gray-400">영화 {movies.length}편</p>
         )}
       </div>
 
-      {isLoading && (
+      {searchQuery.isLoading && (
         <p className="mt-10 text-center text-sm text-gray-400">
           검색 결과를 불러오는 중이에요.
         </p>
       )}
 
-      {!isLoading && errorMessage && (
+      {searchQuery.isError && (
         <p className="mt-10 text-center text-sm text-gray-400">
-          {errorMessage}
+          검색 결과를 불러오지 못했어요.
         </p>
       )}
 
-      {isSuccess && movies.length === 0 && (
+      {searchQuery.isSuccess && movies.length === 0 && (
         <p className="mt-10 text-center text-sm text-gray-400">
           조건에 맞는 영화가 없어요.
         </p>
       )}
 
-      {isSuccess && movies.length > 0 && (
+      {searchQuery.isSuccess && movies.length > 0 && (
         <ul className="mt-4 grid grid-cols-1 gap-x-10 md:grid-cols-2">
           {movies.map((movie) => {
             const isBookmarked = bookmarkedMovieIds.includes(movie.id);
