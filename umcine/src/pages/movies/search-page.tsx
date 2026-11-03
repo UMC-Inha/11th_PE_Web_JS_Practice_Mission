@@ -1,6 +1,8 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies";
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 // CSS Module(search-page.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function SearchPage() {
@@ -12,14 +14,42 @@ export function SearchPage() {
     setSearchText(query ?? "");
   }, [query]);
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? ""; //양끝 공백 제거후 소문자로 바꾼다 -> 제목이나 원제에 있는지 확인하기 위한 정규화
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+  // ── 워크북: API 검색 결과 state + Effect ──
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const normalizedQuery = (query ?? "").trim();
+
+    setMovies([]);
+    setErrorMessage(null);
+
+    if (!normalizedQuery) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) setMovies(response.results);
+      })
+      .catch(() => {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [query]);
+
+  const normalizedQuery = query?.trim() ?? ""; //빈 검색어 안내 화면 분기에 사용
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) { //폼제출 이벤트의 타입을 적는다.
     event.preventDefault(); //브라우저의 기본 새로고침을 막고 (->useNavigate)
@@ -103,36 +133,48 @@ export function SearchPage() {
             '{query}' 검색 결과
           </h3>
           <p className="text-sm text-gray-500">
-            영화 {searchResults.length}편 · 1페이지
+            영화 {movies.length}편 · 1페이지
           </p>
         </div>
 
-        {searchResults.length === 0 ? (
+        {isLoading ? (
+          <p className="py-10 text-center text-gray-500">
+            검색 결과를 불러오는 중이에요.
+          </p>
+        ) : errorMessage ? (
+          <p className="py-10 text-center text-red-500">{errorMessage}</p>
+        ) : movies.length === 0 ? (
           <p className="py-10 text-center text-gray-500">
             검색 결과가 없어요.
           </p>
         ) : (
           // 결과는 요청대로 모든 화면 크기에서 2열 유지. 대신 좁은 화면에서는 간격/포스터 크기만 줄임
           <ul className="m-0 grid grid-cols-2 list-none gap-x-4 p-0 sm:gap-x-8">
-            {searchResults.map((movie) => (
+            {movies.map((movie) => (
               <li
                 key={movie.id}
                 className="flex gap-3 border-b border-gray-200 py-5 sm:gap-5"
               >
-                <img
-                  src={movie.posterPath}
-                  alt={`${movie.title} 포스터`}
-                  className="aspect-[2/3] w-16 shrink-0 rounded-lg object-cover sm:w-24"
-                />
+                {getTmdbPosterUrl(movie.poster_path) ? (
+                  <img
+                    src={getTmdbPosterUrl(movie.poster_path)!}
+                    alt={`${movie.title} 포스터`}
+                    className="aspect-[2/3] w-16 shrink-0 rounded-lg object-cover sm:w-24"
+                  />
+                ) : (
+                  <div className="flex aspect-[2/3] w-16 shrink-0 items-center justify-center rounded-lg bg-gray-200 text-xs text-gray-500 sm:w-24">
+                    이미지 없음
+                  </div>
+                )}
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <h4 className="text-base font-bold text-gray-900">
                     {movie.title}
                   </h4>
                   <p className="text-[13px] text-gray-500">
-                    {movie.originalTitle}
+                    {movie.original_title}
                   </p>
                   <p className="text-[13px] text-gray-500">
-                    {movie.releaseDate}
+                    {movie.release_date}
                   </p>
                   <p className="mt-1.5 mb-2 line-clamp-2 text-sm text-gray-500">
                     {movie.overview}

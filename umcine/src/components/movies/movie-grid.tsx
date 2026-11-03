@@ -1,10 +1,14 @@
-import { movies } from "../../data/movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 import { MovieCard } from "./movie-card";
 import { Pagination } from "./pagination";
 
+interface MovieGridProps {
+  movies: TmdbMovieListItem[]; //로컬 data/movies 대신 목록 페이지가 API로 받아 전달함
+}
+
 // CSS Module(movie-grid.module.css)에서 Tailwind 유틸리티 클래스로 전환
 // 북마크 상태는 MovieCard 안의 BookmarkButton이 zustand store(useBookmarkStore)로 직접 관리함
-export function MovieGrid() {
+export function MovieGrid({ movies }: MovieGridProps) {
   return (
     <section className="p-4 text-left sm:p-8">
       <h2 className="mb-4 text-xl font-bold text-gray-900 sm:mb-6 sm:text-2xl">
@@ -22,3 +26,4 @@ export function MovieGrid() {
     </section>
   );
 }
+ 
