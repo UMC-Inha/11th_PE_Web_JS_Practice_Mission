@@ -9,9 +9,12 @@ interface PaginationProps {
 export default function Pagination(props: PaginationProps) {
   const { currentPage, totalPages, onPageChange } = props;
 
+  const pagesPerGroup = 10;
+  const startPage = Math.floor((currentPage - 1) / pagesPerGroup) * pagesPerGroup + 1;
+  const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
   const pageNumbers = [];
 
-  for (let i = 1; i <= totalPages; i++) {
+  for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
 

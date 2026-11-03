@@ -1,39 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getMovies } from "../../api/movies/get-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
-import Pagination from "../../components/movies/pagination";
-import { movies } from "../../data/movies";
-import "../../App.css";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function MovieListPage() {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const moviesPerPage = 10;
-  const totalPages = Math.ceil(movies.length / moviesPerPage);
-  const startIndex = (currentPage - 1) * moviesPerPage;
+  useEffect(() => {
+    let ignore = false;
+    async function loadMovies() {
+      setIsLoading(true);
+      setErrorMessage(null);
 
-  const currentMovies = movies.slice(
-    startIndex,
-    startIndex + moviesPerPage,
-  );
+      try {
+        const response = await getMovies({ page: 1 });
+        if (!ignore) setMovies(response.results);
+      } catch {
+        if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadMovies();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
-    <main className="px-[80px] pt-[24px]">
-      <h1
-        id="movies"
-        className="mb-[20px] h-11 w-fit text-[38px] font-bold leading-[44px] tracking-[-3px]"
-      >
-        영화 목록
-      </h1>
-
-      <MovieGrid
-        movies={currentMovies}
-      />
-
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+    <main id="movies" className="mx-auto w-[89%] py-8">
+      <h1 className="mb-6 text-[32px] font-bold">인기 영화</h1>
+      {isLoading ? (
+        <p role="status" className="py-20 text-center text-[#969DA8]">영화 목록을 불러오는 중이에요.</p>
+      ) : errorMessage ? (
+        <p role="alert" className="py-20 text-center text-red-500">{errorMessage}</p>
+      ) : movies.length === 0 ? (
+        <p className="py-20 text-center text-[#969DA8]">표시할 영화가 없어요.</p>
+      ) : (
+        <MovieGrid
+          movies={movies.map((movie) => ({
+            id: movie.id,
+            title: movie.title,
+            posterPath: getTmdbPosterUrl(movie.poster_path),
+            releaseDate: movie.release_date,
+          }))}
         />
       )}
     </main>

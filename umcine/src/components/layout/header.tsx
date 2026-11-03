@@ -4,8 +4,8 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between gap-6 border-b border-[#e2e5eb] bg-white px-[5.5%] py-7 max-[600px]:flex-wrap max-[600px]:py-5">
       <div className="flex items-center gap-12 max-[1000px]:gap-6 max-[600px]:flex-wrap max-[600px]:gap-4">
-        <a
-          href="#movies"
+        <Link
+          to="/"
           className="flex items-center gap-[10px] text-2xl font-extrabold"
         >
           <img
@@ -14,7 +14,7 @@ export default function Header() {
             className="h-9 w-9"
           />
           <span>UMCine</span>
-        </a>
+        </Link>
 
         <nav className="flex items-center gap-8 font-bold text-[#6b7280] max-[1000px]:gap-4">
           <Link
@@ -42,8 +42,9 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
+        <Link
+          to="/search"
+          search={{}}
           className="grid h-12 w-12 place-items-center rounded-lg border border-[#e2e5eb] bg-white"
           aria-label="검색"
         >
@@ -52,7 +53,7 @@ export default function Header() {
             alt=""
             className="h-6 w-6"
           />
-        </button>
+        </Link>
 
         <button
           type="button"
