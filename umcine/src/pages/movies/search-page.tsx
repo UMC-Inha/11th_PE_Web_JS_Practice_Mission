@@ -4,12 +4,14 @@ import { searchMovies } from "../../api/movies/search-movies";
 import type { TmdbMovieListItem } from "../../api/movies/models";
 import { MovieSearchForm } from "../../components/movies/movie-search-form";
 import { MovieSearchCard } from "../../components/movies/movie-search-card";
+import Pagination from "../../components/movies/pagination";
 
 export function SearchPage() {
-  const { query = "" } = useSearch({ from: "/search" });
+  const { query = "", page: currentPage = 1 } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query);
   const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -24,6 +26,7 @@ export function SearchPage() {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 요청한 예제처럼 새 검색 전에 이전 결과를 초기화해요.
     setMovies([]);
+    setTotalPages(0);
     setErrorMessage(null);
 
     if (!normalizedQuery) {
@@ -33,9 +36,12 @@ export function SearchPage() {
 
     setIsLoading(true);
 
-    searchMovies({ query: normalizedQuery })
+    searchMovies({ query: normalizedQuery, page: currentPage })
       .then((response) => {
-        if (!ignore) setMovies(response.results);
+        if (!ignore) {
+          setMovies(response.results);
+          setTotalPages(response.total_pages);
+        }
       })
       .catch(() => {
         if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
@@ -47,7 +53,7 @@ export function SearchPage() {
     return () => {
       ignore = true;
     };
-  }, [query]);
+  }, [query, currentPage]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,7 +108,7 @@ export function SearchPage() {
 
             <p className="text-[12px] text-[#969DA8]">
               {!isLoading && !errorMessage && (
-                <>영화 {movies.length}편 · 1페이지</>
+                <>영화 {movies.length}편 · {currentPage}페이지</>
               )}
             </p>
           </div>
@@ -125,6 +131,13 @@ export function SearchPage() {
                 <MovieSearchCard key={movie.id} movie={movie} />
               ))}
             </ul>
+          )}
+          {!isLoading && !errorMessage && movies.length > 0 && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => navigate({ search: { query, page } })}
+            />
           )}
         </section>
       )}

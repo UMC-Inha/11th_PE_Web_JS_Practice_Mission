@@ -5,9 +5,13 @@ interface Review {
   comment: string;
 }
 
+function reviewStorageKey(movieId: number) {
+  return `umcine-tmdb-review-v1-${movieId}`;
+}
+
 function readReview(movieId: number): Review {
   try {
-    const stored: unknown = JSON.parse(localStorage.getItem(`umcine-review-${movieId}`) ?? "null");
+    const stored: unknown = JSON.parse(localStorage.getItem(reviewStorageKey(movieId)) ?? "null");
     if (stored && typeof stored === "object" && "rating" in stored && "comment" in stored
       && typeof stored.rating === "number" && Number.isInteger(stored.rating)
       && stored.rating >= 1 && stored.rating <= 5 && typeof stored.comment === "string") {
@@ -30,7 +34,7 @@ export function MovieReview({ movieId }: { movieId: number }) {
       return;
     }
     try {
-      localStorage.setItem(`umcine-review-${movieId}`, JSON.stringify(review));
+      localStorage.setItem(reviewStorageKey(movieId), JSON.stringify(review));
       setMessage("평점을 저장했어요.");
     } catch {
       setMessage("평점을 저장하지 못했어요. 다시 시도해 주세요.");

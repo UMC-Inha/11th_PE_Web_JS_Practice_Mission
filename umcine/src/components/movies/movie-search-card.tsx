@@ -14,6 +14,7 @@ export function MovieSearchCard({ movie }: MovieSearchCardProps) {
       <Link
         to="/movies/$movieId"
         params={{ movieId: String(movie.id) }}
+        aria-label={`${movie.title} 상세 보기`}
         className="shrink-0"
       >
         {movie.poster_path ? (
