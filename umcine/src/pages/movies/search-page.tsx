@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useEffect, useState, type SubmitEvent } from 'react'
-import type { TmdbMovieListItem } from '../../api/movies/models'
+import { useQuery } from '@tanstack/react-query'
+import { useState, type SubmitEvent } from 'react'
 import { searchMovies } from '../../api/movies/search-movies'
 import { BookmarkButton } from '../../components/bookmark-button'
 import { getTmdbPosterUrl } from '../../utils/movies/tmdb-image'
@@ -10,46 +10,16 @@ export function SearchPage() {
   const navigate = useNavigate({ from: '/search' })
 
   const [searchText, setSearchText] = useState(query ?? '')
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const normalizedQuery = query?.trim() ?? ''
 
-  useEffect(() => {
-    let ignore = false
+  const searchQuery = useQuery({
+    queryKey: ['movies', 'search', { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  })
 
-    setMovies([])
-    setErrorMessage(null)
-
-    if (!normalizedQuery) {
-      setIsLoading(false)
-      return
-    }
-
-    setIsLoading(true)
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setMovies(response.results)
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setErrorMessage('검색 결과를 불러오지 못했어요.')
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      ignore = true
-    }
-  }, [normalizedQuery])
+  const searchResults = searchQuery.data?.results ?? []
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -105,25 +75,25 @@ export function SearchPage() {
             ‘{query}’ 검색 결과
           </h2>
           <p className="mt-1 text-xs text-[#969da8]">
-            영화 {movies.length}편
+            영화 {searchResults.length}편
           </p>
         </div>
 
-        {isLoading ? (
+        {searchQuery.isLoading ? (
           <p className="py-16 text-center text-sm text-[#606774]">
             검색 결과를 불러오는 중이에요.
           </p>
-        ) : errorMessage ? (
+        ) : searchQuery.isError ? (
           <p className="py-16 text-center text-sm text-[#dc2626]">
-            {errorMessage}
+            검색 결과를 불러오지 못했어요.
           </p>
-        ) : movies.length === 0 ? (
+        ) : searchQuery.isSuccess && searchResults.length === 0 ? (
           <p className="py-16 text-center text-sm text-[#606774]">
             조건에 맞는 영화가 없어요.
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
-            {movies.map((movie) => {
+            {searchResults.map((movie) => {
               const posterUrl = getTmdbPosterUrl(movie.poster_path)
 
               return (
