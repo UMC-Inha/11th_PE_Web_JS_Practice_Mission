@@ -21,6 +21,14 @@ export const useBookmarkStore = create<BookmarkStore>()(
     {
       name: "umcine-bookmark-store",
       storage: createJSONStorage(() => localStorage),
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1) {
+          return { bookmarkedMovieIds: [] };
+        }
+
+        return persistedState as Pick<BookmarkStore, "bookmarkedMovieIds">;
+      },
       partialize: (state) => ({
         bookmarkedMovieIds: state.bookmarkedMovieIds,
       }),

@@ -1,7 +1,25 @@
 import { cn } from "../../utils/cn";
 
-export default function Pagination() {
-  const pages = [1, 2, 3, 4, 5];
+interface PaginationProps {
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+}
+
+export default function Pagination({
+  currentPage = 1,
+  totalPages = 5,
+  onPageChange,
+}: PaginationProps) {
+  const startPage = Math.floor((currentPage - 1) / 5) * 5 + 1;
+  const pages = Array.from(
+    { length: Math.max(0, Math.min(5, totalPages - startPage + 1)) },
+    (_, index) => startPage + index,
+  );
+
+  if (totalPages === 0) {
+    return null;
+  }
 
   return (
     <nav
@@ -10,14 +28,15 @@ export default function Pagination() {
     >
       <button
         type="button"
-        disabled
+        disabled={!onPageChange || currentPage <= 1}
+        onClick={() => onPageChange?.(currentPage - 1)}
         aria-label="이전 페이지"
-        className="flex h-9 w-9 cursor-default items-center justify-center"
+        className="group flex h-9 w-9 cursor-pointer items-center justify-center disabled:cursor-default"
       >
         <img
           src="/icons/chevron-left.svg"
           alt=""
-          className="h-5 w-5 opacity-20"
+          className="h-5 w-5 opacity-50 group-disabled:opacity-20"
         />
       </button>
 
@@ -25,15 +44,13 @@ export default function Pagination() {
         <button
           key={page}
           type="button"
-          disabled
-          aria-current={
-            page === 1
-              ? "page"
-              : undefined
-          }
+          disabled={!onPageChange}
+          onClick={() => onPageChange?.(page)}
+          aria-label={`${page}페이지`}
+          aria-current={page === currentPage ? "page" : undefined}
           className={cn(
-            "h-9 w-9 cursor-default rounded-md text-sm font-semibold",
-            page === 1
+            "h-9 w-9 cursor-pointer rounded-md text-sm font-semibold disabled:cursor-default",
+            page === currentPage
               ? "bg-[#191B20] text-white"
               : "text-gray-500",
           )}
@@ -44,14 +61,15 @@ export default function Pagination() {
 
       <button
         type="button"
-        disabled
+        disabled={!onPageChange || currentPage >= totalPages}
+        onClick={() => onPageChange?.(currentPage + 1)}
         aria-label="다음 페이지"
-        className="flex h-9 w-9 cursor-default items-center justify-center"
+        className="group flex h-9 w-9 cursor-pointer items-center justify-center disabled:cursor-default"
       >
         <img
           src="/icons/chevron-right.svg"
           alt=""
-          className="h-5 w-5 opacity-50"
+          className="h-5 w-5 opacity-50 group-disabled:opacity-20"
         />
       </button>
     </nav>
