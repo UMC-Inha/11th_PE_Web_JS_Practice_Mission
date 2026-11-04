@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, type SubmitEvent } from "react";
 import { checkEmail } from "../../api/members/check-email";
 import { checkNickname } from "../../api/members/check-nickname";
+import { signUp } from "../../api/members/sign-up";
+import { getServerErrorMessage } from "../../utils/get-server-error-message";
 
 type CheckStatus = "idle" | "loading" | "available" | "taken" | "error";
 
@@ -19,6 +21,12 @@ export function SignupPage() {
   const [nickname, setNickname] = useState("");
   const [nicknameStatus, setNicknameStatus] = useState<CheckStatus>("idle");
   const latestNickname = useRef("");
+
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSignedUp, setIsSignedUp] = useState(false);
 
   const emailMessage: Partial<Record<CheckStatus, string>> = {
     loading: "확인하는 중이에요.",
@@ -76,12 +84,55 @@ export function SignupPage() {
     }
   }
 
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitError(null);
+
+    if (password !== passwordConfirm) {
+      setSubmitError("비밀번호가 일치하지 않아요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await signUp({ email, password, nickname });
+      setPassword("");
+      setPasswordConfirm("");
+      setIsSignedUp(true);
+    } catch (error) {
+      setSubmitError(await getServerErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (isSignedUp) {
+    return (
+      <main className="flex flex-1 flex-col items-center justify-center bg-gray-100 px-4 py-10">
+        <div className="w-full max-w-[430px] text-left">
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">
+            가입이 완료됐어요
+          </h1>
+          <p className="mb-5 text-sm text-gray-500">
+            로그인 화면에서 로그인해 주세요.
+          </p>
+          <Link
+            to="/login"
+            className="block w-full rounded-lg bg-blue-600 py-3.5 text-center text-sm font-semibold text-white no-underline"
+          >
+            로그인하러 가기
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center bg-gray-100 px-4 py-10">
       <div className="w-full max-w-[430px] text-left">
         <h1 className="mb-4 text-3xl font-bold text-gray-900">회원가입</h1>
 
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
             <label htmlFor="signup-email" className="text-sm font-bold text-gray-900">
               이메일
@@ -149,6 +200,8 @@ export function SignupPage() {
                 id="signup-password"
                 type="password"
                 placeholder="8자 이상"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
               />
             </div>
@@ -166,16 +219,23 @@ export function SignupPage() {
                 id="signup-password-confirm"
                 type="password"
                 placeholder="다시 입력"
+                value={passwordConfirm}
+                onChange={(event) => setPasswordConfirm(event.target.value)}
                 className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
               />
             </div>
           </div>
 
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+
           <button
-            type="button"
-            className="w-full cursor-pointer rounded-lg bg-blue-600 py-3.5 text-sm font-semibold text-white"
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full cursor-pointer rounded-lg bg-blue-600 py-3.5 text-sm font-semibold text-white disabled:cursor-default disabled:bg-gray-400"
           >
-            가입하기
+            {isSubmitting ? "가입하는 중..." : "가입하기"}
           </button>
         </form>
 
