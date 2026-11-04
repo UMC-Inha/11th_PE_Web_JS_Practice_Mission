@@ -75,9 +75,11 @@ export function MovieDetailPage() {
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
   const runtimeText =
-    typeof movie.runtime === "number"
-      ? `${Math.floor(movie.runtime / 60)}시간 ${movie.runtime % 60}분`
-      : "상영 시간 정보가 없어요.";
+  typeof movie.runtime !== "number"
+    ? "상영 시간 정보가 없어요."
+    : movie.runtime < 60
+      ? `${movie.runtime}분`
+      : `${Math.floor(movie.runtime / 60)}시간 ${movie.runtime % 60}분`;
 
   return (
     <main className="flex w-full flex-1 flex-col bg-[#F6F7F9]">
