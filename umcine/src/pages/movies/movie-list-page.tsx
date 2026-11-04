@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { getMovies } from '../../api/movies/get-movies'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { movieListQueryOptions } from '../../api/movies/movie-query-options'
 import type { TmdbMovieListItem } from '../../api/movies/models'
 import MovieGrid from '../../components/movies/movie-grid'
 import Pagination from '../../components/movies/pagination'
@@ -10,60 +11,45 @@ import {
   getTmdbPosterUrl,
 } from '../../utils/movies/tmdb-image'
 
+function toMovie(
+  tmdbMovie: TmdbMovieListItem,
+  isBookmarked: boolean,
+): Movie {
+  return {
+    id: tmdbMovie.id,
+    title: tmdbMovie.title,
+    originalTitle: tmdbMovie.original_title,
+    releaseDate: tmdbMovie.release_date,
+    posterPath: getTmdbPosterUrl(tmdbMovie.poster_path),
+    backdropPath: getTmdbBackdropUrl(tmdbMovie.backdrop_path),
+    genres: [],
+    runtime: '',
+    tagline: '',
+    overview: tmdbMovie.overview,
+    isBookmarked,
+  }
+}
+
 export default function MovieListPage() {
-  const [tmdbMovies, setTmdbMovies] = useState<TmdbMovieListItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
   const bookmarkedMovieIds = useBookmarkStore(
     (state) => state.bookmarkedMovieIds,
   )
   const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark)
 
-  useEffect(() => {
-    let ignore = false
+  const moviesQuery = useQuery(movieListQueryOptions(page))
 
-    async function loadMovies() {
-      setIsLoading(true)
-      setErrorMessage(null)
+  const tmdbMovies = moviesQuery.data?.results ?? []
+  const totalPages = moviesQuery.data?.total_pages ?? 0
 
-      try {
-        const response = await getMovies({ page: 1 })
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+  }
 
-        if (!ignore) {
-          setTmdbMovies(response.results)
-        }
-      } catch {
-        if (!ignore) {
-          setErrorMessage('영화 목록을 불러오지 못했어요.')
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadMovies()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
-
-  const movies: Movie[] = tmdbMovies.map((movie) => ({
-    id: movie.id,
-    title: movie.title,
-    originalTitle: movie.original_title,
-    releaseDate: movie.release_date,
-    posterPath: getTmdbPosterUrl(movie.poster_path),
-    backdropPath: getTmdbBackdropUrl(movie.backdrop_path),
-    genres: [],
-    runtime: '',
-    tagline: '',
-    overview: movie.overview,
-    isBookmarked: bookmarkedMovieIds.includes(movie.id),
-  }))
+  const movies = tmdbMovies.map((movie) =>
+    toMovie(movie, bookmarkedMovieIds.includes(movie.id)),
+  )
 
   return (
     <main className="mx-auto w-full max-w-[1100px] px-5 pb-20 pt-8 sm:px-10">
@@ -71,13 +57,13 @@ export default function MovieListPage() {
         영화 목록
       </h1>
 
-      {isLoading ? (
+      {moviesQuery.isPending ? (
         <p className="py-16 text-center text-sm text-[#606774]">
           영화 목록을 불러오는 중이에요.
         </p>
-      ) : errorMessage ? (
+      ) : moviesQuery.isError ? (
         <p className="py-16 text-center text-sm text-[#dc2626]">
-          {errorMessage}
+          영화 목록을 불러오지 못했어요.
         </p>
       ) : movies.length === 0 ? (
         <p className="py-16 text-center text-sm text-[#606774]">
@@ -87,7 +73,11 @@ export default function MovieListPage() {
         <MovieGrid movies={movies} onToggleBookmark={toggleBookmark} />
       )}
 
-      <Pagination />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </main>
   )
 }
