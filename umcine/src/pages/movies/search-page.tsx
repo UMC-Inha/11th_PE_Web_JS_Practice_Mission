@@ -1,6 +1,9 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies";
+import { useEffect, useState, type SubmitEvent } from "react";
+import { searchMovies } from "../../api/movies/search-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
+import { MovieImage } from "../../components/movies/movie-image";
 import { cn } from "../../utils/cn";
 import { BookmarkButton } from "../../components/bookmark-button";
 
@@ -12,10 +15,31 @@ export function SearchPage() {
 function SearchPageContent({ query }: { query: string | undefined }) {
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const results = normalizedQuery
-    ? movies.filter((movie) => movie.title.toLowerCase().includes(normalizedQuery) || movie.originalTitle.toLowerCase().includes(normalizedQuery))
-    : [];
+  const normalizedQuery = query?.trim() ?? "";
+  const [results, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(Boolean(normalizedQuery));
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(0);
+
+  // query가 바뀌면 부모의 key로 새 상태를 만들고 이전 요청은 cleanup으로 무시해요.
+  useEffect(() => {
+    let ignore = false;
+    if (!normalizedQuery) return;
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) {
+          setMovies(response.results);
+          setTotalResults(response.total_results);
+        }
+      })
+      .catch(() => {
+        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+    return () => { ignore = true; };
+  }, [normalizedQuery]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,18 +72,18 @@ function SearchPageContent({ query }: { query: string | undefined }) {
       {form}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5eb] pb-4">
         <h2 className="text-base font-bold">‘{query}’ 검색 결과</h2>
-        <p aria-live="polite" className="text-xs text-[#788191]">영화 {results.length}편</p>
+        <p aria-live="polite" className="text-xs text-[#788191]">{isLoading ? "검색 중" : errorMessage ? "검색 실패" : `영화 ${totalResults}편`}</p>
       </div>
-      {results.length === 0 ? <p className="py-20 text-center text-[#677080]">검색 결과가 없어요.</p> : (
+      {isLoading ? <p role="status" className="py-12">검색 결과를 불러오는 중이에요.</p> : errorMessage ? <p role="alert" className="py-12">{errorMessage}</p> : results.length === 0 ? <p className="py-20 text-center text-[#677080]">검색 결과가 없어요.</p> : (
         <ul className="grid grid-cols-1 gap-x-10 md:grid-cols-2">
           {results.map((movie) => (
             <li key={movie.id} className="flex min-w-0 gap-5 border-b border-[#e2e5eb] py-5 md:min-h-57.5">
               <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }} className="shrink-0">
-                <img src={movie.posterPath} alt={`${movie.title} 포스터`} className="h-47.5 w-31.5 rounded-lg object-cover" />
+                <MovieImage src={getTmdbPosterUrl(movie.poster_path)} alt={`${movie.title} 포스터`} className="h-47.5 w-31.5 rounded-lg object-cover" />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col py-1">
                 <h3 className="text-base font-bold"><Link to="/movies/$movieId" params={{ movieId: String(movie.id) }}>{movie.title}</Link></h3>
-                <p className="mt-2 text-xs leading-5 text-[#939baa]">{movie.originalTitle} <span className="inline-block">{movie.releaseDate}</span></p>
+                <p className="mt-2 text-xs leading-5 text-[#939baa]">{movie.original_title} <span className="inline-block">{movie.release_date}</span></p>
                 <p className="mt-2 text-xs leading-5 text-[#677080]">{movie.overview}</p>
                 <BookmarkButton movieId={movie.id} className="mt-3 self-start px-3 py-2 text-xs" />
                 <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }} className="mt-auto pt-4 text-xs font-bold text-[#2864fa]">상세 보기 →</Link>
@@ -71,4 +95,3 @@ function SearchPageContent({ query }: { query: string | undefined }) {
     </main>
   );
 }
-

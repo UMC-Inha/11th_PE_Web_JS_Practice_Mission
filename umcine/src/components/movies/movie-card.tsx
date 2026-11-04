@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import type { Movie } from "../../types/movie";
+import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
+import { MovieImage } from "./movie-image";
 import { BookmarkButton } from "../bookmark-button";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: TmdbMovieListItem;
 
 }
 
@@ -19,8 +21,8 @@ export default function MovieCard({
           params={{ movieId: String(movie.id) }}
           className="block h-full"
         >
-          <img
-            src={movie.posterPath}
+          <MovieImage
+            src={getTmdbPosterUrl(movie.poster_path)}
             alt={`${movie.title} 포스터`}
             className="block h-full w-full object-cover"
           />
@@ -40,9 +42,8 @@ export default function MovieCard({
       </h2>
 
       <p className="m-0 text-left text-[11px] text-[#999]">
-        {movie.releaseDate}
+        {movie.release_date}
       </p>
     </article>
   );
 }
-

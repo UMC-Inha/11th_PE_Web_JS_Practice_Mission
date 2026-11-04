@@ -11,6 +11,7 @@ export default function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
+  const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
   const buttonClass = "flex h-8 min-w-8 items-center justify-center rounded px-2";
   return (
     <nav className="mb-5 flex items-center justify-center gap-1" aria-label="페이지 이동">
@@ -23,7 +24,7 @@ export default function Pagination({
       >
         <img src="/movie-icons/chevron-left.svg" alt="" className="h-4 w-4" />
       </button>
-      {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+      {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => startPage + index).map((page) => (
         <button
           key={page}
           type="button"
