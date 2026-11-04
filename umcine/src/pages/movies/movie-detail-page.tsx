@@ -1,6 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { getMovieDetail } from "../../api/movies/get-movie-detail";
+import { getMovieDetailOptions } from "../../queries/movie-query-options";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
@@ -13,12 +13,7 @@ export function MovieDetailPage() {
   const parsedMovieId = Number(movieId);
   const isValidMovieId = Number.isInteger(parsedMovieId) && parsedMovieId > 0;
 
-  const movieDetailQuery = useQuery({
-    queryKey: ["movies", "detail", parsedMovieId],
-    queryFn: () => getMovieDetail(parsedMovieId),
-    staleTime: 30 * 1000,
-    enabled: isValidMovieId,
-  });
+  const movieDetailQuery = useQuery(getMovieDetailOptions(parsedMovieId));
 
   const isBookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(parsedMovieId),

@@ -2,15 +2,12 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
-import { getMovies } from "../../api/movies/get-movies";
+import { getMovieListOptions } from "../../queries/movie-query-options";
 
 export function MovieListPage() {
   const [page, setPage] = useState(1);
 
-const moviesQuery = useQuery({
-  queryKey: ["movies", "list", { page }],
-  queryFn: () => getMovies({ page }),
-});
+const moviesQuery = useQuery(getMovieListOptions(page));
 
 const movies = moviesQuery.data?.results ?? [];
 const totalPages = moviesQuery.data?.total_pages ?? 0;
