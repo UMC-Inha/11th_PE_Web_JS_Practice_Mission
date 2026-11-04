@@ -1,16 +1,21 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { routeTree } from "./routeTree.gen";
-import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css"; //Pretendard 가변 폰트 로드(npm 패키지, CDN 의존 없음). 적용은 index.css의 --font-sans
 import "./index.css";
-//import "./examples/fetch-movies";
 
-//localStorage.removeItem("umcine-bookmarks"); //[일회용] 옛 북마크 키 정리. 개발자도구에서 사라진 걸 확인한 뒤 이 줄은 삭제할 것
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css"; //Pretendard 가변 폰트 로드(npm 패키지, CDN 의존 없음). 적용은 index.css의 --font-sans
+//import "./examples/fetch-movies";
 
 const router = createRouter({ routeTree });
 //routeTree.gen.ts에서 routeTree를 가져와서 router를 생성하고, RouterProvider로 감싸서 앱 전체에 라우터를 제공한다.
 //createRouter에 이 지도를 넘겨줌으로써 라우터가 "우리 앱에 어떤 URL들이 존재하는지" 전부 파악하게 됩니다
+const ONE_MINUTE = 60 * 1000;
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: ONE_MINUTE } }, // staleTime: 60 * 1000도 가능
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -20,7 +25,10 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </StrictMode>,
 );
 //router가 url을 감시하다가 주소가 바뀌면 outlet 자리에 해당하는 컴포넌트를 렌더링해준다.
