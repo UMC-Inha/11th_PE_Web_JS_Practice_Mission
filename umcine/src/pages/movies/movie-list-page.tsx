@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getMovies } from '../../api/movies/get-movies'
+import { movieListQueryOptions } from '../../api/movies/movie-query-options'
 import type { TmdbMovieListItem } from '../../api/movies/models'
 import MovieGrid from '../../components/movies/movie-grid'
 import Pagination from '../../components/movies/pagination'
@@ -38,10 +38,7 @@ export default function MovieListPage() {
   )
   const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark)
 
-  const moviesQuery = useQuery({
-    queryKey: ['movies', 'list', { page }],
-    queryFn: () => getMovies({ page }),
-  })
+  const moviesQuery = useQuery(movieListQueryOptions(page))
 
   const tmdbMovies = moviesQuery.data?.results ?? []
   const totalPages = moviesQuery.data?.total_pages ?? 0

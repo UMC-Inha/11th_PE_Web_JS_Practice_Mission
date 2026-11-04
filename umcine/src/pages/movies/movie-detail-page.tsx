@@ -1,6 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getMovieDetail } from '../../api/movies/get-movie-details'
+import { movieDetailQueryOptions } from '../../api/movies/movie-query-options'
 import { BookmarkButton } from '../../components/bookmark-button'
 import { getMovieDetailErrorMessage } from '../../utils/movies/get-movie-detail-error-message'
 import {
@@ -27,12 +27,9 @@ export function MovieDetailPage() {
   const movieId = Number(movieIdParam)
   const isValidMovieId = Number.isInteger(movieId) && movieId > 0
 
-  const movieDetailQuery = useQuery({
-    queryKey: ['movies', 'detail', movieId],
-    queryFn: () => getMovieDetail(movieId),
-    enabled: isValidMovieId,
-    staleTime: 30 * 1000,
-  })
+  const movieDetailQuery = useQuery(
+  movieDetailQueryOptions(movieId, isValidMovieId),
+)
 
   const movie = movieDetailQuery.data
 

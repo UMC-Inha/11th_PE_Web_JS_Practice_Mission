@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState, type SubmitEvent } from 'react'
-import { searchMovies } from '../../api/movies/search-movies'
+import { movieSearchQueryOptions } from '../../api/movies/movie-query-options'
 import { BookmarkButton } from '../../components/bookmark-button'
 import { getTmdbPosterUrl } from '../../utils/movies/tmdb-image'
 
@@ -13,11 +13,9 @@ export function SearchPage() {
 
   const normalizedQuery = query?.trim() ?? ''
 
-  const searchQuery = useQuery({
-    queryKey: ['movies', 'search', { query: normalizedQuery }],
-    queryFn: () => searchMovies({ query: normalizedQuery }),
-    enabled: normalizedQuery.length > 0,
-  })
+  const searchQuery = useQuery(
+  movieSearchQueryOptions(normalizedQuery),
+)
 
   const searchResults = searchQuery.data?.results ?? []
 
