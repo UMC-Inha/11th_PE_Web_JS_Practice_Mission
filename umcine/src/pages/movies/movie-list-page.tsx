@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
-import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
+import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 
 const MOVIES_PER_PAGE = 10;
 

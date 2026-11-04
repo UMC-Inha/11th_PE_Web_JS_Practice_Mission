@@ -5,7 +5,7 @@ import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import type { TmdbMovieDetail } from "../../api/movies/models";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
-import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
+import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 
 const RATING_SCORES = [1, 2, 3, 4, 5];
 

@@ -3,7 +3,7 @@ import { useState, type SubmitEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
 import { BookmarkButton } from "../../components/bookmark-button";
-import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
+import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
