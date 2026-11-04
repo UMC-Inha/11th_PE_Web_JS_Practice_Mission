@@ -1,13 +1,67 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { movies } from "../../data/movies";
+import { HTTPError } from "ky";
+import { useEffect, useState } from "react";
+import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
+import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
 
 const RATING_SCORES = [1, 2, 3, 4, 5];
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
-  const movie = movies.find((item) => item.id === Number(movieId));
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMovie() {
+      setIsLoading(true);
+      setErrorMessage(null);
+      setMovie(null);
+
+      try {
+        const detail = await getMovieDetail(Number(movieId));
+        if (ignore) return;
+        setMovie({
+          id: detail.id,
+          title: detail.title,
+          originalTitle: detail.original_title,
+          overview: detail.overview,
+          tagline: detail.tagline,
+          posterPath: getTmdbImageUrl(detail.poster_path),
+          backdropPath: getTmdbImageUrl(detail.backdrop_path),
+          releaseDate: detail.release_date,
+          genres: detail.genres.map((genre) => genre.name),
+          runtime: detail.runtime ? `${detail.runtime}분` : "",
+        });
+      } catch (error) {
+        if (ignore) return;
+        // 없는 영화 id는 TMDB가 404로 응답하므로 빈 결과로 처리한다.
+        if (!(error instanceof HTTPError && error.response.status === 404)) {
+          setErrorMessage("영화 정보를 불러오지 못했어요.");
+        }
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadMovie();
+
+    return () => {
+      ignore = true;
+    };
+  }, [movieId]);
+
+  if (isLoading || errorMessage) {
+    return (
+      <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
+        {isLoading ? "영화 정보를 불러오는 중이에요." : errorMessage}
+      </main>
+    );
+  }
 
   if (!movie) {
     return (
@@ -79,7 +133,7 @@ function MovieDetail({ movie }: { movie: Movie }) {
       <main className="mx-auto flex max-w-[1440px] items-start gap-8 px-20 py-6">
         <div className="h-[286px] w-[200px] shrink-0 overflow-hidden rounded-[10px] bg-[#F6F7F9] shadow-[0_12px_30px_rgba(12,15,20,0.12)]">
           <img
-            src={movie.posterPath}
+            src={movie.posterPath || undefined}
             alt={`${movie.title} 포스터`}
             className="size-full object-cover"
           />
