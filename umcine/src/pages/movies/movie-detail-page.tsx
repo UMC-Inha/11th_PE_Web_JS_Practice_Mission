@@ -1,5 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { getTmdbPosterUrl, getTmdbBackdropUrl } from "../../utils/movies/tmdb-image";
@@ -18,33 +19,31 @@ export function MovieDetailPage() {
 }
 
 function MovieDetailRequest({ movieId }: { movieId: number }) {
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const movieQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    staleTime: 30 * 1000,
+    enabled: Number.isInteger(movieId) && movieId > 0,
+  });
 
-  useEffect(() => {
-    let ignore = false;
-    async function loadMovie() {
-      try {
-        const response = await getMovieDetail(movieId);
-        if (!ignore) setMovie(response);
-      } catch (error) {
-        if (!ignore) setErrorMessage(getMovieDetailErrorMessage(error));
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-    void loadMovie();
-    return () => { ignore = true; };
-  }, [movieId]);
-
-  if (isLoading) return <main role="status" className="flex-1 px-5 py-16">영화 정보를 불러오는 중이에요.</main>;
-  if (errorMessage) return <main role="alert" className="flex-1 px-5 py-16">{errorMessage}</main>;
-  if (!movie) return <main className="flex-1 px-5 py-16">영화를 찾을 수 없어요.</main>;
-  return <MovieDetailContent movie={movie} />;
+  if (movieQuery.isPending) return <main role="status" className="flex-1 px-5 py-16">영화 정보를 불러오는 중이에요.</main>;
+  if (movieQuery.isError) return <main role="alert" className="flex-1 px-5 py-16">{getMovieDetailErrorMessage(movieQuery.error)}</main>;
+  if (!movieQuery.data) return <main className="flex-1 px-5 py-16">영화를 찾을 수 없어요.</main>;
+  return <MovieDetailContent movie={movieQuery.data} />;
 }
 
 function MovieDetailContent({ movie }: { movie: TmdbMovieDetail }) {
+
+  const genresText = movie.genres.map((genre) => genre.name).join(", ");
+  let runtimeText = "상영 시간 정보가 없어요.";
+
+  if (typeof movie.runtime === "number") {
+    const hours = Math.floor(movie.runtime / 60);
+    const minutes = movie.runtime % 60;
+    runtimeText = hours > 0
+      ? `${hours}시간 ${minutes}분`
+      : `${minutes}분`;
+  }
 
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
@@ -64,7 +63,11 @@ function MovieDetailContent({ movie }: { movie: TmdbMovieDetail }) {
           <div className="mt-auto">
             <h1 className="text-3xl leading-tight font-bold tracking-tight sm:text-[44px]">{movie.title}</h1>
             <p className="mt-2 text-sm">{movie.original_title}</p>
-            <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm font-semibold"><span>{movie.release_date}</span><span>{movie.genres.map((genre) => genre.name).join(", ")}</span><span>{typeof movie.runtime === "number" ? `${Math.floor(movie.runtime / 60)}시간 ${movie.runtime % 60}분` : "상영 시간 정보가 없어요."}</span></p>
+            <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm font-semibold">
+              <span>{movie.release_date}</span>
+              <span>{genresText}</span>
+              <span>{runtimeText}</span>
+            </p>
           </div>
         </div>
       </section>
@@ -91,3 +94,5 @@ function MovieDetailContent({ movie }: { movie: TmdbMovieDetail }) {
     </main>
   );
 }
+
+
