@@ -1,16 +1,43 @@
 import { useState } from "react";
+import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { PencilIcon, UserIcon } from "../../components/icons";
 import { DUMMY_MY_INFO } from "../../data/my-info";
 
 export function MyEditPage() {
   const [nickname, setNickname] = useState(DUMMY_MY_INFO.nickname);
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [isNicknameAvailable, setIsNicknameAvailable] = useState(false);
 
   const trimmedNickname = nickname.trim();
   const isNicknameValid = trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
   const isNicknameChanged = trimmedNickname !== DUMMY_MY_INFO.nickname;
 
-  // 형식이 맞고, 원래 닉네임과 다를 때만 저장 가능
-  const canSave = isNicknameValid && isNicknameChanged;
+  // 형식이 맞고, 원래 닉네임과 다르고, 중복 확인을 통과했을 때만 저장 가능
+  const canSave = isNicknameValid && isNicknameChanged && isNicknameAvailable;
+
+  const handleChangeNickname = (value: string) => {
+    if (isCheckingNickname) return;
+    // 닉네임을 바꾸면 다시 중복 확인해야 함
+    setIsNicknameAvailable(false);
+    setNickname(value);
+  };
+
+  const handleCheckNickname = async () => {
+    if (!isNicknameValid || !isNicknameChanged || isCheckingNickname) return;
+
+    setIsCheckingNickname(true);
+    setIsNicknameAvailable(false);
+
+    try {
+      const response = await checkNicknameDuplicate(trimmedNickname);
+      setIsNicknameAvailable(response.available);
+      alert(response.available ? "사용할 수 있는 닉네임이에요." : "이미 사용 중인 닉네임이에요.");
+    } catch {
+      alert("중복 확인에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsCheckingNickname(false);
+    }
+  };
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,14 +92,15 @@ export function MyEditPage() {
                   type="text"
                   className={`${inputClass} pr-20`}
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => handleChangeNickname(e.target.value)}
                 />
                 <button
                   type="button"
-                  disabled={!isNicknameValid || !isNicknameChanged}
+                  onClick={handleCheckNickname}
+                  disabled={!isNicknameValid || !isNicknameChanged || isCheckingNickname}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#4f5de8] disabled:text-gray-300"
                 >
-                  중복 확인
+                  {isCheckingNickname ? "확인 중" : "중복 확인"}
                 </button>
               </div>
               {!isNicknameValid && (
