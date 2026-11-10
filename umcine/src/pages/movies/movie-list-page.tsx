@@ -1,53 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 import { Footer } from "../../components/layout/footer";
 
 export function MovieListPage() {
-  // TMDB 영화 목록과 요청 상태 관리
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-
   // 현재 화면 페이지 번호
   const [currentPage, setCurrentPage] = useState(1);
 
   // 화면 페이지 2개당 TMDB API 페이지 1개 사용
   const apiPage = Math.ceil(currentPage / 2);
 
-  useEffect(() => {
-    let ignore = false;
+  // TanStack Query로 영화 목록 조회
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "list", { page: apiPage }],
+    queryFn: () => getMovies({ page: apiPage }),
+  });
 
-    async function loadMovies() {
-      try {
-        setIsLoading(true);
-        setErrorMessage("");
-
-        const response = await getMovies({ page: apiPage });
-
-        if (!ignore) {
-          setMovies(response.results);
-        }
-      } catch {
-        if (!ignore) {
-          setErrorMessage("영화 목록을 불러오지 못했어요.");
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadMovies();
-
-    // 이전 요청 결과가 반영되지 않도록 방지
-    return () => {
-      ignore = true;
-    };
-  }, [apiPage]);
+  const movies = moviesQuery.data?.results ?? [];
 
   // 받아온 영화 20개 중 현재 화면에 표시할 10개 선택
   const startIndex = ((currentPage - 1) % 2) * 10;
@@ -61,10 +32,10 @@ export function MovieListPage() {
         </h1>
 
         {/* API 요청 상태에 따라 화면 구분 */}
-        {isLoading ? (
+        {moviesQuery.isPending ? (
           <p>영화 목록을 불러오는 중...</p>
-        ) : errorMessage ? (
-          <p role="alert">{errorMessage}</p>
+        ) : moviesQuery.isError ? (
+          <p role="alert">영화 목록을 불러오지 못했어요.</p>
         ) : movies.length === 0 ? (
           <p>표시할 영화가 없어요.</p>
         ) : (

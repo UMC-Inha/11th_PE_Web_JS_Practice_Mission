@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import { Footer } from "../../components/layout/footer";
 import { BookmarkButton } from "../../components/movies/bookmark-button";
 
@@ -10,56 +10,22 @@ export function SearchPage() {
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
 
-  // TMDB 검색 결과와 요청 상태 관리
-  const [searchResults, setSearchResults] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [totalResults, setTotalResults] = useState(0);
-
   useEffect(() => {
     setSearchText(query ?? "");
   }, [query]);
 
   const normalizedQuery = query?.trim() ?? "";
 
-  // 검색어가 바뀔 때 TMDB 영화 검색 API 호출
-  useEffect(() => {
-    let ignore = false;
+  // TanStack Query로 영화 검색 API 요청
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  });
 
-    setSearchResults([]);
-    setTotalResults(0);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setSearchResults(response.results);
-          setTotalResults(response.total_results);
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setErrorMessage("검색 결과를 불러오지 못했어요.");
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      });
-
-    // 이전 검색 요청 결과가 반영되지 않도록 방지
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
+  // 검색 결과와 전체 검색 개수 가져오기
+  const searchResults = searchQuery.data?.results ?? [];
+  const totalResults = searchQuery.data?.total_results ?? 0;
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -168,15 +134,15 @@ export function SearchPage() {
         </div>
 
         {/* API 요청 상태에 따라 검색 결과 표시 */}
-        {isLoading ? (
+        {searchQuery.isLoading ? (
           <p className="py-10 text-center text-sm text-[#606774]">
             검색 결과를 불러오는 중...
           </p>
-        ) : errorMessage ? (
+        ) : searchQuery.isError ? (
           <p role="alert" className="py-10 text-center text-sm text-[#606774]">
-            {errorMessage}
+            검색 결과를 불러오지 못했어요.
           </p>
-        ) : searchResults.length === 0 ? (
+        ) : searchQuery.isSuccess && searchResults.length === 0 ? (
           <p className="py-10 text-center text-sm text-[#606774]">
             검색 결과가 없어요.
           </p>

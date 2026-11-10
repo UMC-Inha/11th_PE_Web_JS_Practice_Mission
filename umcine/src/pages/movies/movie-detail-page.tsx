@@ -1,75 +1,68 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import type { TmdbMovieDetail } from "../../api/movies/models";
 import { Footer } from "../../components/layout/footer";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
+  const { movieId: movieIdParam } = useParams({
+    from: "/movies/$movieId",
+  });
+
   const [rating, setRating] = useState(0);
 
-  // TMDB 영화 상세 정보와 요청 상태 관리
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
   const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(Number(movieId)),
+    state.bookmarkedMovieIds.includes(movieId),
   );
 
   const toggleBookmark = useBookmarkStore(
     (state) => state.toggleBookmark,
   );
 
-  // URL의 영화 ID로 TMDB 상세 정보 요청
-  useEffect(() => {
-    let ignore = false;
+  // TanStack Query로 영화 상세 정보 조회
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+    staleTime: 30 * 1000,
+  });
 
-    async function loadMovie() {
-      try {
-        setIsLoading(true);
-        setErrorMessage("");
-        setMovie(null);
-
-        const response = await getMovieDetail(Number(movieId));
-
-        if (!ignore) {
-          setMovie(response);
-        }
-      } catch {
-        if (!ignore) {
-          setErrorMessage("영화 정보를 불러오지 못했어요.");
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadMovie();
-
-    // 이전 요청 결과가 반영되지 않도록 방지
-    return () => {
-      ignore = true;
-    };
-  }, [movieId]);
-
-  if (isLoading) {
-    return <main className="px-20 py-10">영화 정보를 불러오는 중...</main>;
-  }
-
-  if (errorMessage) {
+  if (!isValidMovieId) {
     return (
-      <main role="alert" className="px-20 py-10">
-        {errorMessage}
+      <main className="px-20 py-10">
+        올바르지 않은 영화 번호예요.
       </main>
     );
   }
 
+  if (movieDetailQuery.isPending) {
+    return (
+      <main className="px-20 py-10">
+        영화 정보를 불러오는 중...
+      </main>
+    );
+  }
+
+  if (movieDetailQuery.isError) {
+    return (
+      <main role="alert" className="px-20 py-10">
+        영화 정보를 불러오지 못했어요.
+      </main>
+    );
+  }
+
+  const movie = movieDetailQuery.data;
+
   if (!movie) {
-    return <main className="px-20 py-10">영화를 찾을 수 없어요.</main>;
+    return (
+      <main className="px-20 py-10">
+        영화를 찾을 수 없어요.
+      </main>
+    );
   }
 
   // TMDB 이미지 경로를 실제 이미지 URL로 변환
