@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
+
 export function Header() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -52,9 +53,17 @@ export function Header() {
               검색
             </Link>
 
-            <a href="#" className="text-[#606774]">
+            <Link
+              to="/mypage"
+              activeProps={{
+                className: "text-[#17191e] underline underline-offset-4",
+              }}
+              inactiveProps={{
+                className: "text-[#606774]",
+              }}
+            >
               내 정보
-            </a>
+            </Link>
           </nav>
 
         </div>
@@ -72,12 +81,12 @@ export function Header() {
             />
           </Link>
 
-          <button
-            type="button"
-            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4  text-sm font-extrabold text-white"
+          <Link
+            to="/login"
+            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-sm font-extrabold text-white"
           >
             로그인
-          </button>
+          </Link>
         </div>
       </div>
     </header>

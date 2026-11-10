@@ -2,6 +2,7 @@ import { useState, type SubmitEvent } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { signup } from "../../api/members/signup";
+import { Link } from "@tanstack/react-router";
 // import { useNavigate } from "@tanstack/react-router";
 
 const DEFAULT_DUPLICATE_CHECK = {
@@ -287,9 +288,11 @@ export function SignupPage() {
           <span className="text-[#606774]">
             이미 계정이 있나요?
           </span>
-          <span className="font-extrabold text-[#2563EB]">
+          <Link
+            to="/login"
+            className="font-extrabold text-[#2563EB]">
             로그인
-          </span>
+          </Link>
         </div>
       </form>
     </main>

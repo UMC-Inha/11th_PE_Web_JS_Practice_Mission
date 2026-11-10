@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
+import { Link } from "@tanstack/react-router";
 
 export function EditPage() {
   const [nickname, setNickname] = useState("gs0428");
@@ -28,12 +29,12 @@ export function EditPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="h-10 rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
+        <Link
+          to="/mypage"
+          className="flex h-10 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
         >
           변경사항 저장
-        </button>
+        </Link>
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-11 md:flex-row">

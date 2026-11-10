@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from "react";
+import { Link } from "@tanstack/react-router";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
@@ -81,9 +82,11 @@ export function LoginPage() {
           <span className="text-[#606774]">
             처음이신가요?{" "}
           </span>
-          <span className="ml-1 font-extrabold text-[#2563EB]">
+          <Link
+            to="/signup"
+            className="ml-1 font-extrabold text-[#2563EB]">
             회원가입
-          </span>
+          </Link>
         </div>
       </form>
     </main>

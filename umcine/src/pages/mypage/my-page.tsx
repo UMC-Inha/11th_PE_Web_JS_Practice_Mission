@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Footer } from "../../components/layout/footer";
 import Pagination from "../../components/movies/pagination";
+import { Link } from "@tanstack/react-router";
 
 const favoriteMovies = [
   {
@@ -37,12 +38,12 @@ export function MyPage() {
             내 정보
           </h1>
 
-          <button
-            type="button"
-            className="h-10 rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
+          <Link
+            to="/mypage-edit"
+            className="flex h-10 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
           >
             정보 수정
-          </button>
+          </Link>
         </div>
 
         <section className="mt-7 flex flex-col gap-4 border-y border-[#E3E6EB] py-3">
