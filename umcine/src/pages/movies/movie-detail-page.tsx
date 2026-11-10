@@ -1,77 +1,67 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { HTTPError } from "ky";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
+import type { TmdbMovieDetail } from "../../api/movies/models";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
-import { getTmdbImageUrl } from "../../utils/movies/tmbd-images";
+import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 
 const RATING_SCORES = [1, 2, 3, 4, 5];
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
-  const [movie, setMovie] = useState<Movie | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
-  useEffect(() => {
-    let ignore = false;
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+  });
 
-    async function loadMovie() {
-      setIsLoading(true);
-      setErrorMessage(null);
-      setMovie(null);
+  return (
+    <>
+      {!isValidMovieId ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-[21px] font-bold text-[#17191E]">
+          올바르지 않은 영화 번호예요.
+        </main>
+      ) : movieDetailQuery.isPending ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
+          영화 정보를 불러오는 중이에요.
+        </main>
+      ) : movieDetailQuery.isError ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
+          {getMovieDetailErrorMessage(movieDetailQuery.error)}
+        </main>
+      ) : (
+        <MovieDetail movie={toMovie(movieDetailQuery.data)} />
+      )}
+    </>
+  );
+}
 
-      try {
-        const detail = await getMovieDetail(Number(movieId));
-        if (ignore) return;
-        setMovie({
-          id: detail.id,
-          title: detail.title,
-          originalTitle: detail.original_title,
-          overview: detail.overview,
-          tagline: detail.tagline,
-          posterPath: getTmdbImageUrl(detail.poster_path),
-          backdropPath: getTmdbImageUrl(detail.backdrop_path),
-          releaseDate: detail.release_date,
-          genres: detail.genres.map((genre) => genre.name),
-          runtime: detail.runtime ? `${detail.runtime}분` : "",
-        });
-      } catch (error) {
-        if (ignore) return;
-        // 없는 영화 id는 TMDB가 404로 응답하므로 빈 결과로 처리한다.
-        if (!(error instanceof HTTPError && error.response.status === 404)) {
-          setErrorMessage("영화 정보를 불러오지 못했어요.");
-        }
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadMovie();
-
-    return () => {
-      ignore = true;
-    };
-  }, [movieId]);
-
-  if (isLoading || errorMessage) {
-    return (
-      <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
-        {isLoading ? "영화 정보를 불러오는 중이에요." : errorMessage}
-      </main>
-    );
+function getMovieDetailErrorMessage(error: Error) {
+  // 없는 영화 id는 TMDB가 404로 응답한다.
+  if (error instanceof HTTPError && error.response.status === 404) {
+    return "영화를 찾을 수 없어요.";
   }
+  return "영화 정보를 불러오지 못했어요.";
+}
 
-  if (!movie) {
-    return (
-      <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-[21px] font-bold text-[#17191E]">
-        영화를 찾을 수 없어요.
-      </main>
-    );
-  }
-
-  return <MovieDetail movie={movie} />;
+function toMovie(detail: TmdbMovieDetail): Movie {
+  return {
+    id: detail.id,
+    title: detail.title,
+    originalTitle: detail.original_title,
+    overview: detail.overview,
+    tagline: detail.tagline,
+    posterPath: getTmdbImageUrl(detail.poster_path),
+    backdropPath: getTmdbImageUrl(detail.backdrop_path),
+    releaseDate: detail.release_date,
+    genres: detail.genres.map((genre) => genre.name),
+    runtime: detail.runtime ? `${detail.runtime}분` : "",
+  };
 }
 
 function MovieDetail({ movie }: { movie: Movie }) {
