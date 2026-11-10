@@ -39,7 +39,7 @@ export function MyPage() {
           </h1>
 
           <Link
-            to="/mypage-edit"
+            to="/mypage/edit"
             className="flex h-10 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
           >
             정보 수정
