@@ -1,8 +1,9 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import type { TmdbMovieDetail } from "../../api/movies/models";
+import { useQuery } from "@tanstack/react-query";
+import { isHTTPError } from "ky";
+import { useState } from "react";
 import PosterImage from "../../components/movies/poster-image";
+import { movieDetailQueryOptions } from "../../queries/movie-queries";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
 import { formatRuntime } from "../../utils/movies/format-runtime";
@@ -32,9 +33,19 @@ export function MovieDetailPage() {
   const parsedMovieId = Number(movieId);
   const isValidMovieId =
     Number.isInteger(parsedMovieId) && parsedMovieId > 0;
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(isValidMovieId);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {
+    data: movie,
+    isPending,
+    error,
+  } = useQuery({
+    ...movieDetailQueryOptions(parsedMovieId),
+    enabled: isValidMovieId,
+    // 존재하지 않는 영화(404)는 다시 시도해도 같은 결과라 재시도하지 않음.
+    retry: (failureCount, err) =>
+      !(isHTTPError(err) && err.response.status === 404) && failureCount < 1,
+  });
+  const isLoading = isValidMovieId && isPending;
+  const errorMessage = error ? getMovieDetailErrorMessage(error) : null;
   const isBookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(parsedMovieId),
   );
@@ -42,37 +53,6 @@ export function MovieDetailPage() {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [isSaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadMovieDetail() {
-      setMovie(null);
-      setErrorMessage(null);
-
-      if (!isValidMovieId) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-
-      try {
-        const response = await getMovieDetail(parsedMovieId);
-        if (!ignore) setMovie(response);
-      } catch (error) {
-        if (!ignore) setErrorMessage(getMovieDetailErrorMessage(error));
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadMovieDetail();
-
-    return () => {
-      ignore = true;
-    };
-  }, [isValidMovieId, parsedMovieId]);
 
   if (!isValidMovieId || isLoading || errorMessage || !movie) {
     return (
