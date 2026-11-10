@@ -1,7 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import { getMovieDetail } from '../../api/movies/get-movie-details'
-import type { TmdbMovieDetail } from '../../api/movies/models'
+import { useQuery } from '@tanstack/react-query'
+import { movieDetailQueryOptions } from '../../api/movies/movie-query-options'
 import { BookmarkButton } from '../../components/bookmark-button'
 import { getMovieDetailErrorMessage } from '../../utils/movies/get-movie-detail-error-message'
 import {
@@ -21,53 +20,18 @@ function formatRuntime(runtime: number | null) {
 }
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: '/movies/$movieId' })
-  const parsedMovieId = Number(movieId)
-  const isValidMovieId =
-    Number.isInteger(parsedMovieId) && parsedMovieId > 0
+  const { movieId: movieIdParam } = useParams({
+    from: '/movies/$movieId',
+  })
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const movieId = Number(movieIdParam)
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0
 
-  useEffect(() => {
-    let ignore = false
+  const movieDetailQuery = useQuery(
+  movieDetailQueryOptions(movieId, isValidMovieId),
+)
 
-    if (!isValidMovieId) {
-      setMovie(null)
-      setIsLoading(false)
-      return () => {
-        ignore = true
-      }
-    }
-
-    async function loadMovie() {
-      setIsLoading(true)
-      setErrorMessage(null)
-
-      try {
-        const response = await getMovieDetail(parsedMovieId)
-
-        if (!ignore) {
-          setMovie(response)
-        }
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(getMovieDetailErrorMessage(error))
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadMovie()
-
-    return () => {
-      ignore = true
-    }
-  }, [isValidMovieId, parsedMovieId])
+  const movie = movieDetailQuery.data
 
   if (!isValidMovieId) {
     return (
@@ -85,7 +49,7 @@ export function MovieDetailPage() {
     )
   }
 
-  if (isLoading) {
+  if (movieDetailQuery.isPending) {
     return (
       <main className="mx-auto max-w-[1100px] px-5 py-20 text-center sm:px-10">
         <p className="text-sm text-[#606774]">
@@ -95,11 +59,13 @@ export function MovieDetailPage() {
     )
   }
 
-  if (errorMessage || !movie) {
+  if (movieDetailQuery.isError || !movie) {
     return (
       <main className="mx-auto max-w-[1100px] px-5 py-20 text-center sm:px-10">
         <h1 className="text-2xl font-bold text-[#17191e]">
-          {errorMessage ?? '영화를 찾을 수 없어요.'}
+          {movieDetailQuery.isError
+            ? getMovieDetailErrorMessage(movieDetailQuery.error)
+            : '영화를 찾을 수 없어요.'}
         </h1>
         <Link
           className="mt-5 inline-block text-sm font-semibold text-[#2563eb]"
