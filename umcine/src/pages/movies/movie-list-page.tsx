@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
@@ -10,6 +10,7 @@ export function MovieListPage() {
   const moviesQuery = useQuery({
     queryKey: ["movies", "list", { page }],
     queryFn: () => getMovies({ page }),
+    placeholderData: keepPreviousData,
   });
 
   const movies = moviesQuery.data?.results ?? [];
@@ -25,10 +26,11 @@ export function MovieListPage() {
       ) : movies.length === 0 ? (
         <p className="py-24 text-center text-sm text-gray-500">조건에 맞는 영화가 없어요.</p>
       ) : (
-        <>
-          <MovieGrid movies={movies} />
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </>
+        <MovieGrid movies={movies} />
+      )}
+
+      {totalPages > 0 && (
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       )}
     </main>
   );
