@@ -3,7 +3,7 @@ import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { signup } from "../../api/members/signup";
 import { Link } from "@tanstack/react-router";
-// import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 const DEFAULT_DUPLICATE_CHECK = {
   isChecking: false,
@@ -38,7 +38,7 @@ export function SignupPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // 입력값의 유효성 검사
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -146,8 +146,8 @@ export function SignupPage() {
 
       alert(response.message);
 
-      // 로그인 페이지 연결 후 주석 해제
-      // navigate({ to: "/login" });
+
+      navigate({ to: "/login" });
     } catch {
       alert("회원가입에 실패했어요. 다시 시도해 주세요.");
     } finally {
