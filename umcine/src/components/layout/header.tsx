@@ -15,13 +15,13 @@ export default function Header() {
         <nav aria-label="주 메뉴" className="flex items-center gap-5 sm:gap-8">
           <Link to="/" className={navClass(pathname === "/" || pathname.startsWith("/movies/"))}>영화</Link>
           <Link to="/search" search={{}} className={navClass(pathname === "/search")}>검색</Link>
-          <Link to="/profile" className={navClass(pathname === "/profile")}>내 정보</Link>
+          <Link to="/profile" className={navClass(pathname.startsWith("/profile"))}>내 정보</Link>
         </nav>
         <div className="ml-auto flex items-center gap-3">
           <Link to="/search" search={{}} aria-label="영화 검색" className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#e2e5eb]">
             <img src="/movie-icons/search.svg" alt="" className="h-5 w-5" />
           </Link>
-          <button type="button" disabled title="로그인은 다음 미션에서 연결합니다." className="hidden h-11 rounded-lg bg-[#2864fa] px-5 text-sm font-bold text-white sm:block">로그인</button>
+          <Link to="/login" className="hidden h-11 items-center rounded-lg bg-[#2864fa] px-5 text-sm font-bold text-white sm:flex">로그인</Link>
         </div>
       </div>
     </header>
