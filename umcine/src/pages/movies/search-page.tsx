@@ -115,7 +115,7 @@ export function SearchPage() {
           )}
         </div>
 
-        {searchQuery.isLoading ? (
+        {searchQuery.isPending ? (
           <p role="status" className="py-12 text-sm text-gray-500">
             검색 결과를 불러오는 중이에요.
           </p>
