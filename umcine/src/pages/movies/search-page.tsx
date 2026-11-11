@@ -1,7 +1,8 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
+
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { MovieImage } from "../../components/movies/movie-image";
 import { cn } from "../../utils/cn";
@@ -16,30 +17,14 @@ function SearchPageContent({ query }: { query: string | undefined }) {
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query ?? "");
   const normalizedQuery = query?.trim() ?? "";
-  const [results, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(Boolean(normalizedQuery));
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [totalResults, setTotalResults] = useState(0);
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  });
 
-  // query가 바뀌면 부모의 key로 새 상태를 만들고 이전 요청은 cleanup으로 무시해요.
-  useEffect(() => {
-    let ignore = false;
-    if (!normalizedQuery) return;
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setMovies(response.results);
-          setTotalResults(response.total_results);
-        }
-      })
-      .catch(() => {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-    return () => { ignore = true; };
-  }, [normalizedQuery]);
+  const results = moviesQuery.data?.results ?? [];
+  const totalResults = moviesQuery.data?.total_results ?? 0;
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,9 +57,9 @@ function SearchPageContent({ query }: { query: string | undefined }) {
       {form}
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#e2e5eb] pb-4">
         <h2 className="text-base font-bold">‘{query}’ 검색 결과</h2>
-        <p aria-live="polite" className="text-xs text-[#788191]">{isLoading ? "검색 중" : errorMessage ? "검색 실패" : `영화 ${totalResults}편`}</p>
+        <p aria-live="polite" className="text-xs text-[#788191]">{moviesQuery.isPending ? "검색 중" : moviesQuery.isError ? "검색 실패" : `영화 ${totalResults}편`}</p>
       </div>
-      {isLoading ? <p role="status" className="py-12">검색 결과를 불러오는 중이에요.</p> : errorMessage ? <p role="alert" className="py-12">{errorMessage}</p> : results.length === 0 ? <p className="py-20 text-center text-[#677080]">검색 결과가 없어요.</p> : (
+      {moviesQuery.isPending ? <p role="status" className="py-12">검색 결과를 불러오는 중이에요.</p> : moviesQuery.isError ? <p role="alert" className="py-12">검색 결과를 불러오지 못했어요.</p> : results.length === 0 ? <p className="py-20 text-center text-[#677080]">검색 결과가 없어요.</p> : (
         <ul className="grid grid-cols-1 gap-x-10 md:grid-cols-2">
           {results.map((movie) => (
             <li key={movie.id} className="flex min-w-0 gap-5 border-b border-[#e2e5eb] py-5 md:min-h-57.5">
