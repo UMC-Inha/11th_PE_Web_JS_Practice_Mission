@@ -1,6 +1,17 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../stores/auth-store";
 
 export default function Header() {
+  const { accessToken, nickname, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  async function handleLogout() {
+    logout();
+    await queryClient.cancelQueries({ queryKey: ["member"] });
+    queryClient.removeQueries({ queryKey: ["member"] });
+    await navigate({ to: "/login" });
+  }
   return (
     <header className="flex items-center justify-between gap-6 border-b border-[#e2e5eb] bg-white px-[5.5%] py-7 max-[600px]:flex-wrap max-[600px]:py-5">
       <div className="flex items-center gap-12 max-[1000px]:gap-6 max-[600px]:flex-wrap max-[600px]:gap-4">
@@ -37,7 +48,7 @@ export default function Header() {
             검색
           </Link>
 
-          <a href="#">내 정보</a>
+          <Link to="/me" activeProps={{ className: "text-[#202124] underline underline-offset-4" }}>내 정보</Link>
         </nav>
       </div>
 
@@ -55,12 +66,10 @@ export default function Header() {
           />
         </Link>
 
-        <button
-          type="button"
-          className="h-12 rounded-lg bg-blue-600 px-5 font-bold text-white"
-        >
-          로그인
-        </button>
+        {accessToken ? <>
+          <Link to="/me" className="max-w-32 truncate text-sm font-bold">{nickname}님</Link>
+          <button type="button" onClick={handleLogout} className="h-12 rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm font-bold">로그아웃</button>
+        </> : <Link to="/login" className="inline-flex h-12 items-center rounded-lg bg-blue-600 px-5 font-bold text-white">로그인</Link>}
       </div>
     </header>
   );

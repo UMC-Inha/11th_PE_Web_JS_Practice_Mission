@@ -27,3 +27,12 @@ button:disabled {
 img {
   display: block;
 }
+
+@layer components {
+  .account-input {
+    @apply h-12 w-full rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm placeholder:text-[#9ca3af] focus:border-blue-600 focus:outline-none disabled:bg-gray-100;
+  }
+  .account-primary {
+    @apply min-h-12 rounded-lg bg-blue-600 px-5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 disabled:hover:bg-blue-600;
+  }
+}

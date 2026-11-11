@@ -10,7 +10,7 @@ const router = createRouter({ routeTree });
 
 const ONE_MINUTE = 60 * 1000;
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: ONE_MINUTE } }, // staleTime: 60 * 1000도 가능
+  defaultOptions: { queries: { staleTime: ONE_MINUTE } },
 });
 
 declare module "@tanstack/react-router" {
