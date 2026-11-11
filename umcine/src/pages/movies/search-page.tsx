@@ -1,59 +1,29 @@
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { searchMovies } from "../../api/movies/search-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import { MovieSearchForm } from "../../components/movies/movie-search-form";
 import { MovieSearchCard } from "../../components/movies/movie-search-card";
 import Pagination from "../../components/movies/pagination";
 
 export function SearchPage() {
   const { query = "", page: currentPage = 1 } = useSearch({ from: "/search" });
+  const normalizedQuery = query.trim();
   const navigate = useNavigate({ from: "/search" });
   const [searchText, setSearchText] = useState(query);
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery, page: currentPage }],
+    queryFn: () => searchMovies({ query: normalizedQuery, page: currentPage }),
+    enabled: normalizedQuery.length > 0,
+  });
+
+  const searchResults = searchQuery.data?.results ?? [];
+  const totalPages = searchQuery.data?.total_pages ?? 0;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- URL 검색어를 입력창에 동기화해요.
     setSearchText(query);
   }, [query]);
-
-  useEffect(() => {
-    let ignore = false;
-    const normalizedQuery = query.trim();
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 요청한 예제처럼 새 검색 전에 이전 결과를 초기화해요.
-    setMovies([]);
-    setTotalPages(0);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery, page: currentPage })
-      .then((response) => {
-        if (!ignore) {
-          setMovies(response.results);
-          setTotalPages(response.total_pages);
-        }
-      })
-      .catch(() => {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [query, currentPage]);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,8 +36,6 @@ export function SearchPage() {
   function handleClear() {
     setSearchText("");
   }
-
-  const normalizedQuery = query.trim();
 
   return (
     <main>
@@ -107,32 +75,32 @@ export function SearchPage() {
             </h2>
 
             <p className="text-[12px] text-[#969DA8]">
-              {!isLoading && !errorMessage && (
-                <>영화 {movies.length}편 · {currentPage}페이지</>
+              {searchQuery.isSuccess && (
+                <>영화 {searchResults.length}편 · {currentPage}페이지</>
               )}
             </p>
           </div>
 
-          {isLoading ? (
+          {searchQuery.isLoading ? (
             <div role="status" className="py-20 text-center text-[#969DA8]">
               검색 결과를 불러오는 중이에요.
             </div>
-          ) : errorMessage ? (
+          ) : searchQuery.isError ? (
             <div role="alert" className="py-20 text-center text-red-500">
-              {errorMessage}
+              {searchQuery.error.message}
             </div>
-          ) : movies.length === 0 ? (
+          ) : searchQuery.isSuccess && searchResults.length === 0 ? (
             <div className="py-20 text-center text-[#969DA8]">
               검색 결과가 없어요.
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-x-10 lg:grid-cols-2">
-              {movies.map((movie) => (
+              {searchResults.map((movie) => (
                 <MovieSearchCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
-          {!isLoading && !errorMessage && movies.length > 0 && totalPages > 1 && (
+          {searchQuery.isSuccess && searchResults.length > 0 && totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
