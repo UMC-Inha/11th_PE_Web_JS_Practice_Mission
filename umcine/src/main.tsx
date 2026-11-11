@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { isHTTPError } from "ky";
 
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
@@ -17,6 +18,18 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: ONE_MINUTE,
+      retry: (failureCount, error) => {
+        if (
+          isHTTPError(error) &&
+          error.response.status >= 400 &&
+          error.response.status < 500 &&
+          error.response.status !== 429
+        ) {
+          return false;
+        }
+
+        return failureCount < 2;
+      },
     },
   },
 });
