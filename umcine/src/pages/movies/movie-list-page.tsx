@@ -1,37 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    let ignore = false;
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "list", { page }],
+    queryFn: () => getMovies({ page }),
+  });
 
-    async function loadMovies() {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const movies = moviesQuery.data?.results ?? [];
+  const totalPages = Math.min(moviesQuery.data?.total_pages ?? 0, 500);
 
-      try {
-        const response = await getMovies({ page: 1 });
-        if (!ignore) setMovies(response.results);
-      } catch {
-        if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadMovies();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
 
   return (
     <main className="flex w-full flex-1 flex-col gap-5 px-5 py-6 xl:min-h-[846px] xl:px-20">
@@ -39,13 +25,13 @@ export function MovieListPage() {
         영화 목록
       </h1>
 
-      {isLoading ? (
+      {moviesQuery.isPending ? (
         <p role="status" className="py-12 text-sm text-gray-500">
           영화 목록을 불러오는 중이에요.
         </p>
-      ) : errorMessage ? (
+      ) : moviesQuery.isError ? (
         <p role="alert" className="py-12 text-sm text-red-600">
-          {errorMessage}
+          {moviesQuery.error.message || "영화 목록을 불러오지 못했어요."}
         </p>
       ) : movies.length === 0 ? (
         <p className="py-12 text-sm text-gray-500">
@@ -54,7 +40,11 @@ export function MovieListPage() {
       ) : (
         <>
           <MovieGrid movies={movies} />
-          <Pagination />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </>
       )}
     </main>
