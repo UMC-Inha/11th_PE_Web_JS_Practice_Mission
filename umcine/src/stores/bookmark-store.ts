@@ -24,7 +24,13 @@ export const useBookmarkStore = create<BookmarkStore>()(
       version: 1,
       migrate: (persistedState, version) => {
         if (version < 1) {
-          return { bookmarkedMovieIds: [] };
+          const ids = (
+            persistedState as { bookmarkedMovieIds?: number[] } | null
+          )?.bookmarkedMovieIds;
+
+          return {
+            bookmarkedMovieIds: Array.isArray(ids) ? ids : [],
+          };
         }
 
         return persistedState as Pick<BookmarkStore, "bookmarkedMovieIds">;
