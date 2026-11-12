@@ -17,7 +17,9 @@ export function Header() {
             <Link to="/search" activeProps={{ className: 'font-bold text-[#2563eb]' }}>
               검색
             </Link>
-            <Link to="/">내 정보</Link>
+            <Link to="/me" activeProps={{ className: "font-bold text-[#2563eb]" }}>
+              내 정보
+            </Link>
           </nav>
         </div>
 
@@ -30,12 +32,12 @@ export function Header() {
             <img className="h-[19px] w-[19px]" src="/icons/search.svg" alt="" />
           </Link>
 
-          <button
-            className="h-9 rounded-md bg-[#2563eb] px-4 text-sm text-white hover:bg-[#1d4ed8]"
-            type="button"
+          <Link
+          to="/login"
+          className="flex h-9 items-center rounded-md bg-[#2563eb] px-4 text-sm text-white hover:bg-[#1d4ed8]"
           >
-            로그인
-          </button>
+          로그인
+          </Link>
         </div>
       </div>
     </header>
