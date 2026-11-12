@@ -1,7 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import type { TmdbMovieDetail } from "../../api/movies/models";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { cn } from "../../utils/cn";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
@@ -18,48 +17,18 @@ function formatRuntime(runtime: number | null) {
   return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
 }
 
-// CSS Module(movie-detail-page.module.css)에서 Tailwind 유틸리티 클래스로 전환
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" }); //path param은 문자열
   const parsedMovieId = Number(movieId);
   const isValidMovieId = Number.isInteger(parsedMovieId) && parsedMovieId > 0; //양의 정수일 때만 요청
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", parsedMovieId],
+    queryFn: () => getMovieDetail(parsedMovieId),
+    enabled: isValidMovieId,
+    staleTime: 30 * 1000,
+  });
 
-  useEffect(() => {
-    let ignore = false;
-
-    // 유효하지 않은 ID는 요청하지 않고 상세 데이터를 비우며 로딩을 끝냄
-    if (!isValidMovieId) {
-      setMovie(null);
-      setErrorMessage(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setMovie(null);
-    setErrorMessage(null);
-    setIsLoading(true);
-
-    getMovieDetail(parsedMovieId)
-      .then((response) => {
-        if (!ignore) setMovie(response);
-      })
-      .catch((error) => {
-        if (!ignore) setErrorMessage(getMovieDetailErrorMessage(error));
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [isValidMovieId, parsedMovieId]);
-
-  // 목록의 BookmarkButton과 같은 zustand store를 구독 -> 한 화면에서 바꾸면 다른 화면에도 반영됨.
   // Hook이라 아래 early return보다 먼저 호출해야 함.
   const isBookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(parsedMovieId),
@@ -75,7 +44,7 @@ export function MovieDetailPage() {
     );
   }
 
-  if (isLoading) {
+  if (movieDetailQuery.isPending) {
     return (
       <main className="px-8 py-16 text-center text-gray-500">
         영화 정보를 불러오는 중이에요.
@@ -83,20 +52,20 @@ export function MovieDetailPage() {
     );
   }
 
-  if (errorMessage || !movie) {
+  if (movieDetailQuery.isError) {
     return (
       <main className="px-8 py-16 text-center text-gray-500">
-        {errorMessage ?? "영화를 찾을 수 없어요."}
+        {getMovieDetailErrorMessage(movieDetailQuery.error) ?? "영화를 찾을 수 없어요."}
       </main>
     );
   }
 
+  const movie = movieDetailQuery.data;
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
 
   return (
     <main>
-      {/* 배경 이미지 위에 before:로 그라데이션을 깔아 하단 텍스트 대비를 확보  */}
       <div
         className="relative flex min-h-60 flex-col justify-end gap-8 bg-cover bg-center bg-[#111318] px-4 pt-5 pb-6 text-white sm:min-h-80 sm:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-black/15 before:to-black/80 before:content-['']"
         style={backdropUrl ? { backgroundImage: `url(${backdropUrl})` } : undefined}
