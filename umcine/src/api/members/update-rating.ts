@@ -1,5 +1,5 @@
 import type { ApiResponse } from "../api-response";
-import { springClient } from "../spring-client";
+import { apiClient } from "../api-client";
 
 interface UpdateRatingRequest {
   score: number;
@@ -13,7 +13,7 @@ function updateRating(
   ratingId: number,
   body: UpdateRatingRequest,
 ) {
-  return springClient
+  return apiClient
     .patch(`members/${memberId}/ratings/${ratingId}`, { json: body })
     .json<UpdateRatingResponse>();
 }

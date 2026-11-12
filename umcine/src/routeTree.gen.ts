@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as MeRouteImport } from './routes/me'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as MeIndexRouteImport } from './routes/me.index'
+import { Route as MeEditRouteImport } from './routes/me.edit'
+import { Route as MeRatingsRouteImport } from './routes/me.ratings'
 import { Route as MoviesMovieIdRouteImport } from './routes/movies.$movieId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -26,11 +28,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MeRoute = MeRouteImport.update({
-  id: '/me',
-  path: '/me',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -39,6 +36,21 @@ const SearchRoute = SearchRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeIndexRoute = MeIndexRouteImport.update({
+  id: '/me/',
+  path: '/me/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeEditRoute = MeEditRouteImport.update({
+  id: '/me/edit',
+  path: '/me/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRatingsRoute = MeRatingsRouteImport.update({
+  id: '/me/ratings',
+  path: '/me/ratings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MoviesMovieIdRoute = MoviesMovieIdRouteImport.update({
@@ -50,50 +62,76 @@ const MoviesMovieIdRoute = MoviesMovieIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/me': typeof MeRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/me/edit': typeof MeEditRoute
+  '/me/ratings': typeof MeRatingsRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
+  '/me/': typeof MeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/me': typeof MeRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/me/edit': typeof MeEditRoute
+  '/me/ratings': typeof MeRatingsRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
+  '/me': typeof MeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/me': typeof MeRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/me/edit': typeof MeEditRoute
+  '/me/ratings': typeof MeRatingsRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
+  '/me/': typeof MeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/me' | '/search' | '/signup' | '/movies/$movieId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/search'
+    | '/signup'
+    | '/me/edit'
+    | '/me/ratings'
+    | '/movies/$movieId'
+    | '/me/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/me' | '/search' | '/signup' | '/movies/$movieId'
+  to:
+    | '/'
+    | '/login'
+    | '/search'
+    | '/signup'
+    | '/me/edit'
+    | '/me/ratings'
+    | '/movies/$movieId'
+    | '/me'
   id:
     | '__root__'
     | '/'
     | '/login'
-    | '/me'
     | '/search'
     | '/signup'
+    | '/me/edit'
+    | '/me/ratings'
     | '/movies/$movieId'
+    | '/me/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  MeRoute: typeof MeRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  MeEditRoute: typeof MeEditRoute
+  MeRatingsRoute: typeof MeRatingsRoute
   MoviesMovieIdRoute: typeof MoviesMovieIdRoute
+  MeIndexRoute: typeof MeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -112,13 +150,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/me': {
-      id: '/me'
-      path: '/me'
-      fullPath: '/me'
-      preLoaderRoute: typeof MeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -131,6 +162,27 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/': {
+      id: '/me/'
+      path: '/me'
+      fullPath: '/me/'
+      preLoaderRoute: typeof MeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/edit': {
+      id: '/me/edit'
+      path: '/me/edit'
+      fullPath: '/me/edit'
+      preLoaderRoute: typeof MeEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/ratings': {
+      id: '/me/ratings'
+      path: '/me/ratings'
+      fullPath: '/me/ratings'
+      preLoaderRoute: typeof MeRatingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/movies/$movieId': {
@@ -146,10 +198,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  MeRoute: MeRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  MeEditRoute: MeEditRoute,
+  MeRatingsRoute: MeRatingsRoute,
   MoviesMovieIdRoute: MoviesMovieIdRoute,
+  MeIndexRoute: MeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

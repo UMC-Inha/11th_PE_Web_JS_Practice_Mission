@@ -43,7 +43,13 @@ export function Header() {
           검색
         </Link>
 
-        <Link to="/me" className="text-[15px] text-gray-500 no-underline">
+        <Link
+          to="/me"
+          className="text-[15px] text-gray-500 no-underline"
+          activeProps={{
+            className: "text-[15px] font-semibold text-gray-900 no-underline",
+          }}
+        >
           내 정보
         </Link>
       </div>
