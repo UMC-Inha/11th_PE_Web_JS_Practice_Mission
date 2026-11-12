@@ -72,9 +72,11 @@ export function SearchPage() {
           <h2 className="text-sm font-bold text-[#17191e]">
             ‘{query}’ 검색 결과
           </h2>
-          <p className="mt-1 text-xs text-[#969da8]">
-            영화 {searchResults.length}편
-          </p>
+          {searchQuery.isSuccess && (
+            <p className="mt-1 text-xs text-[#969da8]">
+              영화 {searchResults.length}편
+            </p>
+          )}
         </div>
 
         {searchQuery.isLoading ? (

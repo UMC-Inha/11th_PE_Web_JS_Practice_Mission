@@ -19,6 +19,20 @@ function formatRuntime(runtime: number | null) {
   return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`
 }
 
+function DetailMessage({ message }: { message: string }) {
+  return (
+    <main className="mx-auto max-w-[1100px] px-5 py-20 text-center sm:px-10">
+      <h1 className="text-2xl font-bold text-[#17191e]">{message}</h1>
+      <Link
+        className="mt-5 inline-block text-sm font-semibold text-[#2563eb]"
+        to="/"
+      >
+        영화 목록으로 돌아가기
+      </Link>
+    </main>
+  )
+}
+
 export function MovieDetailPage() {
   const { movieId: movieIdParam } = useParams({
     from: '/movies/$movieId',
@@ -59,22 +73,12 @@ export function MovieDetailPage() {
     )
   }
 
-  if (movieDetailQuery.isError || !movie) {
-    return (
-      <main className="mx-auto max-w-[1100px] px-5 py-20 text-center sm:px-10">
-        <h1 className="text-2xl font-bold text-[#17191e]">
-          {movieDetailQuery.isError
-            ? getMovieDetailErrorMessage(movieDetailQuery.error)
-            : '영화를 찾을 수 없어요.'}
-        </h1>
-        <Link
-          className="mt-5 inline-block text-sm font-semibold text-[#2563eb]"
-          to="/"
-        >
-          영화 목록으로 돌아가기
-        </Link>
-      </main>
-    )
+  if (movieDetailQuery.isError) {
+    return <DetailMessage message={getMovieDetailErrorMessage(movieDetailQuery.error)} />
+  }
+
+  if (!movie) {
+    return <DetailMessage message="영화를 찾을 수 없어요." />
   }
 
   const posterUrl = getTmdbPosterUrl(movie.poster_path)
