@@ -12,6 +12,8 @@ export function Header() {
   // 목록(/)과 상세(/movies/...)에서는 "영화", 검색(/search)에서는 "검색"
   const isMoviesActive = pathname === "/" || pathname.startsWith("/movies");
   const isSearchActive = pathname.startsWith("/search");
+  // [7주차 추가] 내 정보(/me)와 내 정보 수정(/me/edit)에서는 "내 정보"
+  const isMyActive = pathname.startsWith("/me");
 
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-[max(80px,calc((100%_-_1280px)/2))] py-6">
@@ -32,9 +34,10 @@ export function Header() {
           >
             검색
           </Link>
-          <a className="text-sm text-gray-400" href="/">
+          {/* [7주차 변경] a 태그 → Link, /me로 연결 */}
+          <Link className={isMyActive ? navLinkActive : navLink} to="/me">
             내 정보
-          </a>
+          </Link>
         </nav>
       </div>
       <div className="flex items-center gap-3">
@@ -45,12 +48,13 @@ export function Header() {
         >
           <img src="/icons/search.svg" alt="" width={20} height={20} />
         </button>
-        <button
-          type="button"
+        {/* [7주차 변경] button → Link, /login으로 연결 */}
+        <Link
+          to="/login"
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
         >
           로그인
-        </button>
+        </Link>
       </div>
     </header>
   );
