@@ -1,8 +1,8 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { cn } from "../../utils/cn";
-import { searchMovies } from "../../api/movies/search-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
+import { getMovieSearchOptions } from "../../queries/movie-query-options";
+import { useQuery } from "@tanstack/react-query";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
@@ -12,48 +12,18 @@ export function SearchPage() {
 
   const normalizedQuery = query.trim();
 
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   useEffect(() => {
     setSearchText(query);
   }, [query]);
 
-  useEffect(() => {
-    let ignore = false;
+  const searchQuery = useQuery(getMovieSearchOptions(normalizedQuery));
 
-    setMovies([]);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) setMovies(response.results);
-      })
-      .catch(() => {
-        if (!ignore) {
-          setErrorMessage("검색 결과를 불러오지 못했어요.");
-        }
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
+  const searchResults = searchQuery.data?.results ?? [];
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextQuery = searchText.trim();
+
     navigate({
       search: nextQuery ? { query: nextQuery } : {},
     });
@@ -117,20 +87,22 @@ export function SearchPage() {
           <div className="mt-6 flex items-center justify-between border-b border-[#e7e7e7] pb-4">
             <h2 className="m-0 text-base font-semibold">'{query}' 검색 결과</h2>
 
-            {!isLoading && !errorMessage && (
-              <p className="m-0 text-sm text-[#8a8a8a]">{movies.length}편</p>
+            {searchQuery.isSuccess && (
+              <p className="m-0 text-sm text-[#8a8a8a]">
+                {searchResults.length}편
+              </p>
             )}
           </div>
 
-          {isLoading ? (
+          {searchQuery.isLoading ? (
             <p>검색 결과를 불러오는 중이에요.</p>
-          ) : errorMessage ? (
-            <p role="alert">{errorMessage}</p>
-          ) : movies.length === 0 ? (
+          ) : searchQuery.isError ? (
+            <p role="alert">{searchQuery.error.message}</p>
+          ) : searchQuery.isSuccess && searchResults.length === 0 ? (
             <p>검색 결과가 없어요.</p>
           ) : (
             <ul className="mt-6 grid list-none grid-cols-2 gap-x-8 p-0">
-              {movies.map((movie) => {
+              {searchResults.map((movie) => {
                 const posterUrl = getTmdbPosterUrl(movie.poster_path);
 
                 return (
