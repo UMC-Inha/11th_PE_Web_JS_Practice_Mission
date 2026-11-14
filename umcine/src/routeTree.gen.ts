@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiRouteImport } from './routes/api'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MyRouteImport } from './routes/my'
+import { Route as MyEditRouteImport } from './routes/my-edit'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as MoviesMovieIdRouteImport } from './routes/movies.$movieId'
@@ -23,6 +26,21 @@ const IndexRoute = IndexRouteImport.update({
 const ApiRoute = ApiRouteImport.update({
   id: '/api',
   path: '/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyRoute = MyRouteImport.update({
+  id: '/my',
+  path: '/my',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyEditRoute = MyEditRouteImport.update({
+  id: '/my-edit',
+  path: '/my-edit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -44,6 +62,9 @@ const MoviesMovieIdRoute = MoviesMovieIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/login': typeof LoginRoute
+  '/my': typeof MyRoute
+  '/my-edit': typeof MyEditRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
@@ -51,6 +72,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/login': typeof LoginRoute
+  '/my': typeof MyRoute
+  '/my-edit': typeof MyEditRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
@@ -59,21 +83,52 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api': typeof ApiRoute
+  '/login': typeof LoginRoute
+  '/my': typeof MyRoute
+  '/my-edit': typeof MyEditRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/movies/$movieId': typeof MoviesMovieIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api' | '/search' | '/signup' | '/movies/$movieId'
+  fullPaths:
+    | '/'
+    | '/api'
+    | '/login'
+    | '/my'
+    | '/my-edit'
+    | '/search'
+    | '/signup'
+    | '/movies/$movieId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api' | '/search' | '/signup' | '/movies/$movieId'
-  id: '__root__' | '/' | '/api' | '/search' | '/signup' | '/movies/$movieId'
+  to:
+    | '/'
+    | '/api'
+    | '/login'
+    | '/my'
+    | '/my-edit'
+    | '/search'
+    | '/signup'
+    | '/movies/$movieId'
+  id:
+    | '__root__'
+    | '/'
+    | '/api'
+    | '/login'
+    | '/my'
+    | '/my-edit'
+    | '/search'
+    | '/signup'
+    | '/movies/$movieId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiRoute: typeof ApiRoute
+  LoginRoute: typeof LoginRoute
+  MyRoute: typeof MyRoute
+  MyEditRoute: typeof MyEditRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   MoviesMovieIdRoute: typeof MoviesMovieIdRoute
@@ -93,6 +148,27 @@ declare module '@tanstack/react-router' {
       path: '/api'
       fullPath: '/api'
       preLoaderRoute: typeof ApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my': {
+      id: '/my'
+      path: '/my'
+      fullPath: '/my'
+      preLoaderRoute: typeof MyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-edit': {
+      id: '/my-edit'
+      path: '/my-edit'
+      fullPath: '/my-edit'
+      preLoaderRoute: typeof MyEditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -122,6 +198,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiRoute: ApiRoute,
+  LoginRoute: LoginRoute,
+  MyRoute: MyRoute,
+  MyEditRoute: MyEditRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   MoviesMovieIdRoute: MoviesMovieIdRoute,
