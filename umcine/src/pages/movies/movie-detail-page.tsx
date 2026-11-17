@@ -14,7 +14,7 @@ export function MovieDetailPage() {
     queryKey: ["movies", "detail", movieId],
     queryFn: () => getMovieDetail(movieId),
     enabled: isValidMovieId,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000,
     gcTime: 300*1000
   });
 

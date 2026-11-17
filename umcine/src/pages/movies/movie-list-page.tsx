@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getMovies } from "../../api/movies/get-movies";
 import MovieGrid from "../../components/movies/movie-grid";
@@ -10,6 +10,7 @@ export function MovieListPage() {
   const moviesQuery = useQuery({
     queryKey: ["movies", "list", { page }],
     queryFn: () => getMovies({ page }),
+    placeholderData: keepPreviousData,
   });
 
   const movies = moviesQuery.data?.results ?? [];
@@ -25,7 +26,7 @@ export function MovieListPage() {
       {moviesQuery.isPending ? (
         <p role="status" className="py-20 text-center text-[#969DA8]">영화 목록을 불러오는 중이에요.</p>
       ) : moviesQuery.isError ? (
-        <p role="alert" className="py-20 text-center text-red-500">{moviesQuery.error.message}</p>
+        <p role="alert" className="py-20 text-center text-red-500">영화 목록을 불러오지 못했어요.</p>
       ) : movies.length === 0 ? (
         <p className="py-20 text-center text-[#969DA8]">표시할 영화가 없어요.</p>
       ) : (

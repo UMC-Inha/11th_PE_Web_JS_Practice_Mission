@@ -18,10 +18,23 @@ export function SearchPage() {
   });
 
   const searchResults = searchQuery.data?.results ?? [];
-  const totalPages = searchQuery.data?.total_pages ?? 0;
+  const [pagination, setPagination] = useState({
+    query: normalizedQuery,
+    totalPages: 0,
+  });
+
+  const totalPages =
+    searchQuery.data?.total_pages ??
+    (pagination.query === normalizedQuery ? pagination.totalPages : 0);
+
+  if (
+    pagination.query !== normalizedQuery ||
+    pagination.totalPages !== totalPages
+  ) {
+    setPagination({ query: normalizedQuery, totalPages });
+  }
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- URL 검색어를 입력창에 동기화해요.
     setSearchText(query);
   }, [query]);
 
@@ -81,7 +94,7 @@ export function SearchPage() {
             </p>
           </div>
 
-          {searchQuery.isLoading ? (
+          {searchQuery.isPending ? (
             <div role="status" className="py-20 text-center text-[#969DA8]">
               검색 결과를 불러오는 중이에요.
             </div>
@@ -100,7 +113,7 @@ export function SearchPage() {
               ))}
             </ul>
           )}
-          {searchQuery.isSuccess && searchResults.length > 0 && totalPages > 1 && (
+          {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
