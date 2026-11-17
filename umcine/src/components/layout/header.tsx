@@ -1,14 +1,19 @@
 import {
   Link,
   useRouterState,
+  useNavigate,
 } from "@tanstack/react-router";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 export default function Header() {
+  const { session, signOut } = useAuthStore();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const pathname = useRouterState({
-    select: (state) =>
-      state.location.pathname,
+    select: (state) => state.location.pathname,
   });
 
   const isMovieRoute =
@@ -17,6 +22,25 @@ export default function Header() {
 
   const isSearchRoute =
     pathname.startsWith("/search");
+
+  const isMyPageRoute =
+    pathname.startsWith("/mypage");
+
+  const handleLogout = async () => {
+    signOut();
+
+    await queryClient.cancelQueries({
+      queryKey: ["member"],
+    });
+
+    queryClient.removeQueries({
+      queryKey: ["member"],
+    });
+
+    await navigate({
+      to: "/login",
+    });
+  };
 
   return (
     <header className="h-[91px] w-full shrink-0 border-b border-gray-200 bg-white">
@@ -63,9 +87,16 @@ export default function Header() {
               검색
             </Link>
 
-            <span className="cursor-default">
+            <Link
+              to="/mypage"
+              className={cn(
+                "underline-offset-4",
+                isMyPageRoute &&
+                  "font-bold text-[#191B20] underline",
+              )}
+            >
               내 정보
-            </span>
+            </Link>
           </nav>
         </div>
 
@@ -82,13 +113,22 @@ export default function Header() {
             />
           </Link>
 
-          <button
-            type="button"
-            disabled
-            className="h-11 cursor-default rounded-lg bg-blue-600 px-5 text-sm font-bold text-white disabled:opacity-100"
-          >
-            로그인
-          </button>
+          {session ? (
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="h-11 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm! font-bold! text-white"
+            >
+              로그아웃
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </div>
     </header>
