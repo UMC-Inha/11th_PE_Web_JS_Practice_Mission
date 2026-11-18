@@ -1,4 +1,8 @@
 import ky from "ky";
 import { env } from "../config/env";
 
-export const apiClient = ky.create({ baseUrl: env.apiBaseUrl });
+const baseUrl = env.apiBaseUrl.trim();
+
+export const apiClient = ky.create({
+  baseUrl: baseUrl && !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl,
+});

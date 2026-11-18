@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useBookmarkStore } from "./bookmark-store";
 
 export interface AuthSession {
   id: string;
@@ -18,19 +19,25 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       session: null,
       message: "",
-      signIn: (accessToken) =>
+      signIn: (accessToken) => {
+        useBookmarkStore.getState().clearBookmarks();
+
         set({
           session: {
             id: crypto.randomUUID(),
             accessToken,
           },
           message: "",
-        }),
-      signOut: (message = "") =>
+        });
+      },
+      signOut: (message = "") => {
+        useBookmarkStore.getState().clearBookmarks();
+
         set({
           session: null,
           message,
-        }),
+        });
+      },
     }),
     {
       name: "umcine-auth-session",

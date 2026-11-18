@@ -1,9 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { login } from "../../api/auth-member";
 import { useAuthStore } from "../../stores/auth-store";
 
@@ -14,13 +11,30 @@ export function LoginPage() {
   const { signIn, message } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const loginControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => loginControllerRef.current?.abort();
+  }, []);
 
   const mutation = useMutation({
-    mutationFn: () => login(email, password),
-    onSuccess: async (result) => {
+    mutationFn: (variables: {
+      email: string;
+      password: string;
+      signal: AbortSignal;
+    }) => login(variables.email, variables.password, variables.signal),
+    onSuccess: async (result, variables) => {
+      if (variables.signal.aborted) {
+        return;
+      }
+
       await queryClient.cancelQueries({
         queryKey: ["member"],
       });
+
+      if (variables.signal.aborted) {
+        return;
+      }
 
       queryClient.removeQueries({
         queryKey: ["member"],
@@ -36,8 +50,7 @@ export function LoginPage() {
   });
 
   const canSubmit =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
-    password.length > 0;
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length > 0;
 
   return (
     <main className="flex w-full flex-1 items-center justify-center px-5 py-16">
@@ -47,7 +60,15 @@ export function LoginPage() {
           event.preventDefault();
 
           if (canSubmit && !mutation.isPending) {
-            mutation.mutate();
+            loginControllerRef.current?.abort();
+            const controller = new AbortController();
+            loginControllerRef.current = controller;
+
+            mutation.mutate({
+              email,
+              password,
+              signal: controller.signal,
+            });
           }
         }}
       >
@@ -126,10 +147,7 @@ export function LoginPage() {
         </div>
 
         {(mutation.error || message) && (
-          <p
-            role="alert"
-            className="text-sm text-red-600"
-          >
+          <p role="alert" className="text-sm text-red-600">
             {mutation.error?.message || message}
           </p>
         )}
@@ -144,10 +162,7 @@ export function LoginPage() {
 
         <p className="text-center leading-[21px] text-gray-500">
           아직 회원이 아니신가요?{" "}
-          <Link
-            to="/signup"
-            className="ml-1 font-semibold text-blue-600"
-          >
+          <Link to="/signup" className="ml-1 font-semibold text-blue-600">
             회원가입
           </Link>
         </p>
