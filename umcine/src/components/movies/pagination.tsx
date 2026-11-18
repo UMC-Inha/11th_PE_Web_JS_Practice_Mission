@@ -12,7 +12,7 @@ export default function Pagination({
   onPageChange,
 }: PaginationProps) {
   const buttonClass =
-    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-transparent p-0 text-sm";
+    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-transparent p-0 text-sm disabled:opacity-30";
 
   // 현재 페이지가 포함된 5개 페이지 번호 표시
   const startPage = Math.floor((currentPage - 1) / 5) * 5 + 1;
@@ -44,7 +44,7 @@ export default function Pagination({
           key={page}
           className={cn(
             buttonClass,
-            currentPage === page && "bg-[#2563eb] text-white",
+            currentPage === page && "bg-[#17191E] text-white",
           )}
           type="button"
           onClick={() => onPageChange(page)}
