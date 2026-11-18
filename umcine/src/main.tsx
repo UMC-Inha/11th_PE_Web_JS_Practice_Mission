@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
-import "./examples/fetch-movies";
 
 const router = createRouter({ routeTree });
-const queryClient = new QueryClient();
+const ONE_MINUTE = 60 * 1000;
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: ONE_MINUTE } }, // staleTime: 60 * 1000도 가능
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -20,7 +22,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-      <ReactQueryDevtools />
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </StrictMode>,
 );

@@ -163,7 +163,7 @@ function MovieDetail({ movie }: { movie: Movie }) {
           </div>
         </section>
 
-        {/* aside.rating-panel: 평점 저장 기능은 아직 구현하지 않는다. */}
+        {/* 평점 저장 패널 */}
         <aside className="flex w-[360px] shrink-0 flex-col items-stretch gap-2 border-l border-[#E3E6EB] pb-[41px] pl-[30px]">
           <h2 className="text-[21px] leading-[25px] font-bold tracking-[-0.63px] text-[#17191E]">
             내 평점
