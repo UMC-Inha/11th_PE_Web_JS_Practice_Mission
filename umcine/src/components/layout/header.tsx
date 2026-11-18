@@ -1,5 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
+const ACTIVE_LINK_PROPS = {
+  className: "font-semibold text-[#111111] underline underline-offset-6",
+};
+
 export function Header() {
   return (
     <header className="border-b border-gray-200 bg-white">
@@ -10,20 +14,27 @@ export function Header() {
             <span>UMCine</span>
           </div>
           <nav className="flex gap-6 text-sm text-gray-500">
-            <Link to="/" className="font-semibold text-[#111111] underline underline-offset-6">
+            <Link to="/" activeOptions={{ exact: true }} activeProps={ACTIVE_LINK_PROPS}>
               영화
             </Link>
-            <Link to="/search">검색</Link>
-            <a href="#">내 정보</a>
+            <Link to="/search" activeProps={ACTIVE_LINK_PROPS}>
+              검색
+            </Link>
+            <Link to="/my" activeProps={ACTIVE_LINK_PROPS}>
+              내 정보
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200">
             <img src="/icons/search.svg" alt="검색" className="h-4.5 w-4.5" />
           </button>
-          <button className="h-9 rounded-lg bg-[#4f5de8] px-4 text-sm font-semibold text-white">
+          <Link
+            to="/login"
+            className="flex h-9 items-center rounded-lg bg-[#4f5de8] px-4 text-sm font-semibold text-white"
+          >
             로그인
-          </button>
+          </Link>
         </div>
       </div>
     </header>
