@@ -4,18 +4,19 @@ import { Link } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { UserIcon } from "../../components/icons";
 import Pagination from "../../components/movies/pagination";
-import { DUMMY_MY_INFO } from "../../data/my-info";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { useMeQuery } from "../../hooks/use-me-query";
+import { useFavoritesQuery } from "../../hooks/use-favorites";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 const BOOKMARKS_PER_PAGE = 10;
 
 export function MyPage() {
   const [page, setPage] = useState(1);
-  const bookmarkedMovieIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
+  const meQuery = useMeQuery();
+  const favoritesQuery = useFavoritesQuery();
 
-  // 최근에 북마크한 영화가 앞에 오도록 뒤집고, 지금 페이지 몫만 자르기
-  const latestFirstIds = [...bookmarkedMovieIds].reverse();
+  // 서버가 최근에 북마크한 순서로 주니까 영화 번호만 꺼내서, 지금 페이지 몫만 자르기
+  const latestFirstIds = (favoritesQuery.data ?? []).map((favorite) => favorite.movieId);
   const totalPages = Math.ceil(latestFirstIds.length / BOOKMARKS_PER_PAGE);
   const pageMovieIds = latestFirstIds.slice(
     (page - 1) * BOOKMARKS_PER_PAGE,
@@ -52,11 +53,11 @@ export function MyPage() {
           <dl className="grid flex-1 grid-cols-2 gap-6">
             <div>
               <dt className="text-xs text-gray-400">닉네임</dt>
-              <dd className="mt-1 text-sm font-semibold">{DUMMY_MY_INFO.nickname}</dd>
+              <dd className="mt-1 text-sm font-semibold">{meQuery.data?.nickname ?? "-"}</dd>
             </div>
             <div>
               <dt className="text-xs text-gray-400">이메일</dt>
-              <dd className="mt-1 text-sm font-semibold">{DUMMY_MY_INFO.email}</dd>
+              <dd className="mt-1 text-sm font-semibold">{meQuery.data?.email ?? "-"}</dd>
             </div>
           </dl>
         </div>
@@ -65,7 +66,9 @@ export function MyPage() {
       <section className="py-6">
         <h2 className="mb-4 text-base font-bold">내 북마크</h2>
 
-        {pageMovieIds.length === 0 ? (
+        {favoritesQuery.isLoading ? (
+          <p className="py-24 text-center text-sm text-gray-500">북마크를 불러오는 중이에요.</p>
+        ) : pageMovieIds.length === 0 ? (
           <p className="py-24 text-center text-sm text-gray-500">아직 북마크한 영화가 없어요.</p>
         ) : (
           <ul className="grid grid-cols-5 gap-6">
