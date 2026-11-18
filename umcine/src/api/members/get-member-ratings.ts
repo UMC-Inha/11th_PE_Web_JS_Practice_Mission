@@ -1,4 +1,4 @@
-import { springClient } from "../spring-client";
+import { apiClient } from "../api-client";
 
 interface MemberRating {
   ratingId: number;
@@ -12,7 +12,7 @@ interface MemberRating {
 type GetMemberRatingsResponse = MemberRating[];
 
 function getMemberRatings(memberId: number) {
-  return springClient
+  return apiClient
     .get(`members/${memberId}/ratings`)
     .json<GetMemberRatingsResponse>();
 }
