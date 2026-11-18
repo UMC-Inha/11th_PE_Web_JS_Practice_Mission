@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { Link } from "@tanstack/react-router";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
 export function EditPage() {
   const [nickname, setNickname] = useState("gs0428");
   const [isNicknameAvailable, setIsNicknameAvailable] = useState<boolean | null>(null);
 
   const email = "gwangsoo@cinemalab.kr";
+
+  const updateMeMutation = useUpdateMeMutation();
+  const trimmedNickname = nickname.trim();
+  const canSubmit =
+    trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
 
   const handleCheckNickname = async () => {
     try {
@@ -17,8 +22,19 @@ export function EditPage() {
     }
   };
 
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate({ nickname: trimmedNickname });
+  };
+
   return (
-    <div className="flex min-h-[calc(100vh-91px)] flex-col bg-[#F6F7F9] px-5 py-6 md:px-20">
+    <form
+      onSubmit={handleSubmit}
+      className="flex min-h-[calc(100vh-91px)] flex-col bg-[#F6F7F9] px-5 py-6 md:px-20"
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#17191E]">
@@ -29,12 +45,13 @@ export function EditPage() {
           </p>
         </div>
 
-        <Link
-          to="/mypage"
-          className="flex h-10 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white"
+        <button
+          type="submit"
+          disabled={!canSubmit || updateMeMutation.isPending}
+          className="flex h-10 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          변경사항 저장
-        </Link>
+          {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
+        </button>
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-11 md:flex-row">
@@ -150,6 +167,6 @@ export function EditPage() {
           </button>
         </div>
       </div>
-    </div >
+    </form>
   );
 }
