@@ -2,8 +2,9 @@ import { useState } from "react";
 import { cn } from "../../utils/cn";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
+import { checkButtonClass, errorClass, inputClass, labelClass } from "../../styles/form-classes";
 
 // 이메일 형식: 글자 + @ + 글자 + . + 글자
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -108,36 +109,19 @@ export function SignupPage() {
     }
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const signupMutation = useSignupMutation();
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    // 폼 제출 시 페이지 새로고침 방지
-    e.preventDefault();
-    if (!canSubmit || isSubmitting) return;
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    setIsSubmitting(true);
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-      alert(response.message);
-      navigate({ to: "/login" });
-    } catch {
-      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    if (!canSubmit || signupMutation.isPending) return;
+
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
   };
-
-  const inputClass =
-    "h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none placeholder:text-gray-400 focus:border-[#4f5de8]";
-  const labelClass = "mb-2 block text-xs font-semibold";
-  const checkButtonClass =
-    "absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#4f5de8] disabled:text-gray-300";
-  const errorClass = "mt-1 text-xs text-red-500";
 
   return (
     <main className="flex min-h-[calc(100vh-64px)] items-start justify-center bg-gray-50 px-4 py-20">
@@ -224,10 +208,10 @@ export function SignupPage() {
 
           <button
             type="submit"
-            disabled={!canSubmit || isSubmitting}
+            disabled={!canSubmit || signupMutation.isPending}
             className="mt-2 h-11 rounded-lg bg-[#4f5de8] text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {isSubmitting ? "가입 중" : "가입하기"}
+            {signupMutation.isPending ? "가입 중" : "가입하기"}
           </button>
         </form>
 

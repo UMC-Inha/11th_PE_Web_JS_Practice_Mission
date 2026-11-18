@@ -1,16 +1,26 @@
 import { useState } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { PencilIcon, UserIcon } from "../../components/icons";
-import { DUMMY_MY_INFO } from "../../data/my-info";
+import { useMeQuery } from "../../hooks/use-me-query";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+import { checkButtonClass, errorClass, inputClass, labelClass } from "../../styles/form-classes";
+import { cn } from "../../utils/cn";
 
 export function MyEditPage() {
-  const [nickname, setNickname] = useState(DUMMY_MY_INFO.nickname);
+  const meQuery = useMeQuery();
+  const updateMeMutation = useUpdateMeMutation();
+
+  // 서버에 저장된 지금 닉네임
+  const savedNickname = meQuery.data?.nickname ?? "";
+  // 사용자가 입력칸을 고치기 전에는 null이라서 서버 닉네임을 그대로 보여 줌
+  const [editedNickname, setEditedNickname] = useState<string | null>(null);
+  const nickname = editedNickname ?? savedNickname;
   const [isCheckingNickname, setIsCheckingNickname] = useState(false);
   const [isNicknameAvailable, setIsNicknameAvailable] = useState(false);
 
   const trimmedNickname = nickname.trim();
   const isNicknameValid = trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
-  const isNicknameChanged = trimmedNickname !== DUMMY_MY_INFO.nickname;
+  const isNicknameChanged = trimmedNickname !== savedNickname;
 
   // 형식이 맞고, 원래 닉네임과 다르고, 중복 확인을 통과했을 때만 저장 가능
   const canSave = isNicknameValid && isNicknameChanged && isNicknameAvailable;
@@ -19,7 +29,7 @@ export function MyEditPage() {
     if (isCheckingNickname) return;
     // 닉네임을 바꾸면 다시 중복 확인해야 함
     setIsNicknameAvailable(false);
-    setNickname(value);
+    setEditedNickname(value);
   };
 
   const handleCheckNickname = async () => {
@@ -41,12 +51,10 @@ export function MyEditPage() {
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSave) return;
-  };
+    if (!canSave || updateMeMutation.isPending) return;
 
-  const inputClass =
-    "h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none focus:border-[#4f5de8]";
-  const labelClass = "mb-2 block text-xs font-semibold";
+    updateMeMutation.mutate({ nickname: trimmedNickname });
+  };
 
   return (
     <main className="mx-auto flex w-full max-w-360 flex-1 flex-col px-20 py-12">
@@ -58,10 +66,10 @@ export function MyEditPage() {
           </div>
           <button
             type="submit"
-            disabled={!canSave}
+            disabled={!canSave || updateMeMutation.isPending}
             className="rounded-lg bg-[#4f5de8] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            변경사항 저장
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
@@ -90,7 +98,7 @@ export function MyEditPage() {
                 <input
                   id="nickname"
                   type="text"
-                  className={`${inputClass} pr-20`}
+                  className={cn(inputClass, "pr-20")}
                   value={nickname}
                   onChange={(e) => handleChangeNickname(e.target.value)}
                 />
@@ -98,13 +106,13 @@ export function MyEditPage() {
                   type="button"
                   onClick={handleCheckNickname}
                   disabled={!isNicknameValid || !isNicknameChanged || isCheckingNickname}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#4f5de8] disabled:text-gray-300"
+                  className={checkButtonClass}
                 >
                   {isCheckingNickname ? "확인 중" : "중복 확인"}
                 </button>
               </div>
               {!isNicknameValid && (
-                <p className="mt-1 text-xs text-red-500">닉네임은 2~12자로 입력해 주세요.</p>
+                <p className={errorClass}>닉네임은 2~12자로 입력해 주세요.</p>
               )}
             </div>
 
@@ -113,8 +121,8 @@ export function MyEditPage() {
               <input
                 id="email"
                 type="email"
-                className={`${inputClass} text-gray-500`}
-                value={DUMMY_MY_INFO.email}
+                className={cn(inputClass, "text-gray-500")}
+                value={meQuery.data?.email ?? ""}
                 readOnly
               />
             </div>
