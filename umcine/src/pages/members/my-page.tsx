@@ -1,14 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 const CONTAINER_CLASS = "mx-auto w-[min(1080px,100%_-_48px)]";
 
 const HEADER_BUTTON_CLASS =
   "flex h-[34px] shrink-0 cursor-pointer items-center rounded-md bg-[#2563EB] px-3.5 text-[13px] font-bold text-white hover:brightness-95";
-
-const PROFILE = {
-  nickname: "gs0428",
-  email: "gwangsoo@cinemalab.kr",
-};
 
 const FAVORITE_MOVIES = [
   {
@@ -36,10 +34,19 @@ function PersonIcon() {
 }
 
 export function MyPage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <div className="min-h-[calc(100vh-76px)] bg-[#F5F6F8] py-6">
       <div className={CONTAINER_CLASS}>
-        {/* 제목 + 정보 수정 버튼 */}
         <div className="flex items-center justify-between">
           <h1 className="text-[28px] font-bold leading-10 text-[#17191E]">
             내 정보
@@ -49,14 +56,13 @@ export function MyPage() {
           </Link>
         </div>
 
-        {/* 기본 정보 */}
         <section className="mt-7 border-y border-[#E3E6EB] py-4">
           <h2 className="text-sm font-bold leading-5 text-[#17191E]">
             기본 정보
           </h2>
 
           <div className="mt-3 flex items-center">
-            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#E3E6EB] text-[#17191E]">
+            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-[#E3E6EB] text-[#969DA8]">
               <PersonIcon />
             </div>
 
@@ -64,20 +70,19 @@ export function MyPage() {
               <div className="flex flex-col gap-1">
                 <p className="text-xs leading-4 text-[#969DA8]">닉네임</p>
                 <p className="text-sm font-bold text-[#17191E]">
-                  {PROFILE.nickname}
+                  {meQuery.data?.nickname ?? "-"}
                 </p>
               </div>
               <div className="flex flex-col gap-1">
                 <p className="text-xs leading-4 text-[#969DA8]">이메일</p>
                 <p className="text-sm font-bold text-[#17191E]">
-                  {PROFILE.email}
+                  {meQuery.data?.email ?? "-"}
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 내 즐겨찾기 */}
         <section className="mt-7">
           <h2 className="text-sm font-bold leading-5 text-[#17191E]">
             내 즐겨찾기
@@ -103,7 +108,6 @@ export function MyPage() {
             ))}
           </ul>
 
-          {/* 페이지네이션 */}
           <div className="mt-8 flex items-center justify-center gap-2">
             <button
               type="button"

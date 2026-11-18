@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { LABEL_CLASS, INPUT_CLASS } from "../../constants/form-style";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_FORM = { email: "", password: "" };
 
@@ -42,8 +45,10 @@ function LockIcon() {
 
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
+  const loginMutation = useLoginMutation();
 
-  const canSubmit = form.email.length > 0 && form.password.length > 0;
+  const canSubmit =
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
 
   const handleChangeField = (key: DefaultFormKey, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -51,18 +56,22 @@ export function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!canSubmit || loginMutation.isPending) return;
 
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-[#F5F6F8] px-20 py-6">
+    <div className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-[#F5F6F8] px-20 py-6">
       <div className="w-[430px] max-w-full">
         <h1 className="mb-4 text-[30px] font-bold leading-9 text-[#17191E]">
           로그인
         </h1>
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-          {/* 이메일 */}
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className={LABEL_CLASS}>
               이메일
@@ -76,13 +85,13 @@ export function LoginPage() {
                 type="email"
                 value={form.email}
                 onChange={(e) => handleChangeField("email", e.target.value)}
+                disabled={loginMutation.isPending}
                 placeholder="name@example.com"
                 className={`${INPUT_CLASS} pl-11 pr-4`}
               />
             </div>
           </div>
 
-          {/* 비밀번호 */}
           <div className="flex flex-col gap-2">
             <label htmlFor="password" className={LABEL_CLASS}>
               비밀번호
@@ -96,6 +105,7 @@ export function LoginPage() {
                 type="password"
                 value={form.password}
                 onChange={(e) => handleChangeField("password", e.target.value)}
+                disabled={loginMutation.isPending}
                 placeholder="비밀번호"
                 className={`${INPUT_CLASS} pl-11 pr-4`}
               />
@@ -104,12 +114,12 @@ export function LoginPage() {
 
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!canSubmit || loginMutation.isPending}
             className={`h-12 rounded-lg bg-[#2563EB] text-sm font-bold text-white transition-opacity disabled:cursor-not-allowed ${
               canSubmit ? "hover:brightness-95" : "opacity-50"
             }`}
           >
-            로그인
+            {loginMutation.isPending ? "로그인 중" : "로그인"}
           </button>
         </form>
 
