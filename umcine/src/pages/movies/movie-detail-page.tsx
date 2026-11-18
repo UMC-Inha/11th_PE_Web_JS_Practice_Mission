@@ -13,6 +13,7 @@ export function MovieDetailPage() {
   const { movieId: movieIdParam } = useParams({
     from: "/movies/$movieId",
   });
+
   const movieId = Number(movieIdParam);
   const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
@@ -29,6 +30,7 @@ export function MovieDetailPage() {
         <h1 role="alert" className="text-2xl font-bold">
           올바르지 않은 영화 번호예요.
         </h1>
+
         <Link to="/" className="mt-5 inline-block text-blue-600 underline">
           영화 목록으로
         </Link>
@@ -52,6 +54,7 @@ export function MovieDetailPage() {
         <h1 role="alert" className="text-2xl font-bold">
           {getMovieDetailErrorMessage(movieDetailQuery.error)}
         </h1>
+
         <Link to="/" className="mt-5 inline-block text-blue-600 underline">
           영화 목록으로
         </Link>
@@ -63,6 +66,7 @@ export function MovieDetailPage() {
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
   const runtime = movie.runtime;
+
   const runtimeText =
     typeof runtime !== "number"
       ? "상영 시간 정보가 없어요."
@@ -85,6 +89,7 @@ export function MovieDetailPage() {
             이미지 없음
           </div>
         )}
+
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
 
         <div className="relative flex h-full w-full flex-col justify-between px-5 py-6 xl:px-20">
@@ -100,9 +105,11 @@ export function MovieDetailPage() {
             <h1 className="text-4xl leading-[44px] font-bold tracking-tight">
               {movie.title}
             </h1>
+
             <p className="mt-2 text-sm text-gray-200">
               {movie.original_title}
             </p>
+
             <p className="mt-2 text-sm font-semibold">
               {movie.release_date || "개봉일 정보 없음"}
               {" · "}
@@ -134,16 +141,18 @@ export function MovieDetailPage() {
           {movie.tagline && (
             <h2 className="text-xl font-bold">{movie.tagline}</h2>
           )}
+
           <p className="mt-5 max-w-2xl text-sm leading-7 text-gray-500">
             {movie.overview || "줄거리 정보가 없어요."}
           </p>
+
           <div className="mt-6">
             <BookmarkButton movieId={movie.id} movieTitle={movie.title} />
           </div>
         </div>
 
         <div className="w-full shrink-0 xl:w-80 xl:border-l xl:border-gray-200 xl:pl-6">
-          <RatingPanel key={movie.id} />
+          <RatingPanel key={movie.id} movieId={movie.id} />
         </div>
       </section>
     </main>

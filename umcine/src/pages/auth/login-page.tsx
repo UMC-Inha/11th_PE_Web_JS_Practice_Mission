@@ -1,76 +1,36 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login } from "../../api/auth-member";
-import { useAuthStore } from "../../stores/auth-store";
+import { useState, type SubmitEvent } from "react";
+import { Link } from "@tanstack/react-router";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const { signIn, message } = useAuthStore();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const loginControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    return () => loginControllerRef.current?.abort();
-  }, []);
-
-  const mutation = useMutation({
-    mutationFn: (variables: {
-      email: string;
-      password: string;
-      signal: AbortSignal;
-    }) => login(variables.email, variables.password, variables.signal),
-    onSuccess: async (result, variables) => {
-      if (variables.signal.aborted) {
-        return;
-      }
-
-      await queryClient.cancelQueries({
-        queryKey: ["member"],
-      });
-
-      if (variables.signal.aborted) {
-        return;
-      }
-
-      queryClient.removeQueries({
-        queryKey: ["member"],
-      });
-
-      signIn(result.accessToken);
-      setPassword("");
-
-      await navigate({
-        to: "/mypage",
-      });
-    },
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
   });
 
+  const loginMutation = useLoginMutation();
+
   const canSubmit =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) && password.length > 0;
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
+  };
 
   return (
     <main className="flex w-full flex-1 items-center justify-center px-5 py-16">
       <form
         className="flex w-full max-w-[430px] flex-col gap-4 text-sm"
-        onSubmit={(event) => {
-          event.preventDefault();
-
-          if (canSubmit && !mutation.isPending) {
-            loginControllerRef.current?.abort();
-            const controller = new AbortController();
-            loginControllerRef.current = controller;
-
-            mutation.mutate({
-              email,
-              password,
-              signal: controller.signal,
-            });
-          }
-        }}
+        onSubmit={handleSubmit}
       >
         <h1 className="text-[32px] leading-[41px] font-bold tracking-tight">
           로그인
@@ -98,12 +58,12 @@ export function LoginPage() {
               name="email"
               type="email"
               autoComplete="username"
-              value={email}
+              value={form.email}
               onChange={(event) => {
-                setEmail(event.target.value);
-                mutation.reset();
+                setForm((prev) => ({ ...prev, email: event.target.value }));
+                loginMutation.reset();
               }}
-              disabled={mutation.isPending}
+              disabled={loginMutation.isPending}
               required
               placeholder="이메일을 입력해 주세요."
               className="h-full min-w-0 flex-1 bg-transparent text-sm! outline-none"
@@ -133,12 +93,12 @@ export function LoginPage() {
               name="password"
               type="password"
               autoComplete="current-password"
-              value={password}
+              value={form.password}
               onChange={(event) => {
-                setPassword(event.target.value);
-                mutation.reset();
+                setForm((prev) => ({ ...prev, password: event.target.value }));
+                loginMutation.reset();
               }}
-              disabled={mutation.isPending}
+              disabled={loginMutation.isPending}
               required
               placeholder="비밀번호를 입력해 주세요."
               className="h-full min-w-0 flex-1 bg-transparent text-sm! outline-none"
@@ -146,18 +106,12 @@ export function LoginPage() {
           </div>
         </div>
 
-        {(mutation.error || message) && (
-          <p role="alert" className="text-sm text-red-600">
-            {mutation.error?.message || message}
-          </p>
-        )}
-
         <button
           type="submit"
-          disabled={!canSubmit || mutation.isPending}
+          disabled={!canSubmit || loginMutation.isPending}
           className="h-12 cursor-pointer rounded-lg bg-blue-600 text-sm! font-bold! text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {mutation.isPending ? "로그인 중…" : "로그인"}
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <p className="text-center leading-[21px] text-gray-500">
