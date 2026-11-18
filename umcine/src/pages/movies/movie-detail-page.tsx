@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { HTTPError } from "ky";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import type { TmdbMovieDetail } from "../../api/movies/models";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { createRating } from "../../api/ratings/create-rating";
+import { useAuthStore } from "../../stores/auth-store";
+import { useFavoriteStatusQuery } from "../../hooks/use-favorite-status-query";
+import { useCreateFavoriteMutation } from "../../hooks/use-create-favorite-mutation";
+import { useDeleteFavoriteMutation } from "../../hooks/use-delete-favorite-mutation";
 import type { Movie } from "../../types/movie";
 import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 
@@ -65,10 +70,54 @@ function toMovie(detail: TmdbMovieDetail): Movie {
 }
 
 function MovieDetail({ movie }: { movie: Movie }) {
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movie.id),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  const isLoggedIn = !!useAuthStore((state) => state.accessToken);
+
+  const favoriteStatusQuery = useFavoriteStatusQuery(movie.id, isLoggedIn);
+  const isFavorite = favoriteStatusQuery.data?.isFavorite ?? false;
+  const createFavoriteMutation = useCreateFavoriteMutation();
+  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+  const isFavoritePending =
+    createFavoriteMutation.isPending || deleteFavoriteMutation.isPending;
+
+  const [selectedScore, setSelectedScore] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const createRatingMutation = useMutation({
+    mutationFn: createRating,
+    onSuccess: () => {
+      setSelectedScore(null);
+      setComment("");
+      alert("평점을 저장했어요.");
+    },
+    onError: () => {
+      alert("평점 저장에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
+
+  const handleToggleFavorite = () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요해요.");
+      return;
+    }
+    if (isFavorite) {
+      deleteFavoriteMutation.mutate(movie.id);
+    } else {
+      createFavoriteMutation.mutate({ movieId: movie.id });
+    }
+  };
+
+  const handleSaveRating = () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요해요.");
+      return;
+    }
+    if (!selectedScore) return;
+    createRatingMutation.mutate({
+      movieId: movie.id,
+      score: selectedScore,
+      comment: comment || undefined,
+    });
+  };
+
   const metaItems = [
     movie.releaseDate,
     movie.genres.join(" · "),
@@ -142,13 +191,14 @@ function MovieDetail({ movie }: { movie: Movie }) {
           <div className="flex">
             <button
               type="button"
-              aria-pressed={isBookmarked}
-              onClick={() => toggleBookmark(movie.id)}
-              className="flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-white bg-[#2563EB] px-4 text-sm leading-[17px] font-extrabold text-white"
+              aria-pressed={isFavorite}
+              disabled={isFavoritePending}
+              onClick={handleToggleFavorite}
+              className="flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-white bg-[#2563EB] px-4 text-sm leading-[17px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <svg
                 viewBox="0 0 24 24"
-                fill={isBookmarked ? "currentColor" : "none"}
+                fill={isFavorite ? "currentColor" : "none"}
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -158,7 +208,7 @@ function MovieDetail({ movie }: { movie: Movie }) {
               >
                 <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
               </svg>
-              즐겨찾기
+              {isFavorite ? "즐겨찾기 해제" : "즐겨찾기"}
             </button>
           </div>
         </section>
@@ -177,12 +227,16 @@ function MovieDetail({ movie }: { movie: Movie }) {
                 key={score}
                 type="button"
                 aria-label={`${score}점`}
+                aria-pressed={selectedScore === score}
+                onClick={() =>
+                  setSelectedScore((prev) => (prev === score ? null : score))
+                }
                 className="flex size-[38px] items-center justify-center rounded-lg border border-[#E3E6EB] bg-white px-1.5 py-px"
               >
                 <svg
                   viewBox="0 0 24 24"
                   aria-hidden="true"
-                  className="size-6 fill-[#606774]"
+                  className={`size-6 ${score <= (selectedScore ?? 0) ? "fill-[#2563EB]" : "fill-[#606774]"}`}
                 >
                   <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                 </svg>
@@ -193,14 +247,19 @@ function MovieDetail({ movie }: { movie: Movie }) {
             id="review-text"
             aria-label="후기"
             placeholder="영화를 보고 느낀 점을 남겨보세요."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            maxLength={500}
             className="h-[102px] resize-none rounded-lg border border-[#E3E6EB] bg-white px-3 pt-4 pb-[18px] text-[13px] leading-5 text-[#17191E] outline-none placeholder:text-[#969DA8]"
           />
           <button
             id="save-rating"
             type="button"
-            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#17191E] px-4 text-sm leading-[17px] font-extrabold text-white"
+            disabled={!selectedScore || createRatingMutation.isPending}
+            onClick={handleSaveRating}
+            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#17191E] px-4 text-sm leading-[17px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            평점 저장
+            {createRatingMutation.isPending ? "저장 중" : "평점 저장"}
           </button>
         </aside>
       </main>

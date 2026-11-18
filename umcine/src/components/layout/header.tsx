@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { getMyInfo, MY_INFO_QUERY_KEY } from "../../api/members/get-my-info";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
+import { getMe } from "@/api/members/me";
 
 const navLinkClass = "text-sm leading-[17px] font-bold";
 const activeNavLinkClass = "text-[#17191E] underline";
@@ -12,21 +12,23 @@ export function Header() {
   const matchRoute = useMatchRoute();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const accessToken = useAuthStore((state) => state.accessToken);
   const logout = useAuthStore((state) => state.logout);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const isLoggedIn = Boolean(accessToken);
 
   // 로그인했을 때만 내 정보를 불러와 닉네임 표시
-  const myInfoQuery = useQuery({
-    queryKey: MY_INFO_QUERY_KEY,
-    queryFn: getMyInfo,
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
     enabled: isLoggedIn,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   const handleLogout = () => {
     logout();
     // 이전 계정의 정보가 남지 않도록 캐시 삭제
-    queryClient.removeQueries({ queryKey: MY_INFO_QUERY_KEY });
+    queryClient.removeQueries({ queryKey: ["members", "me"] });
     navigate({ to: "/" });
   };
 
@@ -94,7 +96,7 @@ export function Header() {
           {isLoggedIn ? (
             <>
               <span className="text-sm leading-[17px] font-bold text-[#17191E]">
-                {myInfoQuery.data ? `${myInfoQuery.data.nickname}님` : ""}
+                {meQuery.data ? `${meQuery.data.nickname}님` : ""}
               </span>
               <button
                 type="button"

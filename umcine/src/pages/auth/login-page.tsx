@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { login } from "../../api/members/login";
-import { useAuthStore } from "../../stores/auth-store";
+import { Link } from "@tanstack/react-router";
+import { useLoginMutation } from "@/hooks/use-login-mutation";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_FORM = {
   email: "",
   password: "",
@@ -12,35 +12,22 @@ type LoginFormKey = keyof typeof DEFAULT_FORM;
 
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const navigate = useNavigate();
+  const loginMutation = useLoginMutation();
+  const canSubmit =
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
 
-  const canSubmit = form.email.trim().length > 0 && form.password.length > 0;
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
+  };
 
   const handleChangeField = (key: LoginFormKey, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    // 폼 제출 시 페이지 새로고침 방지
-    e.preventDefault();
-    if (!canSubmit || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await login({
-        email: form.email.trim(),
-        password: form.password,
-      });
-      if (!response.accessToken) throw new Error("토큰이 없어요.");
-      setAccessToken(response.accessToken);
-      navigate({ to: "/" });
-    } catch {
-      alert("이메일 또는 비밀번호를 확인해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const fieldClass =
@@ -101,10 +88,10 @@ export function LoginPage() {
 
         <button
           type="submit"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || loginMutation.isPending}
           className="flex h-12 w-full cursor-pointer items-center justify-center rounded-lg border border-white bg-[#2563EB] px-4 text-sm font-extrabold leading-[17px] text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "로그인 중" : "로그인"}
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <div className="flex w-full items-end justify-center gap-1">
