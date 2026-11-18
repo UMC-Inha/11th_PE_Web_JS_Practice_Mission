@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import {
   getMyInfo,
   MY_INFO_QUERY_KEY,
   type MyInfo,
 } from "../../api/members/get-my-info";
-import { updateMyInfo } from "../../api/members/update-my-info";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
@@ -37,8 +36,6 @@ export function MyEditPage() {
 }
 
 function MyEditForm({ myInfo }: { myInfo: MyInfo }) {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [nickname, setNickname] = useState(myInfo.nickname);
   const [duplicateCheck, setDuplicateCheck] = useState(
     DEFAULT_DUPLICATE_CHECK,
@@ -59,22 +56,9 @@ function MyEditForm({ myInfo }: { myInfo: MyInfo }) {
   const isNicknameChanged = trimmedNickname !== myInfo.nickname;
   const showNicknameError = nickname.length > 0 && !isNicknameValid;
 
-  // 수정 API는 닉네임만 받으므로 닉네임을 바꾸고 중복 확인을 통과해야 저장 가능
-  const canSave =
-    isNicknameChanged && isNicknameValid && duplicateCheck.isAvailable;
-
-  const updateMutation = useMutation({
-    mutationFn: updateMyInfo,
-    onSuccess: (updatedInfo) => {
-      // 응답으로 받은 내 정보로 캐시를 바로 갱신
-      queryClient.setQueryData(MY_INFO_QUERY_KEY, updatedInfo);
-      alert("내 정보를 수정했어요.");
-      navigate({ to: "/me" });
-    },
-    onError: () => {
-      alert("내 정보 수정에 실패했어요. 다시 시도해 주세요.");
-    },
-  });
+  const updateMeMutation = useUpdateMeMutation();
+  const canSubmit =
+    trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
 
   const handleChangeNickname = (value: string) => {
     if (duplicateCheck.isChecking) return;
@@ -122,20 +106,11 @@ function MyEditForm({ myInfo }: { myInfo: MyInfo }) {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    // 폼 제출 시 페이지 새로고침 방지
-    e.preventDefault();
-    if (updateMutation.isPending) return;
-    if (!isNicknameChanged) {
-      alert("변경된 내용이 없어요.");
-      return;
-    }
-    if (!canSave) {
-      alert("닉네임 중복 확인을 해 주세요.");
-      return;
-    }
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || updateMeMutation.isPending) return;
 
-    updateMutation.mutate({ nickname: trimmedNickname });
+    updateMeMutation.mutate({ nickname: trimmedNickname });
   };
 
   const fieldClass =
@@ -159,10 +134,10 @@ function MyEditForm({ myInfo }: { myInfo: MyInfo }) {
         <button
           type="submit"
           form="profile-form"
-          disabled={updateMutation.isPending}
+          disabled={updateMeMutation.isPending}
           className="flex h-[42px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 items-center justify-center rounded-lg border border-white bg-[#2563EB] px-4 text-sm leading-[17px] font-extrabold text-white"
         >
-          {updateMutation.isPending ? "저장 중" : "변경사항 저장"}
+          {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
         </button>
       </div>
 
