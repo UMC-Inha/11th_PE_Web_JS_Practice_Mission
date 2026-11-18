@@ -1,51 +1,21 @@
 import { useRef, useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
-import { checkEmail, checkNickname } from '../api/members';
+import type { ChangeEvent } from 'react';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useProfileStore } from '../stores/profile-store';
 import { MemberRatings } from '../components/member-ratings';
 
-function ProfileField({ kind, label, check }: {
-  kind: 'nickname' | 'email';
-  label: string;
-  check: (value: string) => Promise<{ available: boolean }>;
-}) {
-  const [value, setValue] = useState('');
-  const [pending, setPending] = useState(false);
-  const [available, setAvailable] = useState<boolean | null>(null);
-  const [error, setError] = useState('');
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (pending) return;
-    setAvailable(null);
-    setError('');
-    if (!value.trim()) { setError(label + '을 입력해 주세요.'); return; }
-    setPending(true);
-    try { setAvailable((await check(value.trim())).available); }
-    catch (error) { setError(error instanceof Error ? error.message : '확인에 실패했어요.'); }
-    finally { setPending(false); }
+export function ProfilePage({ editing = false }: { editing?: boolean }) {
+  const profile = useProfileStore((state) => state.profile);
+  const updateProfile = useProfileStore((state) => state.updateProfile);
+  const navigate = useNavigate();
+  const [nickname, setNickname] = useState(profile.nickname);
+  const isNicknameValid = nickname.trim().length >= 2 && nickname.trim().length <= 12;
+  function saveProfile() {
+    if (!isNicknameValid) return;
+    updateProfile({ ...profile, nickname: nickname.trim(), image: preview });
+    void navigate({ to: "/profile" });
   }
-  return <form onSubmit={submit}>
-    <label htmlFor={kind} className="mb-2 block text-xs font-bold">{label}</label>
-    <div className="flex h-13 items-center rounded-lg border border-[#e2e5eb] bg-white focus-within:border-[#2864fa]">
-      <input id={kind} value={value} required disabled={pending} type={kind === 'email' ? 'email' : 'text'}
-        maxLength={kind === 'email' ? 254 : 50} autoComplete="off"
-        placeholder={kind === 'email' ? '이메일을 입력해 주세요' : '닉네임을 입력해 주세요'}
-        className="h-full min-w-0 flex-1 rounded-lg bg-transparent px-4 text-sm outline-none! placeholder:text-[#a0a7b4]"
-        onChange={event => { setValue(event.target.value); setAvailable(null); setError(''); }} />
-      <button disabled={pending} className="h-full shrink-0 rounded-r-lg px-4 text-xs font-bold text-[#2864fa] disabled:opacity-50">
-        {pending ? '확인 중…' : '중복 확인'}
-      </button>
-    </div>
-    <div aria-live="polite">
-      {available !== null && <p className={'mt-2 text-xs ' + (available ? 'text-green-700' : 'text-red-600')}>
-        {available ? '사용 가능한 ' + label + '이에요.' : '이미 사용 중인 ' + label + '이에요.'}
-      </p>}
-      {error && <p role="alert" className="mt-2 text-xs text-red-600">{error}</p>}
-    </div>
-  </form>;
-}
-
-export function ProfilePage() {
-  const [preview, setPreview] = useState('');
+  const [preview, setPreview] = useState(profile.image);
   const [imageError, setImageError] = useState('');
   const selection = useRef(0);
   function chooseImage(event: ChangeEvent<HTMLInputElement>) {
@@ -67,33 +37,44 @@ export function ProfilePage() {
   return <main className="mx-auto flex min-h-[calc(100svh-91px)] w-[calc(100%-40px)] max-w-320 flex-1 flex-col pb-6 pt-7 md:w-[calc(100%-80px)] lg:w-[calc(100%-160px)]">
     <div className="flex items-start justify-between gap-4">
       <div>
-        <h1 className="text-[28px] font-extrabold tracking-tight sm:text-[32px]">내 정보 수정</h1>
-        <p className="mt-2 text-sm text-[#818898]">닉네임과 프로필 이미지만 변경할 수 있어요.</p>
+        <h1 className="text-[28px] font-extrabold tracking-tight sm:text-[32px]">{editing ? "내 정보 수정" : "내 정보"}</h1>
+        <p className="mt-2 text-sm text-[#818898]">{editing ? "닉네임과 프로필 이미지만 변경할 수 있어요." : "내 프로필 정보를 확인해 보세요."}</p>
       </div>
-      <button type="button" disabled title="프로필 저장 기능은 아직 준비 중입니다."
-        className="mt-3 shrink-0 rounded-lg bg-[#2864fa] px-4 py-3 text-xs font-bold text-white sm:px-5 sm:text-sm">변경사항 저장</button>
+      {editing ? (
+        <div className="flex gap-2">
+          <Link to="/profile" className="mt-3 rounded-lg border border-[#e2e5eb] bg-white px-4 py-3 text-sm">취소</Link>
+          <button type="button" onClick={saveProfile} disabled={!isNicknameValid} className="mt-3 rounded-lg bg-[#2864fa] px-4 py-3 text-sm font-bold text-white disabled:opacity-40">변경사항 저장</button>
+        </div>
+      ) : <Link to="/profile/edit" className="mt-3 rounded-lg bg-[#2864fa] px-4 py-3 text-sm font-bold text-white">내 정보 수정</Link>}
     </div>
 
     <div className="mt-10 grid gap-8 md:grid-cols-2 md:gap-0">
       <div className="flex flex-col items-center pt-5">
         <label className="group relative cursor-pointer rounded-full" title="프로필 이미지 선택">
           <span className="flex h-22 w-22 items-center justify-center overflow-hidden rounded-full bg-[#e3e6eb]">
-            <img src={preview || '/movie-icons/person.svg'} alt="프로필 이미지" className={preview ? 'h-full w-full object-cover' : 'h-10 w-10'} />
+            <img src={(editing ? preview : profile.image) || '/movie-icons/person.svg'} alt="프로필 이미지" className={(editing ? preview : profile.image) ? 'h-full w-full object-cover' : 'h-10 w-10'} />
           </span>
           <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#181a20] bg-[#f6f7f9]">
             <img src="/movie-icons/edit.svg" alt="" className="h-4 w-4" />
           </span>
-          <input type="file" accept="image/jpeg,image/png,image/webp" aria-label="프로필 이미지 선택" onChange={chooseImage}
+          <input disabled={!editing} type="file" accept="image/jpeg,image/png,image/webp" aria-label="프로필 이미지 선택" onChange={chooseImage}
             className="absolute inset-0 h-full w-full cursor-pointer rounded-full opacity-0" />
         </label>
         <p className="mt-2 text-sm font-bold">프로필 이미지</p>
         <p className="mt-1 text-xs text-[#a0a7b4]">선택 사항 · 최대 5MB</p>
-        {preview && <p className="mt-2 text-xs text-[#818898]">미리보기만 적용됩니다.</p>}
+        <p className="mt-2 text-xs text-[#818898]">실습용 프로필 · 변경 사항은 새로고침 전까지 유지돼요.</p>
         {imageError && <p role="alert" className="mt-2 text-xs text-red-600">{imageError}</p>}
       </div>
       <div className="space-y-5">
-        <ProfileField kind="nickname" label="닉네임" check={checkNickname} />
-        <ProfileField kind="email" label="이메일" check={checkEmail} />
+        <label className="block text-sm font-bold" htmlFor="profile-nickname">닉네임</label>
+        <input id="profile-nickname" readOnly={!editing} value={editing ? nickname : profile.nickname}
+          onChange={(event) => setNickname(event.target.value)}
+          aria-invalid={editing && !isNicknameValid} aria-describedby={editing && !isNicknameValid ? "nickname-error" : undefined}
+          className="h-13 w-full rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm focus:outline-blue-600" />
+        {editing && !isNicknameValid && <p id="nickname-error" role="alert" className="text-xs text-red-600">닉네임은 2~12자로 입력해 주세요.</p>}
+        <label className="block text-sm font-bold" htmlFor="profile-email">이메일</label>
+        <input id="profile-email" type="email" readOnly value={profile.email}
+          className="h-13 w-full rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm text-[#677080]" />
       </div>
     </div>
 
