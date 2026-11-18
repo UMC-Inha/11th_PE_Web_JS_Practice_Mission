@@ -4,37 +4,24 @@ import { createJSONStorage, persist } from "zustand/middleware";
 interface BookmarkStore {
   bookmarkedMovieIds: number[];
   toggleBookmark: (movieId: number) => void;
+  clearBookmarks: () => void;
 }
 
 export const useBookmarkStore = create<BookmarkStore>()(
   persist(
     (set) => ({
       bookmarkedMovieIds: [],
-
       toggleBookmark: (movieId) =>
         set((state) => ({
           bookmarkedMovieIds: state.bookmarkedMovieIds.includes(movieId)
             ? state.bookmarkedMovieIds.filter((id) => id !== movieId)
             : [...state.bookmarkedMovieIds, movieId],
         })),
+      clearBookmarks: () => set({ bookmarkedMovieIds: [] }),
     }),
     {
-      name: "umcine-bookmark-store",
-      storage: createJSONStorage(() => localStorage),
-      version: 1,
-      migrate: (persistedState, version) => {
-        if (version < 1) {
-          const ids = (
-            persistedState as { bookmarkedMovieIds?: number[] } | null
-          )?.bookmarkedMovieIds;
-
-          return {
-            bookmarkedMovieIds: Array.isArray(ids) ? ids : [],
-          };
-        }
-
-        return persistedState as Pick<BookmarkStore, "bookmarkedMovieIds">;
-      },
+      name: "umcine-session-bookmarks",
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         bookmarkedMovieIds: state.bookmarkedMovieIds,
       }),
