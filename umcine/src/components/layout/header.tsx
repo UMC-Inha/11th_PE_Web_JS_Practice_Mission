@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { meQueryOptions } from "../../queries/member-queries";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
@@ -35,13 +36,15 @@ function NavLink({
 }
 
 function Header() {
-  const isLoggedIn = useAuthStore((state) => state.accessToken !== null);
-  const logout = useAuthStore((state) => state.logout);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // 토큰이 있을 때만 내 정보를 조회함
+  const meQuery = useQuery(meQueryOptions(Boolean(accessToken)));
 
   const handleLogout = () => {
-    logout();
+    setAccessToken(null);
     queryClient.removeQueries({ queryKey: ["members"] });
     navigate({ to: "/" });
   };
@@ -83,21 +86,31 @@ function Header() {
               aria-hidden="true"
             />
           </button>
-          {isLoggedIn ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="h-9 rounded-lg border-none bg-app-accent px-[18px] text-sm font-bold text-white"
-            >
-              로그아웃
-            </button>
-          ) : (
+          {!accessToken ? (
             <Link
               to="/login"
               className="flex h-9 items-center rounded-lg bg-app-accent px-[18px] text-sm font-bold text-white no-underline"
             >
               로그인
             </Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-9 w-24 animate-pulse rounded-lg bg-gray-200" />
+          ) : (
+            <>
+              <Link
+                to="/mypage"
+                className="flex h-9 items-center rounded-lg bg-app-accent px-[18px] text-sm font-bold text-white no-underline"
+              >
+                마이페이지
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="h-9 rounded-lg border border-gray-200 bg-white px-[18px] text-sm font-bold text-app-text-h"
+              >
+                로그아웃
+              </button>
+            </>
           )}
         </div>
       </div>

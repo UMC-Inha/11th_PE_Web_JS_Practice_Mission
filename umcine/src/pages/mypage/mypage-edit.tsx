@@ -1,16 +1,11 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import type { MemberInfo } from "../../api/members/get-me";
-import { updateMe } from "../../api/members/update-me";
-import { memberKeys, meQueryOptions } from "../../queries/member-queries";
+import type { MemberInfo } from "../../api/members/me";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+import { meQueryOptions } from "../../queries/member-queries";
 import { useAuthStore } from "../../stores/auth-store";
-import { getErrorMessage } from "../../utils/get-error-message";
 
 const inputClass =
   "h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-app-text-h outline-none focus:border-app-accent";
@@ -20,33 +15,28 @@ function MyPageEditForm({ me }: { me: MemberInfo }) {
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const setStoredNickname = useAuthStore((state) => state.setNickname);
 
   const trimmed = nickname.trim();
   const isNicknameValid = trimmed.length >= 2 && trimmed.length <= 12;
   const isChanged = trimmed !== me.nickname;
 
-  const { mutate: save, isPending: isSaving } = useMutation({
-    mutationFn: updateMe,
-    onSuccess: async ({ result }) => {
-      setStoredNickname(result.nickname);
-      await queryClient.invalidateQueries({ queryKey: memberKeys.me });
-      navigate({ to: "/mypage" });
-    },
-    onError: (error) => {
-      alert(getErrorMessage(error, "정보 수정에 실패했어요. 다시 시도해 주세요."));
-    },
-  });
+  const updateMeMutation = useUpdateMeMutation();
 
   // 닉네임을 바꿨다면 중복 확인을 통과해야 저장 가능
   const canSave =
-    isChanged && isNicknameValid && isNicknameChecked && !isSaving && !isChecking;
+    isChanged &&
+    isNicknameValid &&
+    isNicknameChecked &&
+    !updateMeMutation.isPending &&
+    !isChecking;
 
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
-    save({ nickname: trimmed });
+    updateMeMutation.mutate(
+      { nickname: trimmed },
+      { onSuccess: () => navigate({ to: "/mypage" }) },
+    );
   };
 
   const handleChangeNickname = (value: string) => {
@@ -89,7 +79,7 @@ function MyPageEditForm({ me }: { me: MemberInfo }) {
             disabled={!canSave}
             className="h-9 rounded-lg border-none bg-app-accent px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSaving ? "저장 중" : "변경사항 저장"}
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
