@@ -1,23 +1,31 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { ProfileAvatar } from "../../components/me/profile-avatar";
 import { Pagination } from "../../components/movies/pagination";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+
 import { useProfileStore } from "../../stores/profile-store";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
+import { getMe } from "../../api/members/me";
+import { useFavoritesQuery } from "../../hooks/use-favorite-query";
+
 
 const PAGE_SIZE = 10;
 
 export function MyInfoPage() {
-  const { nickname, email, profileImage } = useProfileStore();
-  const bookmarkedMovieIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
+  const { data: me } = useQuery({ queryKey: ["members", "me"], queryFn: getMe });
+  const profileImage = useProfileStore((state) => state.profileImage);
+  const nickname = me?.nickname ?? "";
+  const email = me?.email ?? "";
+
+  const favoritesQuery = useFavoritesQuery();
+  const favoriteMovieIds = favoritesQuery.data?.map((favorite) => favorite.movieId) ?? [];
   const [page, setPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(bookmarkedMovieIds.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(favoriteMovieIds.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageMovieIds = bookmarkedMovieIds.slice(
+  const pageMovieIds = favoriteMovieIds.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -31,8 +39,13 @@ export function MyInfoPage() {
 
   return (
     <main className="flex flex-1 flex-col bg-gray-100 p-4 text-left sm:p-8">
-      <div className="flex items-center justify-between border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900">내 정보</h1>
+      <div className="flex items-center gap-2">
+        <Link
+          to="/me/ratings"
+          className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 no-underline"
+        >
+          내 평점
+        </Link>
         <Link
           to="/me/edit"
           className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white no-underline"
@@ -40,6 +53,7 @@ export function MyInfoPage() {
           정보 수정
         </Link>
       </div>
+
 
       <section className="border-b border-gray-200 py-6">
         <h2 className="mb-4 text-lg font-bold text-gray-900">기본 정보</h2>
@@ -59,11 +73,14 @@ export function MyInfoPage() {
       <section className="py-6">
         <h2 className="mb-4 text-lg font-bold text-gray-900">내 즐겨찾기</h2>
 
-        {bookmarkedMovieIds.length === 0 ? (
-          <p className="py-10 text-center text-gray-500">
-            즐겨찾기한 영화가 없어요.
-          </p>
-        ) : (
+        {favoritesQuery.isPending ? (
+              <p className="py-10 text-center text-gray-500">불러오는 중이에요.</p>
+            ) : favoritesQuery.isError ? (
+              <p className="py-10 text-center text-red-500">즐겨찾기를 불러오지 못했어요.</p>
+            ) : favoriteMovieIds.length === 0 ? (
+              <p className="py-10 text-center text-gray-500">즐겨찾기한 영화가 없어요.</p>
+            ) : (
+
           <>
             <ul className="m-0 grid list-none grid-cols-2 gap-5 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {movieQueries.map((movieQuery, index) => {

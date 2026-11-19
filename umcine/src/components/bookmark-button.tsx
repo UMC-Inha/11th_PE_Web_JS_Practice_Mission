@@ -1,24 +1,38 @@
-import { useBookmarkStore } from "../stores/bookmark-store";
 import { cn } from "../utils/cn";
+import { useNavigate } from "@tanstack/react-router";
+import { useFavoriteMutations } from "../hooks/use-favorite-mutations";
+import { useFavoritesQuery } from "../hooks/use-favorite-query";
+import { useAuthStore } from "../stores/auth-store";
 
 interface BookmarkButtonProps {
   movieId: number;
 }
 
 export function BookmarkButton({ movieId }: BookmarkButtonProps) {
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movieId),
-  );
-  const toggleBookmark = useBookmarkStore(
-    (state) => state.toggleBookmark,
-  );
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data: favorites } = useFavoritesQuery();
+  const { addMutation, deleteMutation } = useFavoriteMutations(movieId);
+
+  const isBookmarked = favorites?.some((favorite) => favorite.movieId === movieId) ?? false;
+  const isPending = addMutation.isPending || deleteMutation.isPending;
+
+  const handleClick = () => {
+    if (!accessToken) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (isBookmarked) deleteMutation.mutate();
+    else addMutation.mutate();
+  };
 
   return (
     // movie-card.tsx에 있던 포스터 위 아이콘 배지 스타일을 그대로 옮김
     <button
       type="button"
       aria-pressed={isBookmarked}
-      onClick={() => toggleBookmark(movieId)}
+      disabled={isPending}
+      onClick={handleClick}
       className={cn(
         "absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-lg border-none cursor-pointer transition-colors",
         isBookmarked ? "bg-blue-600" : "bg-black/55",

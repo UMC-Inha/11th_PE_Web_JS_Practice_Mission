@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type SubmitEvent } from "react";
 import { createRating } from "../../api/members/create-rating";
 import { deleteRating } from "../../api/members/delete-rating";
-import { getMemberRatings } from "../../api/members/get-member-ratings";
-import type { MemberRating } from "../../api/members/get-member-ratings";
+import { getMemberRatings } from "../../api/ratings/get-member-ratings";
+import type { MemberRating } from "../../api/ratings/get-member-ratings";
 import { updateRating } from "../../api/members/update-rating";
 import { getServerErrorMessage } from "../../utils/get-server-error-message";
 
