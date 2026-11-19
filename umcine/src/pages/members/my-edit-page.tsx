@@ -1,35 +1,55 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useProfileStore } from "../../stores/profile-store";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+import EditIcon from "./Edit.svg";
 
 export function MyEditPage() {
   const savedNickname = useProfileStore((state) => state.nickname);
   const email = useProfileStore((state) => state.email);
   const updateProfile = useProfileStore((state) => state.updateProfile);
-  const navigate = useNavigate();
 
   const [nickname, setNickname] = useState(savedNickname);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
-    if (nickname.trim().length < 2 || nickname.trim().length > 12) {
-      alert("닉네임은 2~12자로 입력해 주세요.");
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("프로필 이미지는 5MB 이하만 선택할 수 있어요.");
       return;
     }
 
-    updateProfile(nickname.trim());
-    alert("변경사항을 저장했어요.");
-    navigate({ to: "/me" });
-  }
+    setProfileImageUrl(URL.createObjectURL(file));
+  };
+
+  const updateMeMutation = useUpdateMeMutation();
+
+  const trimmedNickname = nickname.trim();
+  const canSubmit = trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate(
+      { nickname: trimmedNickname },
+      {
+        onSuccess: () => {
+          updateProfile(trimmedNickname);
+        },
+      },
+    );
+  };
 
   return (
     <main className="mx-auto w-full max-w-[920px] px-5 py-10 sm:px-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[28px] font-bold text-[#17191e]">
-            내 정보 수정
-          </h1>
+          <h1 className="text-[28px] font-bold text-[#17191e]">내 정보 수정</h1>
           <p className="mt-2 text-sm text-[#606774]">
             닉네임과 프로필 이미지만 변경할 수 있어요.
           </p>
@@ -38,9 +58,10 @@ export function MyEditPage() {
         <button
           type="submit"
           form="profile-edit-form"
-          className="rounded-md bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white"
+          disabled={!canSubmit || updateMeMutation.isPending}
+          className="rounded-md bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white disabled:bg-[#9ab7ef]"
         >
-          변경사항 저장
+          {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
         </button>
       </div>
 
@@ -50,9 +71,39 @@ export function MyEditPage() {
         className="mt-10 grid gap-10 sm:grid-cols-[180px_1fr]"
       >
         <div className="flex flex-col items-center">
-          <div className="grid h-20 w-20 place-items-center rounded-full bg-[#e3e6eb] text-3xl">
-            👤
+          <div className="relative">
+            <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-[#e3e6eb] text-3xl">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt="선택한 프로필 이미지"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                "👤"
+              )}
+            </div>
+
+            <label
+              htmlFor="profile-image"
+              className="absolute bottom-0 right-0 grid h-7 w-7 cursor-pointer place-items-center rounded-full border-2 border-white bg-white shadow-sm"
+            >
+              <img
+                src={EditIcon}
+                alt="프로필 이미지 변경"
+                className="h-4 w-4"
+              />
+            </label>
+
+            <input
+              id="profile-image"
+              type="file"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+              className="hidden"
+            />
           </div>
+
           <p className="mt-3 text-sm font-semibold">프로필 이미지</p>
           <p className="mt-1 text-xs text-[#969da8]">선택 사항 · 최대 5MB</p>
         </div>
@@ -81,13 +132,16 @@ export function MyEditPage() {
                 중복 확인
               </button>
             </div>
+
+            {!canSubmit && nickname.length > 0 && (
+              <p className="mt-2 text-xs text-[#dc2626]">
+                닉네임은 2~12자로 입력해 주세요.
+              </p>
+            )}
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-sm font-semibold"
-            >
+            <label htmlFor="email" className="mb-2 block text-sm font-semibold">
               이메일
             </label>
             <input
@@ -105,13 +159,16 @@ export function MyEditPage() {
           <div>
             <h2 className="text-sm font-bold text-[#dc2626]">회원 탈퇴</h2>
             <p className="mt-1 text-xs text-[#dc2626]">
-              탈퇴하면 작성한 평점과 즐겨찾기가 모두 삭제되며 복구할 수 없습니다.
+              탈퇴하면 작성한 평점과 즐겨찾기가 모두 삭제되며 복구할 수
+              없습니다.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => alert("회원 탈퇴 기능은 이후 API 연동 단계에서 구현해요.")}
+            onClick={() =>
+              alert("회원 탈퇴 기능은 이후 API 연동 단계에서 구현해요.")
+            }
             className="rounded-md border border-[#f87171] bg-white px-4 py-2 text-sm font-semibold text-[#dc2626]"
           >
             회원 탈퇴
