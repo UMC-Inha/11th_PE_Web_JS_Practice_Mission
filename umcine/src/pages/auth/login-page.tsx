@@ -1,19 +1,30 @@
 import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
 
-  const canLogin = email.trim().length > 0 && password.length > 0;
+  const loginMutation = useLoginMutation();
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const canSubmit =
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!canLogin) return;
+    if (!canSubmit || loginMutation.isPending) return;
 
-    alert(`${email}로 로그인했어요.`);
-  }
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
+  };
 
   return (
     <main className="flex min-h-[calc(100vh-128px)] items-center justify-center px-5 py-16">
@@ -36,8 +47,13 @@ export function LoginPage() {
             id="email"
             type="email"
             placeholder="name@example.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={form.email}
+            onChange={(event) =>
+              setForm((prev) => ({
+                ...prev,
+                email: event.target.value,
+              }))
+            }
             className="h-12 w-full rounded-lg border border-[#d9dde5] bg-white px-3 text-sm outline-none placeholder:text-[#a8afbb] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
           />
         </div>
@@ -53,18 +69,23 @@ export function LoginPage() {
             id="password"
             type="password"
             placeholder="비밀번호"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            value={form.password}
+            onChange={(event) =>
+              setForm((prev) => ({
+                ...prev,
+                password: event.target.value,
+              }))
+            }
             className="h-12 w-full rounded-lg border border-[#d9dde5] bg-white px-3 text-sm outline-none placeholder:text-[#a8afbb] focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
           />
         </div>
 
         <button
           type="submit"
-          disabled={!canLogin}
+          disabled={!canSubmit || loginMutation.isPending}
           className="h-12 rounded-lg bg-[#2563eb] text-sm font-semibold text-white disabled:bg-[#9ab7ef]"
         >
-          로그인
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <p className="text-center text-xs text-[#9aa1ad]">
