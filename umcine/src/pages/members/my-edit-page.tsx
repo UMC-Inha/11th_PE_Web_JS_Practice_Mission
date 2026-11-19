@@ -1,18 +1,18 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   LABEL_CLASS,
   INPUT_CLASS,
   CHECK_BUTTON_CLASS,
 } from "../../constants/form-style";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
 const CONTAINER_CLASS = "mx-auto w-[min(1080px,100%_-_48px)]";
 
 const HEADER_BUTTON_CLASS =
   "flex h-[34px] shrink-0 cursor-pointer items-center rounded-md bg-[#2563EB] px-3.5 text-[13px] font-bold text-white hover:brightness-95";
-const DEFAULT_PROFILE = {
-  nickname: "gs0428",
-  email: "gwangsoo@cinemalab.kr",
-};
 
 function PersonIcon() {
   return (
@@ -41,8 +41,24 @@ function PencilIcon() {
 }
 
 export function MyEditPage() {
-  const [nickname, setNickname] = useState(DEFAULT_PROFILE.nickname);
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  const updateMeMutation = useUpdateMeMutation();
+
+  const nickname = nicknameInput ?? meQuery.data?.nickname ?? "";
+  const trimmedNickname = nickname.trim();
+  const canSubmit = trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
 
   const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,6 +68,9 @@ export function MyEditPage() {
   };
 
   const handleSave = () => {
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate({ nickname: trimmedNickname });
   };
 
   return (
@@ -70,9 +89,10 @@ export function MyEditPage() {
           <button
             type="button"
             onClick={handleSave}
+            disabled={!canSubmit || updateMeMutation.isPending}
             className={HEADER_BUTTON_CLASS}
           >
-            변경사항 저장
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
@@ -122,7 +142,8 @@ export function MyEditPage() {
                   id="nickname"
                   type="text"
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => setNicknameInput(e.target.value)}
+                  disabled={updateMeMutation.isPending}
                   className={`${INPUT_CLASS} pl-4 pr-[88px]`}
                 />
                 <button type="button" className={CHECK_BUTTON_CLASS}>
@@ -139,7 +160,7 @@ export function MyEditPage() {
               <input
                 id="email"
                 type="email"
-                value={DEFAULT_PROFILE.email}
+                value={meQuery.data?.email ?? ""}
                 readOnly
                 className={`${INPUT_CLASS} px-4`}
               />

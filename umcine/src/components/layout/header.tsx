@@ -1,15 +1,30 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "../../utils/cn";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 const navLinkClass = "cursor-pointer text-[13px] text-[#555]";
 const activeNavLinkClass =
   "font-bold text-[#111] underline underline-offset-[5px]";
+const authButtonClass =
+  "flex h-[34px] cursor-pointer items-center rounded-md bg-[#2563EB] px-3.5 text-[13px] font-bold text-white";
 
 export function Header() {
   const pathname = useLocation({ select: (location) => location.pathname });
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 
   const isMoviesActive = pathname === "/" || pathname.startsWith("/movies/");
   const isSearchActive = pathname === "/search";
+  const isMyActive = pathname.startsWith("/my");
 
   return (
     <header className="border-b border-[#e5e7eb] bg-white">
@@ -35,10 +50,12 @@ export function Header() {
           >
             검색
           </Link>
-          {/* 내 정보 라우트가 생기면 Link로 교체 */}
-          <button type="button" className={navLinkClass}>
+          <Link
+            to="/my"
+            className={cn(navLinkClass, isMyActive && activeNavLinkClass)}
+          >
             내 정보
-          </button>
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2.5">
@@ -49,12 +66,18 @@ export function Header() {
           >
             <img src="/icons/search.svg" alt="" className="size-[18px]" />
           </Link>
-          <button
-            type="button"
-            className="h-[34px] cursor-pointer rounded-md bg-[#2563EB] px-3.5 text-[13px] font-bold text-white"
-          >
-            로그인
-          </button>
+
+          {!accessToken ? (
+            <Link to="/login" className={authButtonClass}>
+              로그인
+            </Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-[34px] w-[74px] animate-pulse rounded-md bg-gray-200" />
+          ) : (
+            <Link to="/my" className={authButtonClass}>
+              마이페이지
+            </Link>
+          )}
         </div>
       </div>
     </header>
