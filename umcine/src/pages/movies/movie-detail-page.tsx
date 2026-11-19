@@ -1,12 +1,16 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetailOptions } from "../../queries/movie-query-options";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { useFavorite } from "../../hooks/use-favorite";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbPosterUrl,
   getTmdbBackdropUrl,
 } from "../../utils/movies/tmdb-image";
+import { useAuthStore } from "../../stores/auth-store";
+import { getMemberIdFromToken } from "../../utils/get-member-id-from-token";
+import { getMemberRatings } from "../../api/ratings/get-member-ratings";
+import { RatingForm } from "../../components/movies/rating-form";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -15,10 +19,40 @@ export function MovieDetailPage() {
 
   const movieDetailQuery = useQuery(getMovieDetailOptions(parsedMovieId));
 
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(parsedMovieId),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  const { isBookmarked, isDisabled, isStatusError, toggleBookmark } =
+    useFavorite(parsedMovieId);
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const memberId = getMemberIdFromToken(accessToken);
+
+  const myRatingQuery = useQuery({
+    queryKey: ["ratings", "member", memberId, "movie", parsedMovieId],
+    enabled: Boolean(accessToken) && memberId !== null && isValidMovieId,
+    retry: false,
+
+    queryFn: async () => {
+      if (memberId === null) {
+        throw new Error("회원 ID를 확인할 수 없어요.");
+      }
+
+      let page = 0;
+      const size = 10;
+
+      while (true) {
+        const ratings = await getMemberRatings(memberId, page, size);
+
+        const rating = ratings.find((item) => item.movieId === parsedMovieId);
+
+        if (rating) return rating;
+
+        if (ratings.length < size) return null;
+
+        page += 1;
+      }
+    },
+  });
+
+  const myRating = myRatingQuery.data;
 
   if (!isValidMovieId) {
     return <main>올바르지 않은 영화 번호예요.</main>;
@@ -94,9 +128,13 @@ export function MovieDetailPage() {
           <p className="mt-6 leading-7">{movie.overview}</p>
           <button
             type="button"
-            className="mt-8 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-white"
+            className="mt-8 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-white disabled:cursor-not-allowed disabled:opacity-50"
             aria-pressed={isBookmarked}
-            onClick={() => toggleBookmark(movie.id)}
+            disabled={isDisabled}
+            title={
+              isStatusError ? "즐겨찾기 상태를 불러오지 못했어요." : undefined
+            }
+            onClick={toggleBookmark}
           >
             <img
               src={
@@ -111,31 +149,33 @@ export function MovieDetailPage() {
           </button>
         </div>
         <aside>
-          <h2 className="m-0 text-lg font-bold">내 평점</h2>
-          <p className="mt-2 text-xs text-gray-500">
-            별점을 선택하고, 후기도 남겨보세요.
-          </p>
-          <div className="mt-3 flex gap-2" aria-hidden="true">
-            {Array.from({ length: 5 }, (_, index) => (
-              <span
-                key={index}
-                className="grid size-9 place-items-center rounded bg-[#ededf0]"
-              >
-                <img
-                  src="/icons/star.svg"
-                  alt=""
-                  className="size-5 opacity-60"
-                />
-              </span>
-            ))}
-          </div>
-          <div className="mt-3 h-25 rounded-md border border-[#e6e6e8] bg-white p-3 text-xs text-[#aaa]">
-            영화를 보고 느낀 점을 남겨보세요.
-          </div>
-          <div className="mt-2 grid h-10 place-items-center rounded-md bg-[#1b1b22] text-sm font-semibold text-white">
-            평점 저장
-          </div>
-        </aside>
+  <h2 className="m-0 text-lg font-bold">내 평점</h2>
+
+  {!accessToken ? (
+    <p className="mt-3 text-sm text-gray-500">
+      로그인 후 평점을 작성할 수 있어요.
+    </p>
+  ) : memberId === null ? (
+    <p className="mt-3 text-sm text-gray-500">
+      회원 정보를 확인할 수 없어요. 다시 로그인해 주세요.
+    </p>
+  ) : myRatingQuery.isPending ? (
+    <p className="mt-3 text-sm text-gray-500">
+      내 평점을 불러오는 중이에요.
+    </p>
+  ) : myRatingQuery.isError ? (
+    <p className="mt-3 text-sm text-gray-500">
+      내 평점을 불러오지 못했어요.
+    </p>
+  ) : (
+    <RatingForm
+      key={`${memberId}:${parsedMovieId}:${myRating?.ratingId ?? "new"}:${myRating?.updatedAt ?? ""}`}
+      memberId={memberId}
+      movieId={parsedMovieId}
+      rating={myRating ?? null}
+    />
+  )}
+</aside>
       </section>
     </main>
   );

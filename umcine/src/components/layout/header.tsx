@@ -1,9 +1,21 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 import "../../App.css";
 
 const navItems = ["영화", "검색", "내 정보"];
 
 export function Header() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <header className="site-header">
       <div className="header-content">
@@ -17,20 +29,21 @@ export function Header() {
               <li key={item}>
                 {item === "영화" ? (
                   <Link
-                      to="/"
-                      activeOptions={{ exact: true }}
-                      activeProps={{ className: "is-active" }}
+                    to="/"
+                    activeOptions={{ exact: true }}
+                    activeProps={{ className: "is-active" }}
                   >
-                    {item}  
+                    {item}
                   </Link>
                 ) : item === "검색" ? (
                   <Link to="/search" activeProps={{ className: "is-active" }}>
                     {item}
                   </Link>
                 ) : (
-                  <a href="#movie-list">{item}</a>
-                )
-              }
+                  <Link to="/my" activeProps={{ className: "is-active" }}>
+                    {item}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
@@ -40,7 +53,13 @@ export function Header() {
           <Link className="search-button" to="/search" aria-label="검색">
             <img src="/icons/search.svg" alt="" />
           </Link>
-          <button className="login-button" type="button">로그인</button>
+          {!accessToken ? (
+            <Link to="/login">로그인</Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+          ) : (
+            <Link to="/my">마이페이지</Link>
+          )}
         </div>
       </div>
     </header>
