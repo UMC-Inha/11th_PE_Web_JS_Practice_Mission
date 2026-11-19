@@ -40,7 +40,9 @@ export function Header() {
                     {item}
                   </Link>
                 ) : (
-                  <a href="#movie-list">{item}</a>
+                  <Link to="/my" activeProps={{ className: "is-active" }}>
+                    {item}
+                  </Link>
                 )}
               </li>
             ))}
