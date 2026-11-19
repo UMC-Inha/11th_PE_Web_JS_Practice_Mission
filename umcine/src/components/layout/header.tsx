@@ -1,4 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 function NavLink({
@@ -6,7 +8,7 @@ function NavLink({
   exact,
   children,
 }: {
-  to: "/" | "/search";
+  to: "/" | "/search" | "/mypage";
   exact?: boolean;
   children: string;
 }) {
@@ -33,6 +35,17 @@ function NavLink({
 }
 
 function Header() {
+  const isLoggedIn = useAuthStore((state) => state.accessToken !== null);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleLogout = () => {
+    logout();
+    queryClient.removeQueries({ queryKey: ["members"] });
+    navigate({ to: "/" });
+  };
+
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-[1126px] items-center justify-between gap-6 px-6 py-4">
@@ -54,12 +67,7 @@ function Header() {
               영화
             </NavLink>
             <NavLink to="/search">검색</NavLink>
-            <a
-              className="text-[15px] font-medium text-gray-400 no-underline"
-              href="/mypage"
-            >
-              내 정보
-            </a>
+            <NavLink to="/mypage">내 정보</NavLink>
           </nav>
         </div>
         <div className="flex items-center gap-3">
@@ -75,12 +83,22 @@ function Header() {
               aria-hidden="true"
             />
           </button>
-          <button
-            type="button"
-            className="h-9 rounded-lg border-none bg-app-accent px-[18px] text-sm font-bold text-white"
-          >
-            로그인
-          </button>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="h-9 rounded-lg border-none bg-app-accent px-[18px] text-sm font-bold text-white"
+            >
+              로그아웃
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex h-9 items-center rounded-lg bg-app-accent px-[18px] text-sm font-bold text-white no-underline"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </div>
     </header>
