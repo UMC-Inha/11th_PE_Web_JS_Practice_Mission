@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { MovieRatingSection } from "../../components/movies/movie-rating-section";
+import { useFavoriteMutations } from "../../hooks/use-favorite-mutations";
+import { useFavoriteStatusQuery } from "../../hooks/use-favorite-query";
+import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
@@ -29,11 +32,21 @@ export function MovieDetailPage() {
     staleTime: 30 * 1000,
   });
 
-  // Hook이라 아래 early return보다 먼저 호출해야 함.
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(parsedMovieId),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const statusQuery = useFavoriteStatusQuery(parsedMovieId);
+  const { addMutation, deleteMutation } = useFavoriteMutations(parsedMovieId);
+  const isBookmarked = statusQuery.data ?? false;
+  const isFavoritePending = addMutation.isPending || deleteMutation.isPending;
+
+  const handleToggleFavorite = () => {
+    if (!accessToken) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (isBookmarked) deleteMutation.mutate();
+    else addMutation.mutate();
+  };
 
   // 상태 분기: 잘못된 ID → 로딩 → 오류 → 데이터 없음 → 성공
   if (!isValidMovieId) {
@@ -129,7 +142,8 @@ export function MovieDetailPage() {
           <button
             type="button"
             aria-pressed={isBookmarked}
-            onClick={() => toggleBookmark(movie.id)}
+            disabled={isFavoritePending}
+            onClick={handleToggleFavorite}
             className={cn(
               "inline-flex cursor-pointer items-center gap-2 rounded-lg px-[18px] py-2.5 text-sm font-semibold text-white transition-colors",
               isBookmarked ? "bg-blue-600" : "bg-black/55",
@@ -148,32 +162,7 @@ export function MovieDetailPage() {
           </button>
         </div>
 
-        <div className="w-full shrink-0 border-t border-gray-200 pt-6 text-left lg:w-[260px] lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
-          <h2 className="mb-1 text-lg font-bold text-gray-900">내 평점</h2>
-          <p className="mb-3 text-[13px] text-gray-500">
-            별점은 필수, 후기는 선택이에요.
-          </p>
-          <div className="mb-4 flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <img
-                key={n}
-                src="/icons/star-outline.svg"
-                alt={`${n}점`}
-                className="size-[22px]"
-              />
-            ))}
-          </div>
-          <textarea
-            className="mb-3 min-h-[90px] w-full resize-y rounded-lg border border-gray-200 px-3 py-2.5 text-gray-900"
-            placeholder="영화를 보고 느낀 점을 남겨보세요."
-          />
-          <button
-            type="button"
-            className="w-full cursor-pointer rounded-lg bg-gray-900 p-3 text-sm font-semibold text-white"
-          >
-            평점 저장
-          </button>
-        </div>
+        <MovieRatingSection movieId={movie.id} />
       </div>
     </main>
   );
