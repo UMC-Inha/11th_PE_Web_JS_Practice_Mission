@@ -2,15 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { useProfileStore } from "../../stores/profile-store";
 import { useQueries } from "@tanstack/react-query";
 import { movieDetailQueryOptions } from "../../api/movies/movie-query-options";
-import { useBookmarkStore } from "../../stores/bookmark-store";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
+import { useFavoritesQuery } from "../../hooks/use-favorites";
 
 export function MyPage() {
   const nickname = useProfileStore((state) => state.nickname);
   const email = useProfileStore((state) => state.email);
-  const bookmarkedMovieIds = useBookmarkStore(
-    (state) => state.bookmarkedMovieIds,
-  );
+  const favoritesQuery = useFavoritesQuery();
+
+  const bookmarkedMovieIds =
+    favoritesQuery.data?.result.map((favorite) => favorite.movieId) ?? [];
 
   const favoriteQueries = useQueries({
     queries: bookmarkedMovieIds.map((movieId) =>
@@ -60,7 +61,15 @@ export function MyPage() {
       <section className="py-7">
         <h2 className="mb-4 text-sm font-bold text-[#17191e]">내 즐겨찾기</h2>
 
-        {bookmarkedMovieIds.length === 0 ? (
+        {favoritesQuery.isPending ? (
+          <p className="text-sm text-[#606774]">
+            즐겨찾기 목록을 불러오는 중이에요.
+          </p>
+        ) : favoritesQuery.isError ? (
+          <p className="text-sm text-[#dc2626]">
+            즐겨찾기 목록을 불러오지 못했어요.
+          </p>
+        ) : bookmarkedMovieIds.length === 0 ? (
           <p className="text-sm text-[#606774]">즐겨찾기한 영화가 없어요.</p>
         ) : favoriteQueries.some((query) => query.isPending) ? (
           <p className="text-sm text-[#606774]">
