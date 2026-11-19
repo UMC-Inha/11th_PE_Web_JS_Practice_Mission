@@ -1,21 +1,32 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const canSubmit = email.trim().length > 0 && password.length > 0;
+  const loginMutation = useLoginMutation();
+
+  const canSubmit = EMAIL_REGEX.test(email.trim()) && password.length > 0;
+
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: email.trim(),
+      password,
+    });
+  };
 
   return (
     <main className="flex flex-1 items-center justify-center bg-[#f6f7f9] px-5 py-12">
-      <form
-        className="w-full max-w-[430px]"
-        onSubmit={(e) => e.preventDefault()}
-      >
-        <h1 className="mb-5 text-[32px] leading-10 font-bold">
-          로그인
-        </h1>
+      <form className="w-full max-w-[430px]" onSubmit={handleSubmit}>
+        <h1 className="mb-5 text-[32px] leading-10 font-bold">로그인</h1>
 
         <div className="space-y-4">
           <div>
@@ -62,11 +73,11 @@ export function LoginPage() {
         </div>
 
         <button
-          className="mt-4 h-12 w-full rounded-lg bg-[#2563eb] text-sm font-bold text-white disabled:cursor-not-allowed"
+          className="mt-4 h-12 w-full rounded-lg bg-[#2563eb] text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
           type="submit"
-          disabled={!canSubmit}
+          disabled={!canSubmit || loginMutation.isPending}
         >
-          로그인
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <p className="mt-4 text-center text-xs text-[#667085]">

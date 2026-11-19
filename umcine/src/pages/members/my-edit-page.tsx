@@ -1,13 +1,25 @@
 import { useState, type ChangeEvent } from "react";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
 export function MyEditPage() {
   const [nickname, setNickname] = useState("윤샘");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageError, setImageError] = useState("");
   const email = "name@example.com";
+  const updateMeMutation = useUpdateMeMutation();
 
   const isNicknameValid =
     nickname.trim().length >= 2 && nickname.trim().length <= 12;
+
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!isNicknameValid || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate({
+      nickname: nickname.trim(),
+    });
+  };
 
   function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -41,7 +53,7 @@ export function MyEditPage() {
     <main className="flex flex-1 bg-[#f6f7f9] px-5 py-6">
       <form
         className="mx-auto flex w-full max-w-7xl flex-1 flex-col"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={handleSubmit}
       >
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -54,10 +66,10 @@ export function MyEditPage() {
 
           <button
             type="submit"
-            disabled={!isNicknameValid}
+            disabled={!isNicknameValid || updateMeMutation.isPending}
             className="h-10 shrink-0 rounded-lg bg-[#2563eb] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            변경사항 저장
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
