@@ -1,11 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { MyRatingPanel } from "../../components/movies/my-rating-panel";
+import {
+  useCreateFavoriteMutation,
+  useDeleteFavoriteMutation,
+  useFavoriteStatusQuery,
+} from "../../hooks/use-favorites";
+import { useAuthStore } from "../../stores/auth-store";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { getTmdbBackdropUrl, getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
-const STARS = [1, 2, 3, 4, 5];
 
 function formatRuntime(runtime: number | null) {
   if (!runtime) return "상영 시간 정보가 없어요.";
@@ -30,10 +35,29 @@ export function MovieDetailPage() {
     staleTime: 30 * 1000,
   });
 
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(parsedMovieId),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+    const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const favoriteStatusQuery = useFavoriteStatusQuery(parsedMovieId);
+  const createFavoriteMutation = useCreateFavoriteMutation();
+  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+
+  const isBookmarked = favoriteStatusQuery.data ?? false;
+  const isBookmarkPending =
+    createFavoriteMutation.isPending || deleteFavoriteMutation.isPending;
+
+  const handleBookmarkClick = () => {
+    if (!accessToken) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (isBookmarkPending) return;
+
+    if (isBookmarked) {
+      deleteFavoriteMutation.mutate(parsedMovieId);
+    } else {
+      createFavoriteMutation.mutate(parsedMovieId);
+    }
+  };
 
   if (!isValidMovieId) {
     return (
@@ -120,40 +144,21 @@ export function MovieDetailPage() {
             </p>
             <button
               type="button"
-              onClick={() => toggleBookmark(movie.id)}
-              className="mt-5 flex items-center gap-2 rounded-lg bg-[#4f5de8] px-4 py-2 text-sm font-semibold text-white"
+              onClick={handleBookmarkClick}
+              disabled={isBookmarkPending}
+              className="mt-5 flex items-center gap-2 rounded-lg bg-[#4f5de8] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
             >
               <img
                 src={isBookmarked ? "/icons/bookmark.svg" : "/icons/bookmark-outline.svg"}
                 alt=""
                 className="h-4 w-4 brightness-0 invert"
               />
-              북마크
+              {isBookmarked ? "북마크 해제" : "북마크"}
             </button>
           </div>
         </div>
 
-        <aside className="w-85 shrink-0 border-l border-gray-200 pl-10">
-          <h2 className="text-base font-bold">내 평점</h2>
-          <p className="mt-1 text-xs text-gray-400">별점은 필수, 후기는 선택이에요.</p>
-          <div className="mt-3 flex gap-2">
-            {STARS.map((star) => (
-              <button
-                key={star}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 bg-white"
-              >
-                <img src="/icons/star.svg" alt={`${star}점`} className="h-5 w-5 opacity-70" />
-              </button>
-            ))}
-          </div>
-          <textarea
-            placeholder="영화를 보고 느낀 점을 남겨보세요."
-            className="mt-4 h-24 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm outline-none placeholder:text-gray-400"
-          />
-          <button className="mt-3 w-full rounded-lg bg-[#111111] py-3 text-sm font-semibold text-white">
-            평점 저장
-          </button>
-        </aside>
+        <MyRatingPanel key={movie.id} movieId={movie.id} />
       </section>
     </main>
   );

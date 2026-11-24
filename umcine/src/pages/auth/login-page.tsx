@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { LockIcon, MailIcon } from "../../components/icons";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+import { inputClass, labelClass } from "../../styles/form-classes";
+import { cn } from "../../utils/cn";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const iconClass = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400";
 const DEFAULT_LOGIN_FORM = {
   email: "",
   password: "",
@@ -12,22 +17,23 @@ type LoginFormKey = keyof typeof DEFAULT_LOGIN_FORM;
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_LOGIN_FORM);
 
-  // 둘 다 입력해야 로그인 버튼 활성화
-  const canSubmit = form.email.trim().length > 0 && form.password.length > 0;
+  const loginMutation = useLoginMutation();
 
+  // 이메일 형식이 맞고 비밀번호를 입력해야 로그인 버튼 활성화
+  const canSubmit = EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
   const handleChangeField = (key: LoginFormKey, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit) return;
-  };
+    if (!canSubmit || loginMutation.isPending) return;
 
-  const inputClass =
-    "h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm outline-none placeholder:text-gray-400 focus:border-[#4f5de8]";
-  const iconClass = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400";
-  const labelClass = "mb-2 block text-xs font-semibold";
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
+  };
 
   return (
     <main className="flex flex-1 items-center justify-center bg-gray-50 px-4 py-20">
@@ -43,7 +49,7 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                className={inputClass}
+                className={cn(inputClass, "pl-9")}
                 value={form.email}
                 onChange={(e) => handleChangeField("email", e.target.value)}
               />
@@ -58,7 +64,7 @@ export function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="비밀번호"
-                className={inputClass}
+                className={cn(inputClass, "pl-9")}
                 value={form.password}
                 onChange={(e) => handleChangeField("password", e.target.value)}
               />
@@ -67,10 +73,10 @@ export function LoginPage() {
 
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!canSubmit || loginMutation.isPending}
             className="mt-2 h-11 rounded-lg bg-[#4f5de8] text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            로그인
+            {loginMutation.isPending ? "로그인 중" : "로그인"}
           </button>
         </form>
 
