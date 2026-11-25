@@ -39,7 +39,6 @@ export function MovieDetailPage() {
     staleTime: 30 * 1000,
   });
 
-  // 잘못된 영화 번호는 요청하지 않으므로 로딩보다 먼저 확인해요.
   if (!isValidMovieId) {
     return (
       <main className={cn(containerClass, "py-20")}>
@@ -95,7 +94,6 @@ export function MovieDetailPage() {
             className="absolute inset-0 size-full object-cover"
           />
         )}
-        {/* 글자가 잘 보이도록 왼쪽·아래쪽을 어둡게 */}
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-linear-to-r from-black/70 via-black/30 to-transparent"
@@ -165,7 +163,7 @@ export function MovieDetailPage() {
         </section>
 
         <aside className="shrink-0 lg:w-[276px] lg:border-l lg:border-[#e5e7eb] lg:pl-6">
-          <MovieRatingForm key={movie.id} />
+          <MovieRatingForm key={movie.id} movieId={movie.id} />
         </aside>
       </div>
     </main>
