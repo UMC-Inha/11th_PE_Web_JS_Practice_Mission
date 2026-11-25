@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { HTTPError } from "ky";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import type { TmdbMovieDetail } from "../../api/movies/models";
 import { createRating } from "../../api/ratings/create-rating";
@@ -81,9 +81,15 @@ function MovieDetail({ movie }: { movie: Movie }) {
 
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [comment, setComment] = useState("");
+  const queryClient = useQueryClient();
   const createRatingMutation = useMutation({
     mutationFn: createRating,
     onSuccess: () => {
+      // 내 정보 화면의 평점 목록(["members", memberId, "ratings"])도 새로 불러오게 함
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "members" && query.queryKey[2] === "ratings",
+      });
       setSelectedScore(null);
       setComment("");
       alert("평점을 저장했어요.");

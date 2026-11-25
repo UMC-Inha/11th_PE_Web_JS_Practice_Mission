@@ -1,8 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useBookmarkStore } from "../../stores/bookmark-store";
-import { useAuthStore } from "../../stores/auth-store";
-import { useCreateFavoriteMutation } from "../../hooks/use-create-favorite-mutation";
-import { useDeleteFavoriteMutation } from "../../hooks/use-delete-favorite-mutation";
+import { useToggleFavorite } from "../../hooks/use-toggle-favorite";
 import type { Movie } from "../../types/movie";
 import { cn } from "../../utils/cn";
 
@@ -11,13 +8,11 @@ type MovieCardProps = {
 };
 
 export function MovieCard({ movie }: MovieCardProps) {
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movie.id),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
-  const isLoggedIn = !!useAuthStore((state) => state.accessToken);
-  const createFavoriteMutation = useCreateFavoriteMutation();
-  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+  const {
+    isFavorite: isBookmarked,
+    isPending,
+    toggleFavorite,
+  } = useToggleFavorite(movie.id);
 
   return (
     <article className="relative flex flex-col gap-1">
@@ -47,20 +42,8 @@ export function MovieCard({ movie }: MovieCardProps) {
         type="button"
         aria-label={isBookmarked ? "북마크 해제" : "북마크"}
         aria-pressed={isBookmarked}
-        disabled={
-          createFavoriteMutation.isPending || deleteFavoriteMutation.isPending
-        }
-        onClick={() => {
-          if (isLoggedIn) {
-            if (isBookmarked) {
-              deleteFavoriteMutation.mutate(movie.id);
-            } else {
-              createFavoriteMutation.mutate({ movieId: movie.id });
-            }
-          } else {
-            toggleBookmark(movie.id);
-          }
-        }}
+        disabled={isPending}
+        onClick={toggleFavorite}
         className={cn(
           "absolute top-[10px] right-[10px] flex size-[34px] cursor-pointer items-center justify-center rounded-lg border text-white",
           isBookmarked ? "border-[#2563EB] bg-[#2563EB]" : "border-white bg-[#17191E]",
