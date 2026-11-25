@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { getMemberRatings } from '../api/members';
-import type { Rating } from '../api/members';
+import { getMemberRatings, type Rating } from '../api/ratings';
 const inputClass = 'min-w-0 flex-1 rounded-lg border border-[#e2e5eb] bg-white px-4 py-3 text-sm';
 const buttonClass = 'rounded-lg bg-[#2864fa] px-5 py-3 text-sm font-bold text-white disabled:opacity-50';
 const cardClass = 'rounded-xl border border-[#e2e5eb] bg-white p-5';
