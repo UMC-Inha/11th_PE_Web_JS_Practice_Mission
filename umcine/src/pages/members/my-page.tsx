@@ -5,6 +5,8 @@ import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
 import { useMyFavoritesQuery } from "../../hooks/use-my-favorites-query";
+import { useMyRatingsQuery } from "../../hooks/use-my-ratings-query";
+import { FavoriteRating } from "../../components/ratings/favorite-rating";
 import type { Movie } from "../../types/movie";
 import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 import { getMyInfo, MY_INFO_QUERY_KEY } from "../../api/members/get-my-info";
@@ -23,6 +25,29 @@ export function MyPage() {
   const myFavoritesQuery = useMyFavoritesQuery();
   const bookmarkedMovieIds =
     myFavoritesQuery.data?.map((favorite) => favorite.movieId) ?? [];
+
+  // 즐겨찾기 영화마다 내 평점을 붙여 보여주려고 movieId로 찾기 쉽게 만듦
+  const { memberId, ratingsQuery } = useMyRatingsQuery();
+  const ratingByMovieId = new Map(
+    (ratingsQuery.data ?? []).map((rating) => [rating.movieId, rating]),
+  );
+
+  const renderMyRating = (movie: Movie) => {
+    const ratingMessageClass = "pt-2 text-xs leading-[14px] text-[#969DA8]";
+    if (memberId === null || ratingsQuery.isError) {
+      return <p className={ratingMessageClass}>평점을 불러오지 못했어요.</p>;
+    }
+    if (ratingsQuery.isPending) {
+      return <p className={ratingMessageClass}>평점을 불러오는 중이에요.</p>;
+    }
+    return (
+      <FavoriteRating
+        movieId={movie.id}
+        memberId={memberId}
+        rating={ratingByMovieId.get(movie.id)}
+      />
+    );
+  };
 
   const totalPages = Math.max(
     1,
@@ -126,7 +151,7 @@ export function MyPage() {
           <p className={messageClass}>즐겨찾기 목록을 불러오지 못했어요.</p>
         ) : (
           <div className="flex w-full flex-col gap-7">
-            <MovieGrid movies={movies} />
+            <MovieGrid movies={movies} renderExtra={renderMyRating} />
             <Pagination
               page={currentPage}
               totalPages={totalPages}
