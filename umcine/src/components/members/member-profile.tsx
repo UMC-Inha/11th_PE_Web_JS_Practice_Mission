@@ -4,40 +4,32 @@ import { Link } from "@tanstack/react-router";
 import { getMyInfo, myInfoQueryKey } from "../../api/auth-member";
 import type { MemberInfo } from "../../api/auth-member";
 import { useAuthStore } from "../../stores/auth-store";
-import type { AuthSession } from "../../stores/auth-store";
 
 interface Props {
-  children: (
-    profile: MemberInfo,
-    session: AuthSession,
-  ) => ReactNode;
+  children: (profile: MemberInfo, accessToken: string) => ReactNode;
 }
 
 export function MemberProfile({ children }: Props) {
-  const { session, message } = useAuthStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const query = useQuery({
-    queryKey: myInfoQueryKey(session?.id),
+    queryKey: myInfoQueryKey,
     queryFn: ({ signal }) => {
-      if (!session) {
+      if (!accessToken) {
         throw new Error("로그인이 필요해요.");
       }
 
-      return getMyInfo(session, signal);
+      return getMyInfo(accessToken, signal);
     },
-    enabled: !!session,
+    enabled: Boolean(accessToken),
     retry: false,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
-  if (!session) {
+  if (!accessToken) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 px-5 py-20">
-        <p role="status">
-          {message || "내 정보를 보려면 로그인해 주세요."}
-        </p>
+        <p role="status">내 정보를 보려면 로그인해 주세요.</p>
 
         <Link
           to="/login"
@@ -45,17 +37,6 @@ export function MemberProfile({ children }: Props) {
         >
           로그인하기
         </Link>
-      </main>
-    );
-  }
-
-  if (query.isPending) {
-    return (
-      <main
-        role="status"
-        className="flex-1 px-5 py-16 text-center"
-      >
-        회원 정보를 불러오는 중이에요.
       </main>
     );
   }
@@ -77,5 +58,13 @@ export function MemberProfile({ children }: Props) {
     );
   }
 
-  return children(query.data, session);
+  if (query.isLoading || !query.data) {
+    return (
+      <main role="status" className="flex-1 px-5 py-16 text-center">
+        회원 정보를 불러오는 중이에요.
+      </main>
+    );
+  }
+
+  return children(query.data, accessToken);
 }

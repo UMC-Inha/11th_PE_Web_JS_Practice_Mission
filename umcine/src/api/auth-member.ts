@@ -2,7 +2,7 @@ import type { Options } from "ky";
 import { apiClient } from "./api-client";
 import { env } from "../config/env";
 import { useAuthStore } from "../stores/auth-store";
-import type { AuthSession } from "../stores/auth-store";
+import { useBookmarkStore } from "../stores/bookmark-store";
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -34,7 +34,7 @@ export class MemberApiError extends Error {
 async function request<T>(
   path: string,
   options: Omit<Options, "headers" | "timeout">,
-  session?: AuthSession,
+  accessToken?: string,
 ) {
   if (!env.apiBaseUrl) {
     throw new Error("VITE_API_BASE_URL에 백엔드 주소를 설정해 주세요.");
@@ -42,8 +42,8 @@ async function request<T>(
 
   const headers = new Headers();
 
-  if (session) {
-    headers.set("Authorization", `Bearer ${session.accessToken}`);
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   const controller = new AbortController();
@@ -103,10 +103,11 @@ async function request<T>(
 
       if (
         response.status === 401 &&
-        session &&
-        session.id === useAuthStore.getState().session?.id
+        accessToken &&
+        accessToken === useAuthStore.getState().accessToken
       ) {
-        useAuthStore.getState().signOut(message);
+        useAuthStore.getState().setAccessToken(null);
+        useBookmarkStore.getState().clearBookmarks();
       }
 
       throw new MemberApiError(message, response.status, data?.code ?? "");
@@ -159,13 +160,17 @@ export async function login(
   return result;
 }
 
-export async function getMyInfo(session: AuthSession, signal?: AbortSignal) {
+export async function getMyInfo(accessToken: string, signal?: AbortSignal) {
   return unwrap(
-    await request<ApiResponse<MemberInfo>>("members/me", { signal }, session),
+    await request<ApiResponse<MemberInfo>>(
+      "members/me",
+      { signal },
+      accessToken,
+    ),
   );
 }
 
-export async function updateMyInfo(session: AuthSession, nickname: string) {
+export async function updateMyInfo(accessToken: string, nickname: string) {
   return unwrap(
     await request<ApiResponse<MemberInfo>>(
       "members/me",
@@ -175,7 +180,7 @@ export async function updateMyInfo(session: AuthSession, nickname: string) {
           nickname: nickname.trim(),
         },
       },
-      session,
+      accessToken,
     ),
   );
 }
@@ -187,5 +192,4 @@ export function checkNicknameAvailability(nickname: string) {
   );
 }
 
-export const myInfoQueryKey = (sessionId: string | undefined) =>
-  ["member", "me", sessionId] as const;
+export const myInfoQueryKey = ["members", "me"] as const;

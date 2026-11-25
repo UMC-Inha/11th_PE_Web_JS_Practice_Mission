@@ -1,68 +1,29 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  checkNicknameAvailability,
-  MemberApiError,
-  myInfoQueryKey,
-  updateMyInfo,
-} from "../../api/auth-member";
-import type { MemberInfo } from "../../api/auth-member";
+import { HTTPError } from "ky";
+import { checkNicknameAvailability } from "../../api/auth-member";
+import type { MemberInfo } from "../../api/members/me";
 import { MemberProfile } from "../../components/members/member-profile";
-import { useAuthStore } from "../../stores/auth-store";
-import type { AuthSession } from "../../stores/auth-store";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
 export function MyPageEdit() {
   return (
     <MemberProfile>
-      {(profile, session) => (
-        <ProfileEditForm key={session.id} profile={profile} session={session} />
+      {(profile, accessToken) => (
+        <ProfileEditForm key={accessToken} profile={profile} />
       )}
     </MemberProfile>
   );
 }
 
-function ProfileEditForm({
-  profile,
-  session,
-}: {
-  profile: MemberInfo;
-  session: AuthSession;
-}) {
+function ProfileEditForm({ profile }: { profile: MemberInfo }) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const updateMeMutation = useUpdateMeMutation();
 
   const [nickname, setNickname] = useState(profile.nickname);
   const [checkedNickname, setCheckedNickname] = useState("");
   const [checkMessage, setCheckMessage] = useState("");
   const [isChecking, setIsChecking] = useState(false);
-
-  const mutation = useMutation({
-    mutationFn: (nextNickname: string) => updateMyInfo(session, nextNickname),
-
-    onSuccess: async (savedProfile) => {
-      if (useAuthStore.getState().session?.id !== session.id) {
-        return;
-      }
-
-      await queryClient.cancelQueries({
-        queryKey: myInfoQueryKey(session.id),
-      });
-
-      queryClient.setQueryData(myInfoQueryKey(session.id), savedProfile);
-
-      await navigate({
-        to: "/mypage",
-      });
-    },
-
-    onError: (error) => {
-      if (error instanceof MemberApiError && error.status === 409) {
-        setCheckedNickname("");
-        setCheckMessage("");
-      }
-    },
-  });
 
   const trimmedNickname = nickname.trim();
 
@@ -72,11 +33,31 @@ function ProfileEditForm({
   const isChecked =
     trimmedNickname === profile.nickname || checkedNickname === trimmedNickname;
 
-  const canSave =
-    isNicknameValid && isChecked && !isChecking && !mutation.isPending;
+  const canSubmit = isNicknameValid && isChecked && !isChecking;
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate(
+      { nickname: trimmedNickname },
+      {
+        onSuccess: () => {
+          void navigate({ to: "/mypage" });
+        },
+        onError: (error) => {
+          if (error instanceof HTTPError && error.response.status === 409) {
+            setCheckedNickname("");
+            setCheckMessage("이미 사용 중인 닉네임이에요.");
+          }
+        },
+      },
+    );
+  };
 
   const handleCheckNickname = async () => {
-    if (!isNicknameValid || isChecking || mutation.isPending) {
+    if (!isNicknameValid || isChecking || updateMeMutation.isPending) {
       return;
     }
 
@@ -114,18 +95,7 @@ function ProfileEditForm({
 
   return (
     <main className="flex min-h-[calc(100svh-91px)] w-full flex-1 flex-col px-5 pt-6 pb-7 xl:px-20">
-      <form
-        className="flex flex-1 flex-col"
-        onSubmit={(event) => {
-          event.preventDefault();
-
-          if (!canSave) {
-            return;
-          }
-
-          mutation.mutate(trimmedNickname);
-        }}
-      >
+      <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
         <div className="flex min-h-[69px] flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-[28px] leading-[41px] font-bold">
@@ -139,18 +109,12 @@ function ProfileEditForm({
 
           <button
             type="submit"
-            disabled={!canSave}
+            disabled={!canSubmit || updateMeMutation.isPending}
             className="flex h-[42px] w-[108px] shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[#2563EB] text-[13px]! font-bold! whitespace-nowrap text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {mutation.isPending ? "저장 중…" : "변경사항 저장"}
+            {updateMeMutation.isPending ? "저장 중…" : "변경사항 저장"}
           </button>
         </div>
-
-        {mutation.error && (
-          <p role="alert" className="mt-4 text-sm text-red-600">
-            {mutation.error.message}
-          </p>
-        )}
 
         <div className="mt-8 grid items-center gap-y-8 md:min-h-[164px] md:grid-cols-2 md:gap-y-0">
           <div className="flex min-h-[133px] flex-col items-center justify-center py-1.5">
@@ -185,9 +149,9 @@ function ProfileEditForm({
                     setNickname(event.target.value);
                     setCheckedNickname("");
                     setCheckMessage("");
-                    mutation.reset();
+                    updateMeMutation.reset();
                   }}
-                  disabled={isChecking || mutation.isPending}
+                  disabled={isChecking || updateMeMutation.isPending}
                   aria-invalid={!isNicknameValid}
                   aria-describedby={
                     !isNicknameValid ? "nickname-error" : undefined
@@ -198,7 +162,7 @@ function ProfileEditForm({
                 <button
                   type="button"
                   disabled={
-                    !isNicknameValid || isChecking || mutation.isPending
+                    !isNicknameValid || isChecking || updateMeMutation.isPending
                   }
                   onClick={() => void handleCheckNickname()}
                   className="h-full shrink-0 cursor-pointer px-[15px] text-xs! font-bold! text-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"

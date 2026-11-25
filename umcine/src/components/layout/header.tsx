@@ -1,46 +1,37 @@
-import {
-  Link,
-  useRouterState,
-  useNavigate,
-} from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 export default function Header() {
-  const { session, signOut } = useAuthStore();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
+  const handleLogout = () => {
+    setAccessToken(null);
+    void navigate({ to: "/login", replace: true });
+  };
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
 
   const isMovieRoute =
-    pathname === "/" ||
-    pathname.startsWith("/movies/");
+    pathname === "/" || pathname.startsWith("/movies/");
 
-  const isSearchRoute =
-    pathname.startsWith("/search");
+  const isSearchRoute = pathname.startsWith("/search");
 
-  const isMyPageRoute =
-    pathname.startsWith("/mypage");
-
-  const handleLogout = async () => {
-    signOut();
-
-    await queryClient.cancelQueries({
-      queryKey: ["member"],
-    });
-
-    queryClient.removeQueries({
-      queryKey: ["member"],
-    });
-
-    await navigate({
-      to: "/login",
-    });
-  };
+  const isMyPageRoute = pathname.startsWith("/mypage");
 
   return (
     <header className="h-[91px] w-full shrink-0 border-b border-gray-200 bg-white">
@@ -69,8 +60,7 @@ export default function Header() {
               to="/"
               className={cn(
                 "underline-offset-4",
-                isMovieRoute &&
-                  "font-bold text-[#191B20] underline",
+                isMovieRoute && "font-bold text-[#191B20] underline",
               )}
             >
               영화
@@ -80,8 +70,7 @@ export default function Header() {
               to="/search"
               className={cn(
                 "underline-offset-4",
-                isSearchRoute &&
-                  "font-bold text-[#191B20] underline",
+                isSearchRoute && "font-bold text-[#191B20] underline",
               )}
             >
               검색
@@ -91,8 +80,7 @@ export default function Header() {
               to="/mypage"
               className={cn(
                 "underline-offset-4",
-                isMyPageRoute &&
-                  "font-bold text-[#191B20] underline",
+                isMyPageRoute && "font-bold text-[#191B20] underline",
               )}
             >
               내 정보
@@ -113,21 +101,38 @@ export default function Header() {
             />
           </Link>
 
-          {session ? (
-            <button
-              type="button"
-              onClick={() => void handleLogout()}
-              className="h-11 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm! font-bold! text-white"
-            >
-              로그아웃
-            </button>
-          ) : (
+          {!accessToken ? (
             <Link
               to="/login"
               className="flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white"
             >
               로그인
             </Link>
+          ) : (
+            <>
+              {meQuery.isLoading ? (
+                <span
+                  role="status"
+                  aria-label="회원 정보 불러오는 중"
+                  className="h-11 w-24 animate-pulse rounded-lg bg-gray-200"
+                />
+              ) : (
+                <Link
+                  to="/mypage"
+                  className="flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white"
+                >
+                  마이페이지
+                </Link>
+              )}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-11 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-bold text-gray-700"
+              >
+                로그아웃
+              </button>
+            </>
           )}
         </div>
       </div>
