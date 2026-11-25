@@ -4,8 +4,8 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { isHTTPError } from "ky";
-
 import { routeTree } from "./routeTree.gen";
+import { useAuthStore } from "./stores/auth-store";
 import "./index.css";
 
 const router = createRouter({
@@ -33,6 +33,19 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const unsubscribeAuth = useAuthStore.subscribe((state, previousState) => {
+  if (state.accessToken === previousState.accessToken) return;
+
+  for (const key of ["members", "favorites", "favorite", "ratings"]) {
+    void queryClient.cancelQueries({ queryKey: [key] });
+    queryClient.removeQueries({ queryKey: [key] });
+  }
+});
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(unsubscribeAuth);
+}
 
 declare module "@tanstack/react-router" {
   interface Register {
