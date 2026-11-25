@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { addFavorite } from "../api/favorites/add-favorite";
 import { removeFavorite } from "../api/favorites/remove-favorite";
 import { favoriteKeys } from "../queries/favorite-queries";
@@ -13,7 +13,7 @@ interface ToggleVariables {
 
 export function useToggleFavoriteMutation() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const mutation = useMutation({
     mutationFn: async ({ movieId, isFavorite }: ToggleVariables) => {
@@ -39,7 +39,7 @@ export function useToggleFavoriteMutation() {
   const toggle = (movieId: number, isFavorite: boolean) => {
     // 로그인하지 않았다면 로그인 페이지로 안내함
     if (!useAuthStore.getState().accessToken) {
-      navigate({ to: "/login" });
+      router.push("/login");
       return;
     }
     if (mutation.isPending) return;

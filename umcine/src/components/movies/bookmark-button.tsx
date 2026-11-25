@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import { useToggleFavoriteMutation } from "../../hooks/use-toggle-favorite-mutation";
 import { favoritesQueryOptions } from "../../queries/favorite-queries";

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { HTTPError } from "ky";
 import { login } from "../api/auth/login";
 import { useAuthStore } from "../stores/auth-store";
@@ -7,7 +7,7 @@ import { getErrorMessage } from "../utils/get-error-message";
 
 export function useLoginMutation() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const router = useRouter();
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   return useMutation({
@@ -17,7 +17,7 @@ export function useLoginMutation() {
       alert("로그인에 성공했어요.");
       // 로그인으로 내 정보 조회 결과가 달라지므로 캐시를 무효화함
       queryClient.invalidateQueries({ queryKey: ["members", "me"] });
-      navigate({ to: "/" });
+      router.push("/");
     },
     onError: (error) => {
       // 401: 이메일 또는 비밀번호 불일치

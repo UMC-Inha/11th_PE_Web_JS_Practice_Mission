@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import type { Rating } from "../../api/ratings/get-member-ratings";
 import { useCreateRatingMutation } from "../../hooks/use-create-rating-mutation";
@@ -118,7 +120,7 @@ function MovieRatingSection({ movieId }: { movieId: number }) {
     content = (
       <p className="mt-3 text-sm text-app-text">
         평점은 로그인 후에 남길 수 있어요.{" "}
-        <Link to="/login" className="font-bold text-app-accent no-underline">
+        <Link href="/login" className="font-bold text-app-accent no-underline">
           로그인
         </Link>
       </p>

@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import Pagination from "../movies/pagination";
 import PosterImage from "../movies/poster-image";
@@ -73,8 +75,7 @@ function FavoriteMovieList() {
           return (
             <li key={item.favoriteId}>
               <Link
-                to="/movies/$movieId"
-                params={{ movieId: String(movie.id) }}
+                href={`/movies/${movie.id}`}
                 className="block no-underline"
               >
                 <div className="aspect-2/3 overflow-hidden rounded-lg bg-app-surface">

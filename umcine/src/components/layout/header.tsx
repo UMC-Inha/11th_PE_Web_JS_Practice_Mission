@@ -1,4 +1,8 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { meQueryOptions } from "../../queries/member-queries";
 import { useAuthStore } from "../../stores/auth-store";
@@ -13,24 +17,24 @@ function NavLink({
   exact?: boolean;
   children: string;
 }) {
+  const pathname = usePathname();
+  // exact면 경로가 같을 때만, 아니면 하위 경로까지 활성으로 봄
+  const isActive = exact
+    ? pathname === to
+    : pathname === to || pathname.startsWith(`${to}/`);
+
   return (
-    <Link
-      to={to}
-      activeOptions={exact ? { exact: true } : undefined}
-      className="no-underline"
-    >
-      {({ isActive }) => (
-        <span
-          className={cn(
-            "text-[15px] font-medium",
-            isActive
-              ? "font-bold text-gray-900 underline underline-offset-8"
-              : "text-gray-400",
-          )}
-        >
-          {children}
-        </span>
-      )}
+    <Link href={to} className="no-underline">
+      <span
+        className={cn(
+          "text-[15px] font-medium",
+          isActive
+            ? "font-bold text-gray-900 underline underline-offset-8"
+            : "text-gray-400",
+        )}
+      >
+        {children}
+      </span>
     </Link>
   );
 }
@@ -38,7 +42,7 @@ function NavLink({
 function Header() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   // 토큰이 있을 때만 내 정보를 조회함
   const meQuery = useQuery(meQueryOptions(Boolean(accessToken)));
@@ -49,7 +53,7 @@ function Header() {
     for (const key of ["members", "favorites", "ratings"]) {
       queryClient.removeQueries({ queryKey: [key] });
     }
-    navigate({ to: "/" });
+    router.push("/");
   };
 
   return (
@@ -58,7 +62,7 @@ function Header() {
         <div className="flex items-center gap-10">
           <Link
             className="flex items-center gap-1.5 text-lg font-extrabold text-gray-900 no-underline"
-            to="/"
+            href="/"
           >
             <img
               className="h-[22px] w-[22px]"
@@ -68,13 +72,16 @@ function Header() {
             />
             <span>UMCine</span>
           </Link>
-          <nav className="flex items-center gap-6">
-            <NavLink to="/" exact>
-              영화
-            </NavLink>
-            <NavLink to="/search">검색</NavLink>
-            <NavLink to="/mypage">내 정보</NavLink>
-          </nav>
+          {/* usePathname은 요청 시점에 알 수 있는 값이라 Suspense로 감싸 정적 셸을 막지 않게 함 */}
+          <Suspense>
+            <nav className="flex items-center gap-6">
+              <NavLink to="/" exact>
+                영화
+              </NavLink>
+              <NavLink to="/search">검색</NavLink>
+              <NavLink to="/mypage">내 정보</NavLink>
+            </nav>
+          </Suspense>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -91,7 +98,7 @@ function Header() {
           </button>
           {!accessToken ? (
             <Link
-              to="/login"
+              href="/login"
               className="flex h-9 items-center rounded-lg bg-app-accent px-[18px] text-sm font-bold text-white no-underline"
             >
               로그인
@@ -101,7 +108,7 @@ function Header() {
           ) : (
             <>
               <Link
-                to="/mypage"
+                href="/mypage"
                 className="flex h-9 items-center rounded-lg bg-app-accent px-[18px] text-sm font-bold text-white no-underline"
               >
                 마이페이지

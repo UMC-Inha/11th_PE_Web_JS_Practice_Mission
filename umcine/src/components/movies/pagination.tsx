@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "../../utils/cn";
 
 const VISIBLE_PAGE_COUNT = 5;
