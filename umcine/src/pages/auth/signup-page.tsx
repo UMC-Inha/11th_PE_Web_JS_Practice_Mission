@@ -3,8 +3,7 @@ import { useState } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 
-import { signup } from "../../api/members/signup";
-import { useNavigate } from "@tanstack/react-router";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 
 const DEFAULT_DUPLICATE_CHECK = {
   isChecking: false,
@@ -113,29 +112,21 @@ const handleChangeField = (key: DefaultFormKey, value: DefaultFormValue) => {
     }));
   }
 };
-  const [isSubmitting, setIsSubmitting] = useState(false);
- const navigate = useNavigate();
+  const signupMutation = useSignupMutation()
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!canSubmit || isSubmitting) return;
-
-  setIsSubmitting(true);
-  try {
-    const response = await signup({
-      email: form.email.trim(),
-      nickname: form.nickname.trim(),
-      password: form.password,
-    });
-    alert(response.message);
-    // 로그인 페이지 연결 후 주석 해제
-    navigate({ to: "/login" });
-  } catch {
-    alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-  } finally {
-    setIsSubmitting(false);
-  }
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  
+  if (!canSubmit || signupMutation.isPending) return;
+  
+  signupMutation.mutate({
+    email: form.email.trim(),
+    nickname: form.nickname.trim(),
+    password: form.password,
+  });
 };
+
+  
   
   // noValidate는 폼 제출 시 브라우저의 기본 유효성 검사를 끔
   return (
@@ -273,10 +264,10 @@ const handleChangeField = (key: DefaultFormKey, value: DefaultFormValue) => {
 
       <button
         type="submit"
-        disabled={!canSubmit || isSubmitting}
+        disabled={!canSubmit || signupMutation.isPending}
         className="h-12 rounded-lg bg-[#2f68e8] text-sm font-semibold text-white disabled:bg-[#9ab7ef]"
       >
-        {isSubmitting ? "가입 중" : "가입하기"}
+        {signupMutation.isPending ? "가입 중" : "가입하기"}
       </button>
 
       <p className="text-center text-xs text-[#9aa1ad]">
@@ -285,44 +276,5 @@ const handleChangeField = (key: DefaultFormKey, value: DefaultFormValue) => {
       </p>
     </form>
   </main>
-)
-//   return (
-// 	  <form onSubmit={handleSubmit} noValidate>
-//       <input
-//         type="email"
-//         value={form.email}
-//         onChange={(e) => handleChangeField("email", e.target.value)}
-//         disabled={duplicateCheck.email.isChecking}
-//         />
-//       <button
-//         type="button"
-//         disabled={!isEmailValid || duplicateCheck.email.isChecking}
-//         onClick={() => handleCheckDuplicate("email")}
-//         >
-//         {duplicateCheck.email.isChecking ? "확인 중" : "중복 확인"}
-//         </button>
-//         {showEmailError && <p>올바른 이메일 형식이 아니에요.</p>}
-      
-
-//       <input
-//         type="text"
-//         value={form.nickname}
-//         onChange={(e) => handleChangeField("nickname", e.target.value)}
-//         disabled={duplicateCheck.nickname.isChecking}
-//         />
-//       <button
-//         type="button"
-//         disabled={!isNicknameValid || duplicateCheck.nickname.isChecking}
-//         onClick={() => handleCheckDuplicate("nickname")}
-//         >
-//         {duplicateCheck.nickname.isChecking ? "확인 중" : "중복 확인"}
-//         </button>
-//         {showNicknameError && <p>닉네임은 2~12자로 입력해주세요.</p>}
-
-//       <button type="submit" disabled={!canSubmit || isSubmitting}>
-//         {isSubmitting ? "가입 중" : "가입하기"}
-//       </button>
-
-// 	  </form>
-//   )
+  );
 }

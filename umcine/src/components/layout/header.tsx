@@ -1,6 +1,18 @@
 import { Link } from '@tanstack/react-router'
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 export function Header() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <header className="border-b border-[#e3e6eb] bg-white">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-10">
@@ -32,12 +44,13 @@ export function Header() {
             <img className="h-[19px] w-[19px]" src="/icons/search.svg" alt="" />
           </Link>
 
-          <Link
-          to="/login"
-          className="flex h-9 items-center rounded-md bg-[#2563eb] px-4 text-sm text-white hover:bg-[#1d4ed8]"
-          >
-          로그인
-          </Link>
+          {!accessToken ? (
+            <Link to="/login">로그인</Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+          ) : (
+            <Link to="/my">마이페이지</Link>
+          )}
         </div>
       </div>
     </header>
