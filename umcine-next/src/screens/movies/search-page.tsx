@@ -1,4 +1,7 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
@@ -6,8 +9,9 @@ import { Footer } from "../../components/layout/footer";
 import { BookmarkButton } from "../../components/movies/bookmark-button";
 
 export function SearchPage() {
-  const { query } = useSearch({ from: "/search" });
-  const navigate = useNavigate({ from: "/search" });
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query");
+  const router = useRouter();
   const [searchText, setSearchText] = useState(query ?? "");
 
   useEffect(() => {
@@ -31,9 +35,11 @@ export function SearchPage() {
     event.preventDefault();
     const nextQuery = searchText.trim();
 
-    navigate({
-      search: nextQuery ? { query: nextQuery } : {},
-    });
+    router.push(
+      nextQuery
+        ? `/search?query=${encodeURIComponent(nextQuery)}`
+        : "/search",
+    );
   }
 
   if (!normalizedQuery) {
@@ -191,8 +197,7 @@ export function SearchPage() {
                     </p>
 
                     <Link
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
+                      href={`/movies/${movie.id}`}
                       className="flex w-fit items-center gap-1 text-xs font-extrabold text-[#2563eb]"
                     >
                       <span>상세 보기</span>
