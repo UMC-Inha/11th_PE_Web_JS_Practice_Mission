@@ -1,32 +1,18 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { isHTTPError } from "ky";
-import { useState } from "react";
+import MovieRatingSection from "../../components/movies/movie-rating-section";
 import PosterImage from "../../components/movies/poster-image";
+import { useToggleFavoriteMutation } from "../../hooks/use-toggle-favorite-mutation";
+import { favoriteStatusQueryOptions } from "../../queries/favorite-queries";
 import { movieDetailQueryOptions } from "../../queries/movie-queries";
-import { useBookmarkStore } from "../../stores/bookmark-store";
-import { cn } from "../../utils/cn";
+import { useAuthStore } from "../../stores/auth-store";
 import { formatRuntime } from "../../utils/movies/format-runtime";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbBackdropUrl,
   getTmdbPosterUrl,
 } from "../../utils/movies/tmdb-image";
-
-const RATING_VALUES = [1, 2, 3, 4, 5];
-
-function StarIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-      className={cn("h-5 w-5", filled ? "text-app-accent" : "text-gray-400")}
-    >
-      <path d="M12 2.5l2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.77l-5.9 3.1 1.13-6.58L2.45 9.44l6.6-.96L12 2.5z" />
-    </svg>
-  );
-}
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -46,13 +32,13 @@ export function MovieDetailPage() {
   });
   const isLoading = isValidMovieId && isPending;
   const errorMessage = error ? getMovieDetailErrorMessage(error) : null;
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(parsedMovieId),
+  const isLoggedIn = useAuthStore((state) => state.accessToken !== null);
+  const { data: isFavorite } = useQuery(
+    favoriteStatusQueryOptions(parsedMovieId, isLoggedIn && isValidMovieId),
   );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState("");
-  const [isSaved, setIsSaved] = useState(false);
+  const isBookmarked = isLoggedIn && Boolean(isFavorite);
+  const { toggle: toggleFavorite, isPending: isTogglingFavorite } =
+    useToggleFavoriteMutation();
 
   if (!isValidMovieId || isLoading || errorMessage || !movie) {
     return (
@@ -132,8 +118,9 @@ export function MovieDetailPage() {
           <button
             type="button"
             aria-pressed={isBookmarked}
-            onClick={() => toggleBookmark(movie.id)}
-            className="mt-6 flex items-center gap-2 rounded-lg border-none bg-app-accent px-5 py-3 text-sm font-bold text-white"
+            disabled={isTogglingFavorite}
+            onClick={() => toggleFavorite(movie.id, isBookmarked)}
+            className="mt-6 flex items-center gap-2 rounded-lg border-none bg-app-accent px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <img
               className="h-4 w-4 invert"
@@ -149,46 +136,7 @@ export function MovieDetailPage() {
           </button>
         </div>
 
-        <div>
-          <h2 className="text-lg font-bold text-app-text-h">내 평점</h2>
-          <p className="mt-1 text-sm text-app-text">
-            별점은 필수, 후기는 선택이에요.
-          </p>
-          <div className="mt-3 flex gap-2">
-            {RATING_VALUES.map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-label={`${value}점`}
-                aria-pressed={rating === value}
-                onClick={() => {
-                  setRating(value);
-                  setIsSaved(false);
-                }}
-                className="flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white"
-              >
-                <StarIcon filled={value <= rating} />
-              </button>
-            ))}
-          </div>
-          <textarea
-            value={review}
-            onChange={(event) => {
-              setReview(event.target.value);
-              setIsSaved(false);
-            }}
-            placeholder="영화를 보고 느낀 점을 남겨보세요."
-            className="mt-3 h-28 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-sm text-app-text-h outline-none placeholder:text-gray-400"
-          />
-          <button
-            type="button"
-            disabled={rating === 0}
-            onClick={() => setIsSaved(true)}
-            className="mt-3 w-full rounded-lg border-none bg-gray-900 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isSaved ? "저장했어요!" : "평점 저장"}
-          </button>
-        </div>
+        <MovieRatingSection movieId={movie.id} />
       </div>
     </main>
   );

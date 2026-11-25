@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "../../utils/cn";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 // import { useNavigate } from "@tanstack/react-router";
 
 const DEFAULT_DUPLICATE_CHECK = {
@@ -97,9 +97,7 @@ export function SignupPage() {
     passwordConfirm: false,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  // const navigate = useNavigate();
+  const signupMutation = useSignupMutation();
   const [duplicateCheck, setDuplicateCheck] = useState({
     email: DEFAULT_DUPLICATE_CHECK,
     nickname: DEFAULT_DUPLICATE_CHECK,
@@ -117,7 +115,7 @@ export function SignupPage() {
     duplicateCheck.nickname.isAvailable;
 
   const handleChangeField = (key: SignupField, value: string) => {
-    setSubmitError(null);
+    signupMutation.reset();
     if (key === "email" || key === "nickname") {
       if (duplicateCheck[key].isChecking) return;
       // 확인한 값을 바꾸면 다시 중복 확인해야 함
@@ -191,26 +189,16 @@ export function SignupPage() {
     ),
   });
 
-  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit || isSubmitting) return;
 
-    setIsSubmitting(true);
-    setSubmitError(null);
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-      alert(response.message);
-      // 로그인 페이지 연결 후 주석 해제
-      // navigate({ to: "/login" });
-    } catch {
-      setSubmitError("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    if (!canSubmit || signupMutation.isPending) return;
+
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -311,15 +299,15 @@ export function SignupPage() {
 
         <button
           type="submit"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || signupMutation.isPending}
           className="mt-5 h-[58px] w-full rounded-lg border-none bg-app-accent text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "가입 중" : "가입하기"}
+          {signupMutation.isPending ? "가입 중" : "가입하기"}
         </button>
 
-        {submitError && (
+        {signupMutation.isError && (
           <p role="alert" className="mt-3 text-center text-sm text-red-500">
-            {submitError}
+            회원가입에 실패했어요. 다시 시도해 주세요.
           </p>
         )}
 

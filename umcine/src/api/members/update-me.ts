@@ -1,13 +1,17 @@
-import { apiClient } from "../api-client";
-import type { ApiResponse } from "../models";
-import type { MemberInfo } from "./get-me";
+import { authApi } from "../auth-api";
+import type { MemberInfo } from "./me";
 
 export interface UpdateMeRequest {
   nickname: string;
 }
 
+interface UpdateMeResponse {
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result: MemberInfo;
+}
+
 export function updateMe(body: UpdateMeRequest) {
-  return apiClient
-    .patch("members/me", { json: body })
-    .json<ApiResponse<MemberInfo>>();
+  return authApi.patch("members/me", { json: body }).json<UpdateMeResponse>();
 }

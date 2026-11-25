@@ -1,30 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import Pagination from "../../components/movies/pagination";
+import FavoriteMovieList from "../../components/mypage/favorite-movie-list";
 import { meQueryOptions } from "../../queries/member-queries";
 import { useAuthStore } from "../../stores/auth-store";
-
-// 즐겨찾기는 서버 API가 없어 더미 데이터 (API 연동 전)
-const BOOKMARKS = [
-  {
-    id: 1,
-    title: "스파이더맨: 브랜드 뉴 데이",
-    date: "2026.07.29",
-    poster: "/images/movies/spider-man-brand-new-day.jpg",
-  },
-  {
-    id: 2,
-    title: "오디세이",
-    date: "2026.08.05",
-    poster: "/images/movies/odyssey.jpg",
-  },
-  {
-    id: 3,
-    title: "미니언즈 & 몬스터즈",
-    date: "2026.07.15",
-    poster: "/images/movies/minions-monsters.jpg",
-  },
-];
 
 export function MyPage() {
   const isLoggedIn = useAuthStore((state) => state.accessToken !== null);
@@ -107,24 +85,7 @@ export function MyPage() {
 
       <section className="mt-6">
         <h2 className="text-base font-bold text-app-text-h">내 즐겨찾기</h2>
-        <ul className="m-0 mt-4 grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 lg:grid-cols-5">
-          {BOOKMARKS.map((movie) => (
-            <li key={movie.id}>
-              <div className="aspect-2/3 overflow-hidden rounded-lg bg-app-surface">
-                <img
-                  className="block h-full w-full object-cover"
-                  src={movie.poster}
-                  alt={movie.title}
-                />
-              </div>
-              <p className="mt-2 truncate text-sm font-bold text-app-text-h">
-                {movie.title}
-              </p>
-              <p className="mt-0.5 text-xs text-gray-400">{movie.date}</p>
-            </li>
-          ))}
-        </ul>
-        <Pagination currentPage={1} totalPages={1} onPageChange={() => {}} />
+        <FavoriteMovieList />
       </section>
     </main>
   );
