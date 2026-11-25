@@ -1,11 +1,18 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
 export default function Header() {
+  const navigate = useNavigate();
   const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
+  const handleLogout = () => {
+    setAccessToken(null);
+    void navigate({ to: "/login", replace: true });
+  };
 
   const meQuery = useQuery({
     queryKey: ["members", "me"],
@@ -101,19 +108,31 @@ export default function Header() {
             >
               로그인
             </Link>
-          ) : meQuery.isLoading ? (
-            <span
-              role="status"
-              aria-label="회원 정보 불러오는 중"
-              className="h-11 w-24 animate-pulse rounded-lg bg-gray-200"
-            />
           ) : (
-            <Link
-              to="/mypage"
-              className="flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white"
-            >
-              마이페이지
-            </Link>
+            <>
+              {meQuery.isLoading ? (
+                <span
+                  role="status"
+                  aria-label="회원 정보 불러오는 중"
+                  className="h-11 w-24 animate-pulse rounded-lg bg-gray-200"
+                />
+              ) : (
+                <Link
+                  to="/mypage"
+                  className="flex h-11 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-bold text-white"
+                >
+                  마이페이지
+                </Link>
+              )}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-11 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white px-5 text-sm font-bold text-gray-700"
+              >
+                로그아웃
+              </button>
+            </>
           )}
         </div>
       </div>
