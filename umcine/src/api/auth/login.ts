@@ -5,16 +5,14 @@ export interface LoginRequest {
   password: string;
 }
 
-interface LoginResult {
-  nickname: string;
-  accessToken: string;
-}
-
 export interface LoginResponse {
   isSuccess: boolean;
   code: string;
   message: string;
-  result: LoginResult | null;
+  result: {
+    nickname: string;
+    accessToken: string;
+  };
 }
 
 export async function login(body: LoginRequest) {

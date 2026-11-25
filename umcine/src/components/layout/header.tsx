@@ -1,15 +1,20 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../stores/auth-store";
+import { useMemberProfile } from "../../hooks/use-member-profile";
 
 export default function Header() {
-  const { accessToken, nickname, logout } = useAuthStore();
+  const logout = useAuthStore((state) => state.logout);
+  const meQuery = useMemberProfile();
+  const accessToken = meQuery.token;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   async function handleLogout() {
     logout();
-    await queryClient.cancelQueries({ queryKey: ["member"] });
-    queryClient.removeQueries({ queryKey: ["member"] });
+    await queryClient.cancelQueries({ queryKey: ["members", "me"] });
+    queryClient.removeQueries({ queryKey: ["members", "me"] });
+    await queryClient.cancelQueries({ queryKey: ["favorites"] });
+    queryClient.removeQueries({ queryKey: ["favorites"] });
     await navigate({ to: "/login" });
   }
   return (
@@ -66,10 +71,16 @@ export default function Header() {
           />
         </Link>
 
-        {accessToken ? <>
-          <Link to="/me" className="max-w-32 truncate text-sm font-bold">{nickname}님</Link>
-          <button type="button" onClick={handleLogout} className="h-12 rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm font-bold">로그아웃</button>
-        </> : <Link to="/login" className="inline-flex h-12 items-center rounded-lg bg-blue-600 px-5 font-bold text-white">로그인</Link>}
+        {!accessToken ? (
+          <Link to="/login" className="inline-flex h-12 items-center rounded-lg bg-blue-600 px-5 font-bold text-white">로그인</Link>
+        ) : meQuery.isLoading ? (
+          <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+        ) : (
+          <>
+            <Link to="/me" className="inline-flex h-11 items-center justify-center rounded-lg border border-blue-700 bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700">마이페이지</Link>
+            <button type="button" onClick={handleLogout} className="h-12 rounded-lg border border-[#e2e5eb] bg-white px-4 text-sm font-bold">로그아웃</button>
+          </>
+        )}
       </div>
     </header>
   );

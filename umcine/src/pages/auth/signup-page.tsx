@@ -1,8 +1,8 @@
-import { useState, type SubmitEvent } from "react";
+import { useState } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
+import { Link } from "@tanstack/react-router";
 import { ApiConfigurationError } from "../../config/env";
 
 const DEFAULT_DUPLICATE_CHECK = {
@@ -115,29 +115,18 @@ export function SignupPage() {
     };
 
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigate = useNavigate();
+    const signupMutation = useSignupMutation();
 
-    const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!canSubmit || isSubmitting) return;
-
-        setIsSubmitting(true);
-        try {
-            const response = await signup({
-                email: form.email.trim(),
-                nickname: form.nickname.trim(),
-                password: form.password,
-            });
-            alert(response.message);
-            if (response.isSuccess) await navigate({ to: "/login" });
-        } catch (error) {
-            alert(error instanceof ApiConfigurationError
-                ? error.message
-                : "회원가입에 실패했어요. 다시 시도해 주세요.");
-        } finally {
-            setIsSubmitting(false);
-        }
+    const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
+    if (!canSubmit || signupMutation.isPending) return;
+    
+    signupMutation.mutate({
+        email: form.email.trim(),
+        nickname: form.nickname.trim(),
+        password: form.password,
+    });
     };
 
     const inputClassName =
@@ -257,9 +246,9 @@ export function SignupPage() {
                     </div>
 
 
-                    <button type="submit" disabled={!canSubmit || isSubmitting} className="h-[50px] w-full rounded-lg bg-blue-600 font-bold text-white enabled:hover:bg-blue-700 disabled:opacity-40"
+                    <button type="submit" disabled={!canSubmit || signupMutation.isPending} className="h-[50px] w-full rounded-lg bg-blue-600 font-bold text-white enabled:hover:bg-blue-700 disabled:opacity-40"
                     >
-                        {isSubmitting ? "가입 중" : "가입하기"}
+                        {signupMutation.isPending ? "가입 중" : "가입하기"}
                     </button>
                 </form>
                 <p className="mt-6 text-center text-xs text-[#9ca3af]">

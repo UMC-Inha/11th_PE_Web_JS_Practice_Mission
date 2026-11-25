@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMemberProfile } from "../api/members/member-profile";
+import { getMe } from "../api/members/me";
 import { useAuthStore } from "../stores/auth-store";
 
 export function useMemberProfile() {
   const token = useAuthStore((state) => state.accessToken);
   const query = useQuery({
-    queryKey: ["member", token],
-    queryFn: ({ signal }) => getMemberProfile(token!, signal),
+    queryKey: ["members", "me"],
+    queryFn: ({ signal }) => getMe(signal),
     enabled: Boolean(token),
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
   return { ...query, token };
