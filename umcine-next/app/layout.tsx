@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Providers } from "./providers";
 import { Header } from "../src/components/layout/header";
 import "./globals.css";
@@ -19,9 +20,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
         />
       </head>
+
       <body>
         <Providers>
-          <Header />
+          <Suspense fallback={<div className="h-[91px] bg-white" />}>
+            <Header />
+          </Suspense>
+
           {children}
         </Providers>
       </body>
