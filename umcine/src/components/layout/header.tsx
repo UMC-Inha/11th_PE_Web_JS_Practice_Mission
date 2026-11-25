@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useMeQuery } from "@/hooks/use-me-query";
+import { useAuthStore } from "@/stores/auth-store";
 
 const navLink = "text-sm text-gray-400";
 const navLinkActive =
@@ -8,6 +10,10 @@ export function Header() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+
+  // [8주차 추가] 토큰이 있을 때만 내 정보 조회 (계정별 캐시)
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useMeQuery();
 
   // 목록(/)과 상세(/movies/...)에서는 "영화", 검색(/search)에서는 "검색"
   const isMoviesActive = pathname === "/" || pathname.startsWith("/movies");
@@ -41,20 +47,32 @@ export function Header() {
         </nav>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          type="button"
+        {/* [7주차 리뷰 반영] button → Link, /search로 연결 */}
+        <Link
+          to="/search"
           className="grid size-9 place-items-center rounded-lg bg-gray-100"
           aria-label="검색"
         >
           <img src="/icons/search.svg" alt="" width={20} height={20} />
-        </button>
-        {/* [7주차 변경] button → Link, /login으로 연결 */}
-        <Link
-          to="/login"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
-        >
-          로그인
         </Link>
+        {/* [8주차 변경] 로그인 전: 로그인 / 첫 조회 중: 로딩 / 로그인 후: 마이페이지 */}
+        {!accessToken ? (
+          <Link
+            to="/login"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+          >
+            로그인
+          </Link>
+        ) : meQuery.isLoading ? (
+          <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+        ) : (
+          <Link
+            to="/me"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+          >
+            마이페이지
+          </Link>
+        )}
       </div>
     </header>
   );
