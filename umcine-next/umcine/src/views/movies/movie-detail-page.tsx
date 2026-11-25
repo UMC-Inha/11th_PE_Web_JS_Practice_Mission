@@ -1,0 +1,275 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { HTTPError } from "ky";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMovieDetail } from "../../api/movies/get-movie-detail";
+import type { TmdbMovieDetail } from "../../api/movies/models";
+import { createRating } from "../../api/ratings/create-rating";
+import { useAuthStore } from "../../stores/auth-store";
+import { useFavoriteStatusQuery } from "../../hooks/use-favorite-status-query";
+import { useCreateFavoriteMutation } from "../../hooks/use-create-favorite-mutation";
+import { useDeleteFavoriteMutation } from "../../hooks/use-delete-favorite-mutation";
+import type { Movie } from "../../types/movie";
+import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
+
+const RATING_SCORES = [1, 2, 3, 4, 5];
+
+// movieId는 서버의 page.tsx가 params에서 꺼내 props로 넘겨줌 (useParams 대체)
+export function MovieDetailPage({ movieId }: { movieId: number }) {
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
+
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+  });
+
+  return (
+    <>
+      {!isValidMovieId ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-[21px] font-bold text-[#17191E]">
+          올바르지 않은 영화 번호예요.
+        </main>
+      ) : movieDetailQuery.isPending ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
+          영화 정보를 불러오는 중이에요.
+        </main>
+      ) : movieDetailQuery.isError ? (
+        <main className="mx-auto max-w-[1440px] px-20 py-24 text-center text-sm text-[#606774]">
+          {getMovieDetailErrorMessage(movieDetailQuery.error)}
+        </main>
+      ) : (
+        <MovieDetail movie={toMovie(movieDetailQuery.data)} />
+      )}
+    </>
+  );
+}
+
+function getMovieDetailErrorMessage(error: Error) {
+  // 없는 영화 id는 TMDB가 404로 응답한다.
+  if (error instanceof HTTPError && error.response.status === 404) {
+    return "영화를 찾을 수 없어요.";
+  }
+  return "영화 정보를 불러오지 못했어요.";
+}
+
+function toMovie(detail: TmdbMovieDetail): Movie {
+  return {
+    id: detail.id,
+    title: detail.title,
+    originalTitle: detail.original_title,
+    overview: detail.overview,
+    tagline: detail.tagline,
+    posterPath: getTmdbImageUrl(detail.poster_path),
+    backdropPath: getTmdbImageUrl(detail.backdrop_path),
+    releaseDate: detail.release_date,
+    genres: detail.genres.map((genre) => genre.name),
+    runtime: detail.runtime ? `${detail.runtime}분` : "",
+  };
+}
+
+function MovieDetail({ movie }: { movie: Movie }) {
+  const isLoggedIn = !!useAuthStore((state) => state.accessToken);
+
+  const favoriteStatusQuery = useFavoriteStatusQuery(movie.id, isLoggedIn);
+  const isFavorite = favoriteStatusQuery.data?.isFavorite ?? false;
+  const createFavoriteMutation = useCreateFavoriteMutation();
+  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+  const isFavoritePending =
+    createFavoriteMutation.isPending || deleteFavoriteMutation.isPending;
+
+  const [selectedScore, setSelectedScore] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const queryClient = useQueryClient();
+  const createRatingMutation = useMutation({
+    mutationFn: createRating,
+    onSuccess: () => {
+      // 내 정보 화면의 평점 목록(["members", memberId, "ratings"])도 새로 불러오게 함
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey[0] === "members" && query.queryKey[2] === "ratings",
+      });
+      setSelectedScore(null);
+      setComment("");
+      alert("평점을 저장했어요.");
+    },
+    onError: () => {
+      alert("평점 저장에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
+
+  const handleToggleFavorite = () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요해요.");
+      return;
+    }
+    if (isFavorite) {
+      deleteFavoriteMutation.mutate(movie.id);
+    } else {
+      createFavoriteMutation.mutate({ movieId: movie.id });
+    }
+  };
+
+  const handleSaveRating = () => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요해요.");
+      return;
+    }
+    if (!selectedScore) return;
+    createRatingMutation.mutate({
+      movieId: movie.id,
+      score: selectedScore,
+      comment: comment || undefined,
+    });
+  };
+
+  const metaItems = [
+    movie.releaseDate,
+    movie.genres.join(" · "),
+    movie.runtime,
+  ].filter(Boolean);
+
+  return (
+    <>
+      {/* div.detail-stage */}
+      <div
+        className="relative h-[360px] bg-[#17191E] bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 60%), url("${movie.backdropPath}"), url("${movie.posterPath}")`,
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-[1440px] flex-col items-start justify-between px-20 py-6">
+          <Link
+            href="/"
+            className="flex items-center gap-1 text-[13px] leading-4 font-bold text-white"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className="size-6"
+            >
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            영화 목록
+          </Link>
+
+          {/* div.detail-copy */}
+          <div className="flex w-full max-w-[800px] flex-col items-start gap-2 text-white">
+            <h1 className="text-[46px] leading-[50px] font-bold tracking-[-2.3px]">
+              {movie.title}
+            </h1>
+            <p className="text-sm leading-[17px]">{movie.originalTitle}</p>
+            <p className="flex items-center gap-2 text-[13px] leading-4 font-bold">
+              {metaItems.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* main.container */}
+      <main className="mx-auto flex max-w-[1440px] items-start gap-8 px-20 py-6">
+        <div className="h-[286px] w-[200px] shrink-0 overflow-hidden rounded-[10px] bg-[#F6F7F9] shadow-[0_12px_30px_rgba(12,15,20,0.12)]">
+          <img
+            src={movie.posterPath || undefined}
+            alt={`${movie.title} 포스터`}
+            className="size-full object-cover"
+          />
+        </div>
+
+        {/* section.synopsis */}
+        <section className="flex min-w-0 flex-1 flex-col items-start gap-3">
+          {movie.tagline && (
+            <h2 className="text-[21px] leading-[25px] font-bold tracking-[-0.63px] text-[#17191E]">
+              {movie.tagline}
+            </h2>
+          )}
+          {movie.overview && (
+            <p className="text-sm leading-6 text-[#606774]">{movie.overview}</p>
+          )}
+          <div className="flex">
+            <button
+              type="button"
+              aria-pressed={isFavorite}
+              disabled={isFavoritePending}
+              onClick={handleToggleFavorite}
+              className="flex h-[42px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-white bg-[#2563EB] px-4 text-sm leading-[17px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill={isFavorite ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                className="size-4"
+              >
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+              </svg>
+              {isFavorite ? "즐겨찾기 해제" : "즐겨찾기"}
+            </button>
+          </div>
+        </section>
+
+        {/* 평점 저장 패널 */}
+        <aside className="flex w-[360px] shrink-0 flex-col items-stretch gap-2 border-l border-[#E3E6EB] pb-[41px] pl-[30px]">
+          <h2 className="text-[21px] leading-[25px] font-bold tracking-[-0.63px] text-[#17191E]">
+            내 평점
+          </h2>
+          <p className="text-xs leading-[14px] text-[#969DA8]">
+            별점은 필수, 후기는 선택이에요.
+          </p>
+          <div aria-label="영화 별점" className="flex gap-1">
+            {RATING_SCORES.map((score) => (
+              <button
+                key={score}
+                type="button"
+                aria-label={`${score}점`}
+                aria-pressed={selectedScore === score}
+                onClick={() =>
+                  setSelectedScore((prev) => (prev === score ? null : score))
+                }
+                className="flex size-[38px] items-center justify-center rounded-lg border border-[#E3E6EB] bg-white px-1.5 py-px"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  className={`size-6 ${score <= (selectedScore ?? 0) ? "fill-[#2563EB]" : "fill-[#606774]"}`}
+                >
+                  <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+              </button>
+            ))}
+          </div>
+          <textarea
+            id="review-text"
+            aria-label="후기"
+            placeholder="영화를 보고 느낀 점을 남겨보세요."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            maxLength={500}
+            className="h-[102px] resize-none rounded-lg border border-[#E3E6EB] bg-white px-3 pt-4 pb-[18px] text-[13px] leading-5 text-[#17191E] outline-none placeholder:text-[#969DA8]"
+          />
+          <button
+            id="save-rating"
+            type="button"
+            disabled={!selectedScore || createRatingMutation.isPending}
+            onClick={handleSaveRating}
+            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#17191E] px-4 text-sm leading-[17px] font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {createRatingMutation.isPending ? "저장 중" : "평점 저장"}
+          </button>
+        </aside>
+      </main>
+    </>
+  );
+}

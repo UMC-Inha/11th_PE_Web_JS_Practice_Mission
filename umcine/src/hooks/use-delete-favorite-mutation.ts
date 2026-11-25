@@ -2,16 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteFavorite } from "../api/favorites/delete-favorite";
 import { MY_FAVORITES_QUERY_KEY } from "../api/favorites/get-my-favorites";
 import { FAVORITE_STATUS_QUERY_KEY } from "../api/favorites/get-favorite-status";
-import { useBookmarkStore } from "../stores/bookmark-store";
 
 export function useDeleteFavoriteMutation() {
   const queryClient = useQueryClient();
-  const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
 
   return useMutation({
     mutationFn: (movieId: number) => deleteFavorite(movieId),
     onSuccess: (_, movieId) => {
-      removeBookmark(movieId);
       queryClient.invalidateQueries({ queryKey: MY_FAVORITES_QUERY_KEY });
       queryClient.invalidateQueries({
         queryKey: FAVORITE_STATUS_QUERY_KEY(movieId),

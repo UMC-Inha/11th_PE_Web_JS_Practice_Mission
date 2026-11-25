@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { MovieGrid } from "../../components/movies/movie-grid";
 import { Pagination } from "../../components/movies/pagination";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { useMyFavoritesQuery } from "../../hooks/use-my-favorites-query";
 import type { Movie } from "../../types/movie";
 import { getTmdbImageUrl } from "../../utils/movies/tmdb-images";
 import { getMyInfo, MY_INFO_QUERY_KEY } from "../../api/members/get-my-info";
@@ -19,9 +19,10 @@ export function MyPage() {
   });
   // 불러오는 중이거나 실패하면 빈 칸 대신 표시할 글자
   const myInfoFallback = myInfoQuery.isError ? "불러오지 못했어요" : "…";
-  const bookmarkedMovieIds = useBookmarkStore(
-    (state) => state.bookmarkedMovieIds,
-  );
+  // 즐겨찾기 목록은 서버 응답을 기준으로 한다.
+  const myFavoritesQuery = useMyFavoritesQuery();
+  const bookmarkedMovieIds =
+    myFavoritesQuery.data?.map((favorite) => favorite.movieId) ?? [];
 
   const totalPages = Math.max(
     1,
@@ -113,7 +114,11 @@ export function MyPage() {
         <h2 className="text-lg leading-[22px] font-extrabold text-[#17191E]">
           내 즐겨찾기
         </h2>
-        {bookmarkedMovieIds.length === 0 ? (
+        {myFavoritesQuery.isPending ? (
+          <p className={messageClass}>즐겨찾기 목록을 불러오는 중이에요.</p>
+        ) : myFavoritesQuery.isError ? (
+          <p className={messageClass}>즐겨찾기 목록을 불러오지 못했어요.</p>
+        ) : bookmarkedMovieIds.length === 0 ? (
           <p className={messageClass}>즐겨찾기한 영화가 없어요.</p>
         ) : isPending ? (
           <p className={messageClass}>즐겨찾기 목록을 불러오는 중이에요.</p>

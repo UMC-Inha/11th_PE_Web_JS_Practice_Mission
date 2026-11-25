@@ -1,4 +1,4 @@
-import { useBookmarkStore } from "../stores/bookmark-store";
+import { useToggleFavorite } from "../hooks/use-toggle-favorite";
 import { cn } from "../utils/cn";
 
 interface BookmarkButtonProps {
@@ -7,17 +7,19 @@ interface BookmarkButtonProps {
 }
 
 export function BookmarkButton({ movieId, className }: BookmarkButtonProps) {
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movieId),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  const {
+    isFavorite: isBookmarked,
+    isPending,
+    toggleFavorite,
+  } = useToggleFavorite(movieId);
 
   return (
     <button
       type="button"
       aria-label={isBookmarked ? "북마크 해제" : "북마크"}
       aria-pressed={isBookmarked}
-      onClick={() => toggleBookmark(movieId)}
+      disabled={isPending}
+      onClick={toggleFavorite}
       className={cn(
         "flex size-6 cursor-pointer items-center justify-center rounded-md border text-white",
         isBookmarked
