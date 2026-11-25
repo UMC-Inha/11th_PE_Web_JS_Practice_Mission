@@ -1,4 +1,7 @@
-import { Link, useParams } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
@@ -6,9 +9,7 @@ import { Footer } from "../../components/layout/footer";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieDetailPage() {
-  const { movieId: movieIdParam } = useParams({
-    from: "/movies/$movieId",
-  });
+  const { movieId: movieIdParam } = useParams<{ movieId: string }>();
 
   const [rating, setRating] = useState(0);
 
@@ -95,7 +96,7 @@ export function MovieDetailPage() {
 
           <div className="relative z-10 h-full px-20 py-6 text-white">
             <Link
-              to="/"
+              href="/"
               className="inline-flex items-center gap-1 text-[13px] font-bold text-white"
             >
               <img
