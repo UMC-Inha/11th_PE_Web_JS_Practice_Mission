@@ -1,9 +1,8 @@
 import { useState, type SubmitEvent } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
 import { Link } from "@tanstack/react-router";
-import { useNavigate } from "@tanstack/react-router";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 
 const DEFAULT_DUPLICATE_CHECK = {
   isChecking: false,
@@ -37,8 +36,7 @@ export function SignupPage() {
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const signupMutation = useSignupMutation();
 
   // 입력값의 유효성 검사
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -131,28 +129,16 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!canSubmit || isSubmitting) return;
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    setIsSubmitting(true);
+    if (!canSubmit || signupMutation.isPending) return;
 
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-
-      alert(response.message);
-
-
-      navigate({ to: "/login" });
-    } catch {
-      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -278,10 +264,10 @@ export function SignupPage() {
 
         <button
           type="submit"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || signupMutation.isPending}
           className="mt-1 h-12 rounded-lg bg-[#2563EB] text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "가입 중" : "가입하기"}
+          {signupMutation.isPending ? "가입 중" : "가입하기"}
         </button>
 
         <div className="flex justify-center gap-1 text-[13px]">
@@ -290,7 +276,8 @@ export function SignupPage() {
           </span>
           <Link
             to="/login"
-            className="font-extrabold text-[#2563EB]">
+            className="font-extrabold text-[#2563EB]"
+          >
             로그인
           </Link>
         </div>

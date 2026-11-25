@@ -1,5 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 export function Header() {
   const pathname = useRouterState({
@@ -9,11 +11,19 @@ export function Header() {
   const isMoviePage =
     pathname === "/" || pathname.startsWith("/movies/");
 
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <header className="h-[91px] w-full border-b border-[#e3e6eb] bg-white">
       <div className="flex h-full w-full items-center justify-between px-20 py-6">
         <div className="flex items-center gap-[42px]">
-
           <Link
             to="/"
             className="flex items-center gap-[10px]  text-xl font-black tracking-[-0.7px] text-[#17191e]"
@@ -65,7 +75,6 @@ export function Header() {
               내 정보
             </Link>
           </nav>
-
         </div>
 
         <div className="flex items-center gap-[10px]">
@@ -81,12 +90,23 @@ export function Header() {
             />
           </Link>
 
-          <Link
-            to="/login"
-            className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-sm font-extrabold text-white"
-          >
-            로그인
-          </Link>
+          {!accessToken ? (
+            <Link
+              to="/login"
+              className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-sm font-extrabold text-white"
+            >
+              로그인
+            </Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+          ) : (
+            <Link
+              to="/mypage"
+              className="flex h-[42px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-sm font-extrabold text-white"
+            >
+              마이페이지
+            </Link>
+          )}
         </div>
       </div>
     </header>

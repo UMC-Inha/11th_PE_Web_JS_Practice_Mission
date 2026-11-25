@@ -1,12 +1,26 @@
 import { useState, type SubmitEvent } from "react";
 import { Link } from "@tanstack/react-router";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const loginMutation = useLoginMutation();
+  const canSubmit =
+    EMAIL_REGEX.test(email.trim()) && password.length > 0;
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: email.trim(),
+      password: password,
+    });
   };
 
   return (
@@ -73,9 +87,10 @@ export function LoginPage() {
 
         <button
           type="submit"
-          className="h-12 rounded-lg bg-[#2563EB] text-sm font-extrabold text-white"
+          disabled={!canSubmit || loginMutation.isPending}
+          className="h-12 rounded-lg bg-[#2563EB] text-sm font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          로그인
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
 
         <div className="flex justify-center pt-[5px] text-xs">
@@ -84,7 +99,8 @@ export function LoginPage() {
           </span>
           <Link
             to="/signup"
-            className="ml-1 font-extrabold text-[#2563EB]">
+            className="ml-1 font-extrabold text-[#2563EB]"
+          >
             회원가입
           </Link>
         </div>
