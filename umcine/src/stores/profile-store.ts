@@ -26,6 +26,7 @@ export const useProfileStore = create<ProfileStore>()(
       partialize: (state) => ({
         nickname: state.nickname,
         email: state.email,
+        profileImage: state.profileImage,
       }),
     },
   ),

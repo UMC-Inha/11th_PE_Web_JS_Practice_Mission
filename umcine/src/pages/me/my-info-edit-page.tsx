@@ -3,20 +3,28 @@ import { useRef, useState, type ChangeEvent, type SubmitEvent } from "react";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { ProfileAvatar } from "../../components/me/profile-avatar";
 import { useProfileStore } from "../../stores/profile-store";
+import { imageFileToDataUrl } from "../../utils/me/image-to-data-url";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export function MyInfoEditPage() {
   const navigate = useNavigate();
-  const {
-    nickname: savedNickname,
-    email,
-    profileImage: savedProfileImage,
-    updateProfile,
-  } = useProfileStore();
 
-  const [nickname, setNickname] = useState(savedNickname);
+  const { profileImage: savedProfileImage, updateProfile } = useProfileStore();
+  const { data: me } = useQuery({ queryKey: ["members", "me"], queryFn: getMe });
+  const updateMeMutation = useUpdateMeMutation();
+
+  const savedNickname = me?.nickname ?? "";
+  const email = me?.email ?? "";
+
+  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
+  const nickname = nicknameInput ?? savedNickname;
   const [profileImage, setProfileImage] = useState(savedProfileImage);
+
   const [duplicateCheck, setDuplicateCheck] = useState({
     isChecking: false,
     isAvailable: false,
@@ -35,7 +43,8 @@ export function MyInfoEditPage() {
   const handleNicknameChange = (value: string) => {
     if (duplicateCheck.isChecking) return;
     setDuplicateCheck({ isChecking: false, isAvailable: false });
-    setNickname(value);
+    setNicknameInput(value);
+
   };
 
   const handleCheckDuplicate = async () => {
@@ -60,30 +69,45 @@ export function MyInfoEditPage() {
     }
   };
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  e.target.value = "";
+  if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 선택할 수 있어요.");
-      return;
-    }
-    if (file.size > MAX_IMAGE_SIZE) {
-      alert("프로필 이미지는 최대 5MB까지 선택할 수 있어요.");
-      return;
-    }
+  if (!file.type.startsWith("image/")) {
+    alert("이미지 파일만 선택할 수 있어요.");
+    return;
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    alert("프로필 이미지는 최대 5MB까지 선택할 수 있어요.");
+    return;
+  }
 
-    setProfileImage(URL.createObjectURL(file));
-  };
+  try {
+    setProfileImage(await imageFileToDataUrl(file));
+  } catch {
+    alert("이미지를 불러오지 못했어요. 다른 파일을 선택해 주세요.");
+  }
+};
+
 
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!canSave) return;
+  e.preventDefault();
+  if (!canSave || updateMeMutation.isPending) return;
 
-    updateProfile({ nickname: trimmedNickname, profileImage });
+  const finish = () => {
+    updateProfile({ nickname: trimmedNickname, profileImage }); // 이미지 로컬 저장용
     navigate({ to: "/me" });
   };
+
+  if (!isNicknameChanged) {
+    finish();
+    return;
+  }
+
+  updateMeMutation.mutate({ nickname: trimmedNickname }, { onSuccess: finish });
+};
+
 
   return (
     <main className="flex flex-1 flex-col bg-gray-100 p-4 text-left sm:p-8">
@@ -97,10 +121,10 @@ export function MyInfoEditPage() {
           </div>
           <button
             type="submit"
-            disabled={!canSave}
+            disabled={!canSave || updateMeMutation.isPending}
             className="shrink-0 cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-default disabled:bg-gray-400"
           >
-            변경사항 저장
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
@@ -191,11 +215,14 @@ export function MyInfoEditPage() {
           </p>
         </div>
         <button
-          type="button"
-          className="shrink-0 cursor-pointer rounded-lg border border-red-500 bg-white px-4 py-2.5 text-sm font-semibold text-red-600"
-        >
-          회원 탈퇴
-        </button>
+            type="button"
+            disabled
+            title="회원 탈퇴 기능은 아직 지원하지 않아요."
+            className="shrink-0 cursor-not-allowed rounded-lg border border-red-500 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 opacity-50"
+          >
+            회원 탈퇴 (준비 중)
+      </button>
+
       </section>
     </main>
   );

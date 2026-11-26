@@ -1,24 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type SubmitEvent } from "react";
-import { createRating } from "../../api/members/create-rating";
-import { deleteRating } from "../../api/members/delete-rating";
-import { getMemberRatings } from "../../api/members/get-member-ratings";
-import type { MemberRating } from "../../api/members/get-member-ratings";
-import { updateRating } from "../../api/members/update-rating";
+import { getMe } from "../../api/members/me";
+import { queryKeys } from "../../api/query-keys";
+import { createRating } from "../../api/ratings/create-rating";
+import { deleteRating } from "../../api/ratings/delete-rating";
+import { getMemberRatings } from "../../api/ratings/get-member-ratings";
+import type { MemberRating } from "../../api/ratings/get-member-ratings";
+import { updateRating } from "../../api/ratings/update-rating";
 import { getServerErrorMessage } from "../../utils/get-server-error-message";
-
-const MEMBER_ID = 1;
-const MEMBER_NAME = "수현";
-const RATINGS_QUERY_KEY = ["members", MEMBER_ID, "ratings"];
 
 const inputClassName =
   "rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none";
 
 interface RatingItemProps {
   rating: MemberRating;
+  memberId: number;
 }
 
-function RatingItem({ rating }: RatingItemProps) {
+function RatingItem({ rating, memberId }: RatingItemProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [score, setScore] = useState(String(rating.score));
@@ -27,21 +26,21 @@ function RatingItem({ rating }: RatingItemProps) {
 
   const updateMutation = useMutation({
     mutationFn: () =>
-      updateRating(MEMBER_ID, rating.ratingId, {
+      updateRating(rating.ratingId, {
         score: Number(score),
         comment: comment.trim() || undefined,
       }),
     onSuccess: () => {
       setIsEditing(false);
-      return queryClient.invalidateQueries({ queryKey: RATINGS_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.ratings(memberId) });
     },
     onError: async (error) => setErrorMessage(await getServerErrorMessage(error)),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteRating(MEMBER_ID, rating.ratingId),
+    mutationFn: () => deleteRating(rating.ratingId),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: RATINGS_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.ratings(memberId) }),
     onError: async (error) => setErrorMessage(await getServerErrorMessage(error)),
   });
 
@@ -141,7 +140,7 @@ function RatingItem({ rating }: RatingItemProps) {
   );
 }
 
-function RatingForm() {
+function RatingForm({ memberId }: { memberId: number }) {
   const queryClient = useQueryClient();
   const [movieId, setMovieId] = useState("");
   const [score, setScore] = useState("");
@@ -150,7 +149,7 @@ function RatingForm() {
 
   const createMutation = useMutation({
     mutationFn: () =>
-      createRating(MEMBER_ID, {
+      createRating({
         movieId: Number(movieId),
         score: Number(score),
         comment: comment.trim() || undefined,
@@ -159,7 +158,7 @@ function RatingForm() {
       setMovieId("");
       setScore("");
       setComment("");
-      return queryClient.invalidateQueries({ queryKey: RATINGS_QUERY_KEY });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.ratings(memberId) });
     },
     onError: async (error) => setErrorMessage(await getServerErrorMessage(error)),
   });
@@ -213,20 +212,34 @@ function RatingForm() {
 }
 
 export function MyPage() {
+  const meQuery = useQuery({ queryKey: queryKeys.me, queryFn: getMe });
+  const memberId = meQuery.data?.memberId;
+
   const ratingsQuery = useQuery({
-    queryKey: RATINGS_QUERY_KEY,
-    queryFn: () => getMemberRatings(MEMBER_ID),
+    queryKey: queryKeys.ratings(memberId ?? 0),
+    queryFn: () => getMemberRatings(memberId as number),
+    enabled: memberId !== undefined,
   });
 
   const ratings = ratingsQuery.data ?? [];
 
+  if (memberId === undefined) {
+    return (
+      <main className="flex-1 bg-gray-100 p-4 text-center text-gray-500 sm:p-8">
+        {meQuery.isError
+          ? "내 정보를 불러오지 못했어요."
+          : "내 정보를 불러오는 중이에요."}
+      </main>
+    );
+  }
+
   return (
     <main className="flex-1 bg-gray-100 p-4 text-left sm:p-8">
       <h2 className="mb-4 text-xl font-bold text-gray-900 sm:mb-6 sm:text-2xl">
-        {MEMBER_NAME}님의 평점
+        {meQuery.data?.nickname}님의 평점
       </h2>
 
-      <RatingForm />
+      <RatingForm memberId={memberId} />
 
       {ratingsQuery.isPending ? (
         <p className="py-10 text-center text-gray-500">
@@ -241,7 +254,7 @@ export function MyPage() {
       ) : (
         <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {ratings.map((rating) => (
-            <RatingItem key={rating.ratingId} rating={rating} />
+            <RatingItem key={rating.ratingId} rating={rating} memberId={memberId} />
           ))}
         </ul>
       )}
