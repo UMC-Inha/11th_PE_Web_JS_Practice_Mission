@@ -1,17 +1,73 @@
 import { useState } from "react";
-import { movies } from "../../data/movies";
 import { Pagination } from "../../components/movies/pagination";
 import { Link } from "@tanstack/react-router";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { getFavorites } from "../../api/favorites/get-favorites";
+import { getMovieDetailOptions } from "../../queries/movie-query-options";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function MyPage() {
-  const member = {
-    nickname: "윤샘",
-    email: "name@example.com",
-  };
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  const favoriteMovies = movies.filter((movie) => [1, 2, 5].includes(movie.id));
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites", "list"],
+    queryFn: getFavorites,
+    enabled: Boolean(accessToken),
+  });
+
+  const favorites = favoritesQuery.data ?? [];
+
+  // 한 페이지에 영화 5편 표시
+  const pageSize = 5;
+  const totalPages = Math.max(1, Math.ceil(favorites.length / pageSize));
+  const selectedPage = Math.min(currentPage, totalPages);
+
+  const startIndex = (selectedPage - 1) * pageSize;
+  const visibleFavorites = favorites.slice(startIndex, startIndex + pageSize);
+
+  // 즐겨찾기에 담긴 영화들의 상세 정보를 각각 조회
+  const movieQueries = useQueries({
+    queries: visibleFavorites.map((favorite) =>
+      getMovieDetailOptions(favorite.movieId),
+    ),
+  });
+
+  const isMoviesLoading = movieQueries.some((query) => query.isPending);
+  const isMoviesError = movieQueries.some((query) => query.isError);
+
+  const favoriteMovies = movieQueries.flatMap((query) =>
+    query.data ? [query.data] : [],
+  );
+
+  if (!accessToken) {
+    return <main className="flex-1 px-5 py-6">로그인이 필요해요.</main>;
+  }
+
+  if (meQuery.isLoading) {
+    return (
+      <main className="flex-1 px-5 py-6">내 정보를 불러오는 중이에요.</main>
+    );
+  }
+
+  if (meQuery.isError || !meQuery.data) {
+    return (
+      <main className="flex-1 px-5 py-6">내 정보를 불러오지 못했어요.</main>
+    );
+  }
+
+  const member = meQuery.data;
 
   return (
     <main className="flex-1 bg-[#f6f7f9] px-5 py-6">
@@ -62,31 +118,55 @@ export function MyPage() {
             내 즐겨찾기
           </h2>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {favoriteMovies.map((movie) => (
-              <article key={movie.id} className="min-w-0">
-                <img
-                  src={movie.posterPath}
-                  alt={`${movie.title} 포스터`}
-                  className="h-68 w-full rounded-lg object-cover"
-                />
+          {favoritesQuery.isPending ? (
+            <p>즐겨찾기를 불러오는 중이에요.</p>
+          ) : favoritesQuery.isError ? (
+            <p>즐겨찾기를 불러오지 못했어요.</p>
+          ) : favorites.length === 0 ? (
+            <p>즐겨찾기한 영화가 없어요.</p>
+          ) : isMoviesLoading ? (
+            <p>영화 정보를 불러오는 중이에요.</p>
+          ) : isMoviesError ? (
+            <p>영화 정보를 불러오지 못했어요.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                {favoriteMovies.map((movie) => {
+                  const posterUrl = getTmdbPosterUrl(movie.poster_path);
 
-                <h3 className="mt-2 truncate text-sm font-bold">
-                  {movie.title}
-                </h3>
+                  return (
+                    <article key={movie.id} className="min-w-0">
+                      {posterUrl ? (
+                        <img
+                          src={posterUrl}
+                          alt={`${movie.title} 포스터`}
+                          className="h-68 w-full rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="grid h-68 place-items-center rounded-lg bg-gray-200">
+                          포스터 없음
+                        </div>
+                      )}
 
-                <p className="mt-1 text-xs text-[#98a2b3]">
-                  {movie.releaseDate}
-                </p>
-              </article>
-            ))}
-          </div>
+                      <h3 className="mt-2 truncate text-sm font-bold">
+                        {movie.title}
+                      </h3>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={1}
-            onPageChange={setCurrentPage}
-          />
+                      <p className="mt-1 text-xs text-[#98a2b3]">
+                        {movie.release_date}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <Pagination
+                currentPage={selectedPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
+          )}
         </section>
       </div>
     </main>
