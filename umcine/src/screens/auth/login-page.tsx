@@ -1,6 +1,10 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLoginMutation } from "../../hooks/use-login-mutation";
+import { useAuthStore } from "../../stores/auth-store";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -9,6 +13,15 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
 
   const loginMutation = useLoginMutation();
+
+  const router = useRouter();
+  const accessToken = useAuthStore((state) => state.accessToken);
+
+  useEffect(() => {
+    if (accessToken && loginMutation.isIdle) {
+      router.replace("/");
+    }
+  }, [accessToken, loginMutation.isIdle, router]);
 
   const canSubmit = EMAIL_REGEX.test(email.trim()) && password.length > 0;
 
@@ -82,7 +95,7 @@ export function LoginPage() {
 
         <p className="mt-4 text-center text-xs text-[#667085]">
           계정이 없으신가요?{" "}
-          <Link to="/signup" className="font-semibold text-blue-600">
+          <Link href="/signup" className="font-semibold text-blue-600">
             회원가입
           </Link>
         </p>

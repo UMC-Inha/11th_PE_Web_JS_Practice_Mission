@@ -1,4 +1,7 @@
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { cn } from "../../utils/cn";
 import { getMovieSearchOptions } from "../../queries/movie-query-options";
@@ -6,10 +9,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
-  const { query = "" } = useSearch({ from: "/search" });
-  const navigate = useNavigate({ from: "/search" });
-  const [searchText, setSearchText] = useState(query);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  const query = searchParams.get("query") ?? "";
+  const [searchText, setSearchText] = useState(query);
   const normalizedQuery = query.trim();
 
   useEffect(() => {
@@ -22,11 +26,12 @@ export function SearchPage() {
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+
     const nextQuery = searchText.trim();
 
-    navigate({
-      search: nextQuery ? { query: nextQuery } : {},
-    });
+    router.push(
+      nextQuery ? `/search?query=${encodeURIComponent(nextQuery)}` : "/search",
+    );
   }
 
   return (
@@ -68,7 +73,7 @@ export function SearchPage() {
             className="grid size-6 place-items-center"
             onClick={() => {
               setSearchText("");
-              navigate({ search: {} });
+              router.push("/search");
             }}
           >
             <img src="/icons/close.svg" alt="" className="size-4" />
@@ -135,8 +140,7 @@ export function SearchPage() {
 
                       <Link
                         className="mt-4 inline-block text-sm font-semibold text-blue-600"
-                        to="/movies/$movieId"
-                        params={{ movieId: String(movie.id) }}
+                        href={`/movies/${movie.id}`}
                       >
                         상세 보기 →
                       </Link>

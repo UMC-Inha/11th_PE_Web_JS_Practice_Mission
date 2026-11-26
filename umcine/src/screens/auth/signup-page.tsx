@@ -1,8 +1,10 @@
+"use client";
+
 import { useState } from "react";
+import Link from "next/link";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { useSignupMutation } from "../../hooks/use-signup-mutation";
-// import { useNavigate } from "@tanstack/react-router";
 
 const DEFAULT_DUPLICATE_CHECK = {
   isChecking: false,
@@ -29,7 +31,6 @@ type DefaultFormValue = (typeof DEFAULT_FORM)[DefaultFormKey];
 
 export function SignupPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
-  // const navigate = useNavigate();
 
   const [duplicateCheck, setDuplicateCheck] = useState({
     email: DEFAULT_DUPLICATE_CHECK,
@@ -275,9 +276,9 @@ export function SignupPage() {
 
         <p className="mt-4 text-center text-xs text-[#667085]">
           이미 계정이 있나요?{" "}
-          <button className="font-semibold text-blue-600" type="button">
+          <Link href="/login" className="font-semibold text-blue-600">
             로그인
-          </button>
+          </Link>
         </p>
       </form>
     </main>

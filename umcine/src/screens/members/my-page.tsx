@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
 import { Pagination } from "../../components/movies/pagination";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -76,7 +78,7 @@ export function MyPage() {
           <h1 className="text-[32px] font-bold">내 정보</h1>
 
           <Link
-            to="/my-edit"
+            href="/my-edit"
             className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2563eb] px-4 text-sm font-bold text-white"
           >
             정보 수정
@@ -136,25 +138,27 @@ export function MyPage() {
 
                   return (
                     <article key={movie.id} className="min-w-0">
-                      {posterUrl ? (
-                        <img
-                          src={posterUrl}
-                          alt={`${movie.title} 포스터`}
-                          className="h-68 w-full rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="grid h-68 place-items-center rounded-lg bg-gray-200">
-                          포스터 없음
-                        </div>
-                      )}
+                      <Link href={`/movies/${movie.id}`} className="block">
+                        {posterUrl ? (
+                          <img
+                            src={posterUrl}
+                            alt={`${movie.title} 포스터`}
+                            className="h-68 w-full rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="grid h-68 place-items-center rounded-lg bg-gray-200">
+                            포스터 없음
+                          </div>
+                        )}
 
-                      <h3 className="mt-2 truncate text-sm font-bold">
-                        {movie.title}
-                      </h3>
+                        <h3 className="mt-2 truncate text-sm font-bold">
+                          {movie.title}
+                        </h3>
 
-                      <p className="mt-1 text-xs text-[#98a2b3]">
-                        {movie.release_date}
-                      </p>
+                        <p className="mt-1 text-xs text-[#98a2b3]">
+                          {movie.release_date}
+                        </p>
+                      </Link>
                     </article>
                   );
                 })}

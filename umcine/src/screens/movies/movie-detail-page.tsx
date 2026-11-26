@@ -1,4 +1,7 @@
-import { Link, useParams } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetailOptions } from "../../queries/movie-query-options";
 import { useFavorite } from "../../hooks/use-favorite";
@@ -13,7 +16,7 @@ import { getMemberRatings } from "../../api/ratings/get-member-ratings";
 import { RatingForm } from "../../components/movies/rating-form";
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
+  const { movieId } = useParams<{ movieId: string }>();
   const parsedMovieId = Number(movieId);
   const isValidMovieId = Number.isInteger(parsedMovieId) && parsedMovieId > 0;
 
@@ -94,7 +97,7 @@ export function MovieDetailPage() {
         <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent" />
 
         <div className="relative z-10 mx-auto flex h-full w-full max-w-7xl flex-col px-5 py-7 text-white">
-          <Link to="/" className="text-sm">
+          <Link href="/" className="text-sm">
             〈 영화 목록
           </Link>
           <div className="mt-auto">
