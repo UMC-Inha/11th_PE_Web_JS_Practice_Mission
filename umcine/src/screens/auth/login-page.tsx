@@ -1,4 +1,6 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useLoginMutation } from "../../hooks/use-login-mutation";
 
@@ -90,7 +92,7 @@ export function LoginPage() {
 
         <p className="text-center text-xs text-[#9aa1ad]">
           처음이신가요?{" "}
-          <Link to="/signup" className="font-semibold text-[#2563eb]">
+          <Link href="/signup" className="font-semibold text-[#2563eb]">
             회원가입
           </Link>
         </p>

@@ -1,22 +1,29 @@
-import { Link, useParams } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { movieDetailQueryOptions } from '../../api/movies/movie-query-options'
-import { BookmarkButton } from '../../components/bookmark-button'
-import { getMovieDetailErrorMessage } from '../../utils/movies/get-movie-detail-error-message'
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { movieDetailQueryOptions } from "../../api/movies/movie-query-options";
+import { getMe } from "../../api/members/me";
+import { BookmarkButton } from "../../components/bookmark-button";
+import { RatingEditor } from "../../components/ratings/rating-editor";
+import { useMemberRatingsQuery } from "../../hooks/use-ratings";
+import { useAuthStore } from "../../stores/auth-store";
+import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbBackdropUrl,
   getTmdbPosterUrl,
-} from '../../utils/movies/tmdb-image'
+} from "../../utils/movies/tmdb-image";
 
 function formatRuntime(runtime: number | null) {
   if (runtime === null) {
-    return '상영 시간 정보가 없어요.'
+    return "상영 시간 정보가 없어요.";
   }
 
-  const hours = Math.floor(runtime / 60)
-  const minutes = runtime % 60
+  const hours = Math.floor(runtime / 60);
+  const minutes = runtime % 60;
 
-  return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`
+  return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
 }
 
 function DetailMessage({ message }: { message: string }) {
@@ -25,27 +32,39 @@ function DetailMessage({ message }: { message: string }) {
       <h1 className="text-2xl font-bold text-[#17191e]">{message}</h1>
       <Link
         className="mt-5 inline-block text-sm font-semibold text-[#2563eb]"
-        to="/"
+        href="/"
       >
         영화 목록으로 돌아가기
       </Link>
     </main>
-  )
+  );
 }
 
 export function MovieDetailPage() {
-  const { movieId: movieIdParam } = useParams({
-    from: '/movies/$movieId',
-  })
-
-  const movieId = Number(movieIdParam)
-  const isValidMovieId = Number.isInteger(movieId) && movieId > 0
+  const params = useParams<{ movieId: string }>();
+  const movieId = Number(params?.movieId);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const movieDetailQuery = useQuery(
-  movieDetailQueryOptions(movieId, isValidMovieId),
-)
+    movieDetailQueryOptions(movieId, isValidMovieId),
+  );
 
-  const movie = movieDetailQuery.data
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const memberId = meQuery.data?.memberId;
+  const ratingsQuery = useMemberRatingsQuery(memberId);
+  const existingRating = ratingsQuery.data?.find(
+    (rating) => rating.movieId === movieId,
+  );
+
+  const movie = movieDetailQuery.data;
 
   if (!isValidMovieId) {
     return (
@@ -55,34 +74,36 @@ export function MovieDetailPage() {
         </h1>
         <Link
           className="mt-5 inline-block text-sm font-semibold text-[#2563eb]"
-          to="/"
+          href="/"
         >
           영화 목록으로 돌아가기
         </Link>
       </main>
-    )
+    );
   }
 
   if (movieDetailQuery.isPending) {
     return (
       <main className="mx-auto max-w-[1100px] px-5 py-20 text-center sm:px-10">
-        <p className="text-sm text-[#606774]">
-          영화 정보를 불러오는 중이에요.
-        </p>
+        <p className="text-sm text-[#606774]">영화 정보를 불러오는 중이에요.</p>
       </main>
-    )
+    );
   }
 
   if (movieDetailQuery.isError) {
-    return <DetailMessage message={getMovieDetailErrorMessage(movieDetailQuery.error)} />
+    return (
+      <DetailMessage
+        message={getMovieDetailErrorMessage(movieDetailQuery.error)}
+      />
+    );
   }
 
   if (!movie) {
-    return <DetailMessage message="영화를 찾을 수 없어요." />
+    return <DetailMessage message="영화를 찾을 수 없어요." />;
   }
 
-  const posterUrl = getTmdbPosterUrl(movie.poster_path)
-  const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path)
+  const posterUrl = getTmdbPosterUrl(movie.poster_path);
+  const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
 
   return (
     <main>
@@ -105,7 +126,7 @@ export function MovieDetailPage() {
         <div className="relative mx-auto flex h-full max-w-[1100px] flex-col justify-end px-5 pb-8 sm:px-10 sm:pb-10">
           <Link
             className="mb-auto mt-5 text-xs text-white/90 hover:underline"
-            to="/"
+            href="/"
           >
             ← 영화 목록
           </Link>
@@ -134,7 +155,7 @@ export function MovieDetailPage() {
 
         <div>
           <h2 className="text-base font-bold text-[#17191e]">
-            {movie.tagline || '태그라인 정보가 없어요.'}
+            {movie.tagline || "태그라인 정보가 없어요."}
           </h2>
           <p className="mt-4 text-sm leading-7 text-[#606774]">
             {movie.overview}
@@ -154,23 +175,24 @@ export function MovieDetailPage() {
           <BookmarkButton movieId={movie.id} />
         </div>
 
-        <aside className="border-l border-[#e3e6eb] pl-5">
-          <h2 className="text-sm font-bold text-[#17191e]">내 평점</h2>
-          <p className="mt-2 text-lg tracking-[3px] text-[#606774]">
-            ☆ ☆ ☆ ☆ ☆
-          </p>
-          <textarea
-            className="mt-3 h-20 w-full resize-none rounded-md border border-[#e3e6eb] bg-white p-3 text-xs outline-none focus:border-[#2563eb]"
-            placeholder="영화를 보고 느낀 점을 남겨보세요."
+        {accessToken && (meQuery.isLoading || ratingsQuery.isLoading) ? (
+          <aside className="border-l border-[#e3e6eb] pl-5 text-sm text-[#606774]">
+            평점 정보를 불러오는 중이에요.
+          </aside>
+        ) : accessToken && (meQuery.isError || ratingsQuery.isError) ? (
+          <aside className="border-l border-[#e3e6eb] pl-5 text-sm text-[#dc2626]">
+            평점 정보를 불러오지 못했어요.
+          </aside>
+        ) : (
+          <RatingEditor
+            key={existingRating?.ratingId ?? `new-${movieId}`}
+            movieId={movieId}
+            memberId={memberId}
+            isLoggedIn={Boolean(accessToken)}
+            existingRating={existingRating}
           />
-          <button
-            className="mt-2 h-9 w-full rounded bg-[#17191e] text-xs font-semibold text-white"
-            type="button"
-          >
-            평점 저장
-          </button>
-        </aside>
+        )}
       </section>
     </main>
-  )
+  );
 }

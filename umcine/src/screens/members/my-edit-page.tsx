@@ -1,16 +1,51 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useProfileStore } from "../../stores/profile-store";
+"use client";
+
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { getMe, type MemberInfo } from "../../api/members/me";
 import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 import EditIcon from "./Edit.svg";
 
 export function MyEditPage() {
-  const savedNickname = useProfileStore((state) => state.nickname);
-  const email = useProfileStore((state) => state.email);
-  const updateProfile = useProfileStore((state) => state.updateProfile);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
 
-  const [nickname, setNickname] = useState(savedNickname);
+  if (meQuery.isPending) {
+    return <EditPageMessage message="내 정보를 불러오는 중이에요." />;
+  }
+
+  if (meQuery.isError) {
+    return <EditPageMessage message="내 정보를 불러오지 못했어요." />;
+  }
+
+  return <MyEditForm key={meQuery.data.memberId} member={meQuery.data} />;
+}
+
+function EditPageMessage({ message }: { message: string }) {
+  return (
+    <main className="mx-auto w-full max-w-[920px] px-5 py-20 text-center text-sm text-[#606774] sm:px-10">
+      {message}
+    </main>
+  );
+}
+
+function MyEditForm({ member }: { member: MemberInfo }) {
+  const router = useRouter();
+
+  const [nickname, setNickname] = useState(member.nickname);
 
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profileImageUrl) return;
+
+    return () => URL.revokeObjectURL(profileImageUrl);
+  }, [profileImageUrl]);
 
   const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -37,11 +72,7 @@ export function MyEditPage() {
 
     updateMeMutation.mutate(
       { nickname: trimmedNickname },
-      {
-        onSuccess: () => {
-          updateProfile(trimmedNickname);
-        },
-      },
+      { onSuccess: () => router.push("/me") },
     );
   };
 
@@ -84,24 +115,24 @@ export function MyEditPage() {
               )}
             </div>
 
-            <label
-              htmlFor="profile-image"
-              className="absolute bottom-0 right-0 grid h-7 w-7 cursor-pointer place-items-center rounded-full border-2 border-white bg-white shadow-sm"
-            >
-              <img
-                src={EditIcon}
-                alt="프로필 이미지 변경"
-                className="h-4 w-4"
-              />
-            </label>
-
             <input
               id="profile-image"
               type="file"
               accept="image/*"
               onChange={handleProfileImageChange}
-              className="hidden"
+              className="peer sr-only"
             />
+
+            <label
+              htmlFor="profile-image"
+              className="absolute bottom-0 right-0 grid h-7 w-7 cursor-pointer place-items-center rounded-full border-2 border-white bg-white shadow-sm peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-[#2563eb] peer-focus-visible:ring-offset-2"
+            >
+              <img
+                src={EditIcon.src}
+                alt="프로필 이미지 변경"
+                className="h-4 w-4"
+              />
+            </label>
           </div>
 
           <p className="mt-3 text-sm font-semibold">프로필 이미지</p>
@@ -146,7 +177,7 @@ export function MyEditPage() {
             </label>
             <input
               id="email"
-              value={email}
+              value={member.email}
               readOnly
               className="h-12 w-full rounded-lg border border-[#d9dde5] bg-[#f6f7f9] px-3 text-sm text-[#606774]"
             />

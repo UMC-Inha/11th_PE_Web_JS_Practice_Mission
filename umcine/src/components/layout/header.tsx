@@ -1,10 +1,15 @@
-import { Link } from '@tanstack/react-router'
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
 
 export function Header() {
+  const pathname = usePathname();
   const accessToken = useAuthStore((state) => state.accessToken);
+
   const meQuery = useQuery({
     queryKey: ["members", "me"],
     queryFn: getMe,
@@ -13,23 +18,31 @@ export function Header() {
     retry: false,
   });
 
+  const getNavClassName = (href: string) =>
+    pathname === href ? "font-bold text-[#2563eb]" : "text-[#606774]";
+
   return (
     <header className="border-b border-[#e3e6eb] bg-white">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-10">
         <div className="flex items-center gap-10">
-          <Link to="/" className="flex items-center gap-2 text-lg font-extrabold text-[#17191e]">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-lg font-extrabold text-[#17191e]"
+          >
             <img className="h-[22px] w-[22px]" src="/icons/movie.svg" alt="" />
             <span>UMCine</span>
           </Link>
 
-          <nav className="flex items-center gap-7 text-sm text-[#606774]">
-            <Link to="/" activeProps={{ className: 'font-bold text-[#2563eb]' }}>
+          <nav className="flex items-center gap-7 text-sm">
+            <Link href="/" className={getNavClassName("/")}>
               영화
             </Link>
-            <Link to="/search" activeProps={{ className: 'font-bold text-[#2563eb]' }}>
+
+            <Link href="/search" className={getNavClassName("/search")}>
               검색
             </Link>
-            <Link to="/me" activeProps={{ className: "font-bold text-[#2563eb]" }}>
+
+            <Link href="/me" className={getNavClassName("/me")}>
               내 정보
             </Link>
           </nav>
@@ -37,7 +50,7 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <Link
-            to="/search"
+            href="/search"
             className="grid h-9 w-9 place-items-center rounded-md border border-[#e3e6eb] bg-white"
             aria-label="검색"
           >
@@ -45,14 +58,14 @@ export function Header() {
           </Link>
 
           {!accessToken ? (
-            <Link to="/login">로그인</Link>
+            <Link href="/login">로그인</Link>
           ) : meQuery.isLoading ? (
             <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
           ) : (
-            <Link to="/my">마이페이지</Link>
+            <Link href="/me">마이페이지</Link>
           )}
         </div>
       </div>
     </header>
-  )
+  );
 }
