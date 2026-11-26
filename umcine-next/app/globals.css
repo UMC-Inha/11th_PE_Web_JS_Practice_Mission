@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  /* 전역 폰트 지정: Tailwind preflight가 이 값을 기본 폰트로 사용함.
+     폰트 파일 자체는 layout.tsx에서 pretendard 패키지 CSS를 import해서 로드함 */
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+    sans-serif;
+}
