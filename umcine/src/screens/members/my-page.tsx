@@ -1,13 +1,20 @@
-import { Link } from "@tanstack/react-router";
-import { useProfileStore } from "../../stores/profile-store";
-import { useQueries } from "@tanstack/react-query";
+"use client";
+
+import Link from "next/link";
+
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { movieDetailQueryOptions } from "../../api/movies/movie-query-options";
+import { getMe } from "../../api/members/me";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { useFavoritesQuery } from "../../hooks/use-favorites";
 
 export function MyPage() {
-  const nickname = useProfileStore((state) => state.nickname);
-  const email = useProfileStore((state) => state.email);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
   const favoritesQuery = useFavoritesQuery();
 
   const bookmarkedMovieIds =
@@ -29,7 +36,7 @@ export function MyPage() {
         <h1 className="text-[28px] font-bold text-[#17191e]">내 정보</h1>
 
         <Link
-          to="/me-edit"
+          href="/me-edit"
           className="rounded-md bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white"
         >
           정보 수정
@@ -39,23 +46,31 @@ export function MyPage() {
       <section className="border-b border-[#e3e6eb] py-7">
         <h2 className="mb-4 text-sm font-bold text-[#17191e]">기본 정보</h2>
 
-        <div className="flex items-center gap-6">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-[#e3e6eb] text-2xl">
-            👤
-          </div>
+        {meQuery.isPending ? (
+          <p className="text-sm text-[#606774]">내 정보를 불러오는 중이에요.</p>
+        ) : meQuery.isError ? (
+          <p className="text-sm text-[#dc2626]">내 정보를 불러오지 못했어요.</p>
+        ) : (
+          <div className="flex items-center gap-6">
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-[#e3e6eb] text-2xl">
+              👤
+            </div>
 
-          <div>
-            <p className="text-xs text-[#969da8]">닉네임</p>
-            <p className="mt-1 text-sm font-semibold text-[#17191e]">
-              {nickname}
-            </p>
-          </div>
+            <div>
+              <p className="text-xs text-[#969da8]">닉네임</p>
+              <p className="mt-1 text-sm font-semibold text-[#17191e]">
+                {meQuery.data.nickname}
+              </p>
+            </div>
 
-          <div>
-            <p className="text-xs text-[#969da8]">이메일</p>
-            <p className="mt-1 text-sm font-semibold text-[#17191e]">{email}</p>
+            <div>
+              <p className="text-xs text-[#969da8]">이메일</p>
+              <p className="mt-1 text-sm font-semibold text-[#17191e]">
+                {meQuery.data.email}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       <section className="py-7">

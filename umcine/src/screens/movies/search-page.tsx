@@ -1,33 +1,42 @@
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { useState, type SubmitEvent } from 'react'
-import { movieSearchQueryOptions } from '../../api/movies/movie-query-options'
-import { BookmarkButton } from '../../components/bookmark-button'
-import { getTmdbPosterUrl } from '../../utils/movies/tmdb-image'
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useState, type SubmitEvent } from "react";
+import { movieSearchQueryOptions } from "../../api/movies/movie-query-options";
+import { BookmarkButton } from "../../components/bookmark-button";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
-  const { query } = useSearch({ from: '/search' })
-  const navigate = useNavigate({ from: '/search' })
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [searchText, setSearchText] = useState(query ?? '')
+  const query = searchParams?.get("query") ?? "";
+  const [searchText, setSearchText] = useState(query);
 
-  const normalizedQuery = query?.trim() ?? ''
+  const normalizedQuery = query.trim();
 
-  const searchQuery = useQuery(
-  movieSearchQueryOptions(normalizedQuery),
-)
+  const searchQuery = useQuery(movieSearchQueryOptions(normalizedQuery));
 
-  const searchResults = searchQuery.data?.results ?? []
+  const searchResults = searchQuery.data?.results ?? [];
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const nextQuery = searchText.trim()
-    navigate({ search: nextQuery ? { query: nextQuery } : {} })
+    event.preventDefault();
+
+    const nextQuery = searchText.trim();
+
+    if (nextQuery) {
+      router.push(`/search?query=${encodeURIComponent(nextQuery)}`);
+      return;
+    }
+
+    router.push("/search");
   }
 
   const searchForm = (fullWidth = false) => (
     <form
-      className={`flex items-center gap-3 rounded-lg border border-[#cbd1d9] bg-white px-4 shadow-sm focus-within:border-[#2563eb] focus-within:ring-4 focus-within:ring-blue-100 ${fullWidth ? 'w-full' : 'w-full max-w-[340px]'}`}
+      className={`flex items-center gap-3 rounded-lg border border-[#cbd1d9] bg-white px-4 shadow-sm focus-within:border-[#2563eb] focus-within:ring-4 focus-within:ring-blue-100 ${fullWidth ? "w-full" : "w-full max-w-[340px]"}`}
       onSubmit={handleSubmit}
     >
       <img className="h-4 w-4" src="/icons/search.svg" alt="" />
@@ -45,7 +54,7 @@ export function SearchPage() {
         검색
       </button>
     </form>
-  )
+  );
 
   if (!normalizedQuery) {
     return (
@@ -57,7 +66,7 @@ export function SearchPage() {
           {searchForm()}
         </section>
       </main>
-    )
+    );
   }
 
   return (
@@ -94,7 +103,7 @@ export function SearchPage() {
         ) : (
           <ul className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
             {searchResults.map((movie) => {
-              const posterUrl = getTmdbPosterUrl(movie.poster_path)
+              const posterUrl = getTmdbPosterUrl(movie.poster_path);
 
               return (
                 <li
@@ -128,19 +137,18 @@ export function SearchPage() {
                     </p>
                     <Link
                       className="mt-2 inline-block text-xs font-semibold text-[#2563eb] hover:underline"
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
+                      href={`/movies/${movie.id}`}
                     >
                       상세 보기 →
                     </Link>
                     <BookmarkButton movieId={movie.id} />
                   </div>
                 </li>
-              )
+              );
             })}
           </ul>
         )}
       </section>
     </main>
-  )
+  );
 }
